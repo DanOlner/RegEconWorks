@@ -1,0 +1,34 @@
+{
+    // Zenodo-specific metadata. This takes priority over CITATION.cff for Zenodo archiving.
+    // See: https://help.zenodo.org/docs/github/describe-software/zenodo-json/
+    "creators": [
+        {
+            "name": "Olner, Dan",
+            "orcid": "0000-0000-0000-0000",
+            "affiliation": "Your Affiliation"
+        }
+    ],
+    "title": "RegionalEconomicTools",
+    "version": "0.1.0",
+    "access_right": "open",
+    "license": "mit",
+    "upload_type": "software",
+    "language": "eng",
+    "keywords": [
+        "regional economics",
+        "subnational statistics",
+        "uncertainty",
+        "R"
+    ],
+    "related_identifiers": [
+        {
+            "identifier": "https://coveredinbees.org/",
+            "relation": "isDocumentedBy",
+            "resource_type": "publication-other"
+        }
+    ],
+    "communities": [
+        // Uncomment and fill in if you join a Zenodo community
+        // {"identifier": "your-community-slug"}
+    ]
+}

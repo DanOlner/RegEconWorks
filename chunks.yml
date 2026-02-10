@@ -1,0 +1,29 @@
+# Chunk manifest — machine-readable index of all modules in this project.
+# Update this file each time a chunk changes status or a new one is added.
+# Reference issue numbers for feedback; update DOIs after each Zenodo release.
+
+- name: Expected vs Observed Flows
+  slug: exp-obs-flows
+  status: draft          # draft | stable | superseded
+  canonical_url: https://coveredinbees.org/posts/...
+  doi:                   # Fill in after first Zenodo release containing this module
+  dependencies:
+    - R/flow_analysis.R
+    - data/example_flows.csv
+  paper_section: methods-section-2
+  feedback_from: []      # Log engagement, e.g.:
+    # - org: ONS Subnational
+    #   date: 2025-03-15
+    #   issue: 12
+    #   summary: "Confirmed LA-level data available from 2024"
+  policy_note: modules/expected-vs-observed/policy-note.md
+
+- name: Another Module
+  slug: another-module
+  status: draft
+  canonical_url:
+  doi:
+  dependencies: []
+  paper_section:
+  feedback_from: []
+  policy_note: modules/another-module/policy-note.md

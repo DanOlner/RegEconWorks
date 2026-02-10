@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software or analysis, please cite it using these metadata."
+authors:
+  - family-names: Olner
+    given-names: Dan
+    orcid: "https://orcid.org/XXXX-XXXX-XXXX-XXXX"
+title: "RegionalEconomicTools"
+version: 0.1.0
+date-released: "2025-02-10"
+license: MIT
+url: "https://github.com/DanOlner/RegionalEconomicTools"
+repository-code: "https://github.com/DanOlner/RegionalEconomicTools"
+keywords:
+  - regional economics
+  - subnational statistics
+  - R
