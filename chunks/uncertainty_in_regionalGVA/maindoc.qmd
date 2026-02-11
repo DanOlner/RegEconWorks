@@ -95,9 +95,11 @@ Are those reasonable questions to ask? Two points.
 
 2.  The alternative is working with the point data as if it was perfectly accurate. Seeing what difference error makes - even if there's error in our error - leads to quite different ways of thinking.
 
-## Chained volume data
+### Chained volume GVA: growth over time
 
-Chained volume data is used to assess real economic change over time, accounting for inflation and quality changes in goods. Change in CV values over time should represent actual growth or shrinkage in a particular sector and place. This section limits itself to asking how much the growth signal changes for individual sectors in specific ITL1s with the inclusion of error rates.
+Chained volume data is used to assess real economic change over time, accounting for inflation and quality changes in goods. Separate deflators are calculated for each sector within each region, with a single year set as the point where the chained volume and 'prices that year' amounts are the same. Other years are adjusted relative to that, for each sector/place combination. (As a result, each sector/place time series must be treated separately and cannot be summed.)
+
+Change in CV values over time should represent actual growth or shrinkage in a particular sector and place. This section limits itself to asking how much the growth signal changes for individual sectors in specific ITL1s with the inclusion of error rates.
 
 \[It doesn't use those errors to compare sectors across places... though might do this quickly... simulation again to add to CAGR\]
 
@@ -119,12 +121,26 @@ Let's talk through the default sector, fabricated metals, to make more sense of 
 
 -   Note, the grid is mirrored along the diagonal: here, orange squares are showing the same thing in reverse - earlier column years are clearly lower than some later ones.
 
-![Yorkshire & Humber GVA growth grid and growth over time, fabricated metals.](images/SY_growthgrid.png){@fig-ynhfab}
+![Yorkshire & Humber GVA growth grid and growth over time, fabricated metals.](images/YNH_growthgrid.png){#fig-ynhfab}
 
-Scotland shows the opposite pattern, which can be seen from its growth slope clearly too - bottom left orange squares indicate clearly lower values in the later part of the data. Figure @fig-eastmidsfab is showing that, while the later value increases appear separable from the low point around 2017, it can't be so easily distinguished from where it was from 2012 to 2016. Several other ITLs are purely grey. Looking at any of those shows combinations of wide error rates and fairly flat change over time, considering the range of those confidence intervals. The apparent drop in the North West after 2017, for example, isn't clearly separable, though it looks strong. Other sources could help support or question that apparent change.
+Scotland shows the opposite pattern, which can be seen from its growth slope clearly too - bottom left orange squares indicate clearly lower values in the later part of the data. @fig-eastmidsfab is showing that, while the later value increases appear separable from the low point around 2017, it can't be so easily distinguished from where it was from 2012 to 2016. Several other ITLs are purely grey. Looking at any of those shows combinations of wide error rates and fairly flat change over time, considering the range of those confidence intervals. The apparent drop in the North West after 2017, for example, isn't clearly separable, though it looks strong. Other sources could help support or question that apparent change.
 
-![East Midlands GVA growth grid and growth over time, fabricated metals](images/clipboard-2722118486.png){@fig-eastmidsfab}
+![East Midlands GVA growth grid and growth over time, fabricated metals](images/eastmids_growthgrid.png){#fig-eastmidsfab}
 
 Other notable patterns are discussed in a section at the end of this document.
 
 The binary cutoffs here are stark - this is a common issue with threshold-based statistical approaches... discuss pros and cons and say still probably better than the alternative. Consider these as part of decision-making under uncertainty. What does that look like?
+
+### Current prices GVA: location quotients
+
+Location quotients (LQs) are an intuitive as easy to calculate way to assess the relative strength of sectors in regions. It is the ratio of a sector's proportion of a region versus that sector's proportion of the UK as a whole. If, say, fabricated metals is 20% of a sub-region's GVA but only 10% nationally, it is twice as concentrated - the LQ is two[^3].
+
+[^3]: because (A/B)/(C/D) is equivalent to (A/C)/(B/D), the LQ actually captures two related ways of seeing the same thing: how relatively concentrated sectors are *across a whole geography* like the UK, and how concentrated *within a subgeography* like South Yorkshire they are. (See the desciption and table in the [ONS' older LQ document](https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/datasets/locationquotientdataandindustrialspecialisationforlocalauthorities).)
+
+Put LQ formula here.
+
+Current price (CP) GVA data can be used for LQs because (unlike CV) it *can* be summed, as it is just the money value of each sector's output recorded in that year. CP data can't show real growth over time, but it can be used to examine economic structural change - change in sector proportions relative to other sectors and places.
+
+LQs are (in theory) perfect for thinking about regional specialisms, and to comparison and ranking, making them an obvious fit for industrial strategy thinking. But they also carry the "single accurate value" issue over from the underlying GVA data. One single LQ value exists per sector/place combination in any year.
+
+Including error rates is slightly trickier with LQs because of the proportions it uses.
