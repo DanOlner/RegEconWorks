@@ -371,11 +371,11 @@
         ctx.fillStyle = "rgba(41, 128, 185, 0.08)";
         ctx.fillRect(x, y, w, h);
 
-        // Region label near cursor
-        regionLabel.textContent = hit.region;
-        regionLabel.style.display = "block";
-        regionLabel.style.left = (e.clientX - gridContainer.getBoundingClientRect().left + 12) + "px";
-        regionLabel.style.top  = (e.clientY - gridContainer.getBoundingClientRect().top - 10) + "px";
+        // Region label near cursor (commented out — redundant with popup header)
+        // regionLabel.textContent = hit.region;
+        // regionLabel.style.display = "block";
+        // regionLabel.style.left = (e.clientX - gridContainer.getBoundingClientRect().left + 12) + "px";
+        // regionLabel.style.top  = (e.clientY - gridContainer.getBoundingClientRect().top - 10) + "px";
         gridContainer.style.cursor = "pointer";
 
         // Update time series popup (only swap image if region changed)
