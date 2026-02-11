@@ -89,15 +89,13 @@ Below, I'll explore the implications of these error rates when applied both avai
 
 For both of those, the question is: "If the regional GVA data had the same error rates as the ABS, what would it look like and what would some implications for analysis be?"
 
-Are those reasonable questions to ask? Two points.
+Are those reasonable questions to ask? This is asking, "If the error rates were this, then..." For those sectors that match, it's a fair assumption that the ABS reasonably captures its uncertainty. The error may be smaller or larger, but including it is almost certainly more accurate than the alternative - working with the point data as if it was the single true value.
 
-1.  This is testing an "if then." If the error rates were this, then... For those sectors that match, I think it's a fair assumption that the ABS reasonably captures its uncertainty. Adding extra sources would be unlikely to reduce it much.
-
-2.  The alternative is working with the point data as if it was perfectly accurate. Seeing what difference error makes - even if there's error in our error - leads to quite different ways of thinking.
+Seeing what difference error makes - even if there's error in our error - leads to quite different ways of thinking.
 
 ### Chained volume GVA: growth over time
 
-Chained volume data is used to assess real economic change over time, accounting for inflation and quality changes in goods. Separate deflators are calculated for each sector within each region, with a single year set as the point where the chained volume and 'prices that year' amounts are the same. Other years are adjusted relative to that, for each sector/place combination. (As a result, each sector/place time series must be treated separately and cannot be summed.)
+Chained volume data is used to assess real economic change over time, accounting for inflation and quality changes in goods and services. Separate deflators are calculated for each sector within each region, with a single year set as the point where the chained volume and 'prices that year' amounts are the same. Other years are adjusted relative to that, for each sector/place combination. (As a result, each sector/place time series must be treated separately and cannot be summed.)
 
 Change in CV values over time should represent actual growth or shrinkage in a particular sector and place. This section limits itself to asking how much the growth signal changes for individual sectors in specific ITL1s with the inclusion of error rates.
 
@@ -107,11 +105,11 @@ Change in CV values over time should represent actual growth or shrinkage in a p
 
 -   The inclusion of error rates immediately makes it very rare for year-to-year changes to be distinguishable from zero. So instead, what each grid plot does is compare each year to every other year, to show where each is clearly separable.
 
--   The assumptions used (on top of the if/then above) are: 95% confidence intervals, and assuming that change isn't definitely present if the minimum from one year is lower than the maximum from another year (and vice versa). This is a conservative assumption that the true value[^2] could be at both confidence extremes between timepoints.
+-   The assumptions used (on top of the if/then above) are: 95% confidence intervals, and assuming that GVA change isn't clearly present if the possible minimum from one year is lower than the possible maximum from another year (and vice versa). This is a conservative assumption that the true value[^2] could be at both confidence extremes between timepoints.
 
 [^2]: 'True value' being used as shorthand for the cumbersome '95% confidence interval would contain the true value 95% of the time if the survey sample was taken again'. \[ONS source...\]
 
-Let's talk through the default sector, fabricated metals, to make more sense of that. Consider the example in @fig-ynhfab - in the interactive, hover over Yorkshire and Humber to see its growth over time. What this shows:
+Let's talk through the default sector in the interactive, fabricated metals, to make more sense of that. Consider the example in @fig-ynhfab - in the interactive, hover over Yorkshire and Humber to see its growth over time. What this shows:
 
 -   Blue squares in the grid indicate that the column year was clearly higher than the row year it is compared to ('clearly' as described above).
 
@@ -123,7 +121,7 @@ Let's talk through the default sector, fabricated metals, to make more sense of 
 
 ![Yorkshire & Humber GVA growth grid and growth over time, fabricated metals.](images/YNH_growthgrid.png){#fig-ynhfab}
 
-Scotland shows the opposite pattern, which can be seen from its growth slope clearly too - bottom left orange squares indicate clearly lower values in the later part of the data. @fig-eastmidsfab is showing that, while the later value increases appear separable from the low point around 2017, it can't be so easily distinguished from where it was from 2012 to 2016. Several other ITLs are purely grey. Looking at any of those shows combinations of wide error rates and fairly flat change over time, considering the range of those confidence intervals. The apparent drop in the North West after 2017, for example, isn't clearly separable, though it looks strong. Other sources could help support or question that apparent change.
+Scotland shows the opposite pattern, which can be seen from its growth slope in the interactive clearly too - bottom left orange squares indicate clearly lower values in the later part of the data. @fig-eastmidsfab is showing that, while the later value increases appear separable from the low point around 2017, it can't be so easily distinguished from where it was from 2012 to 2016, despite the central estimates looking higher (they could well have been higher in the earlier period and lower in the later one). Several other ITLs are purely grey. Looking at any of those shows combinations of wide error rates and fairly flat change over time, considering the range of those confidence intervals. The apparent drop in the North West after 2017, for example, isn't clearly separable, though it looks strong. Other sources could help support or question that apparent change.
 
 ![East Midlands GVA growth grid and growth over time, fabricated metals](images/eastmids_growthgrid.png){#fig-eastmidsfab}
 
@@ -134,6 +132,16 @@ Other notable patterns are discussed in a section at the end of this document.
 Discussion:
 
 The binary cutoffs here are stark - this is a common issue with threshold-based statistical approaches... discuss pros and cons and say still probably better than the alternative. Consider these as part of decision-making under uncertainty. What does that look like?
+
+Arguments about where to put the level
+
+But not limited to single one, and there isn't a single 'correct' answer. The approach above can pull out very clearly strong growth signals. We could explore less conservative assumptions and compare to other sources. We could also use other methods - for example, there is likely information in the correlation between timepoints in @fig-eastmidsfab's latter high values that could change the picture.
+
+None of that changes the fundamental point: introducing uncertainty doesn't have to mean losing information. In fact it can be the reverse - revealing genuine signal in the noise.
+
+That even with large error ranges, the signal you get is highly valuable
+
+And arguably the risk of false positives is less than the opposite.
 
 ### Current prices GVA: location quotients
 
