@@ -113,6 +113,18 @@ Let's talk through the default sector, fabricated metals, to make more sense of 
 
 -   Blue squares in the grid indicate that the column year was clearly higher than the row year it is compared to ('clearly' as described above).
 
+-   We can see that 2020 to 2023 are clearly higher than the earlier years in the data, from 2012 to 2016, though the high peak in 2021 is the only year consistently separable from others. 2020 to 2023 are years where the confidence interval minimum is separable from the earlier CI maxima.
+
+-   The rest of the grey area is showing that, for the first half of the data from 2012 to 2017 - on the assumptions we have here - no clear growth signal is coming through.
+
 -   Note, the grid is mirrored along the diagonal: here, orange squares are showing the same thing in reverse - earlier column years are clearly lower than some later ones.
 
-[![Yorkshire & Humber GVA growth grid and growth over time, fabricated metals.](images/SY_growthgrid.png)](https://danolner.github.io/RegEconWorks/growth_errorgrids_viewer/)
+![Yorkshire & Humber GVA growth grid and growth over time, fabricated metals.](images/SY_growthgrid.png){@fig-ynhfab}
+
+Scotland shows the opposite pattern, which can be seen from its growth slope clearly too - bottom left orange squares indicate clearly lower values in the later part of the data. Figure @fig-eastmidsfab is showing that, while the later value increases appear separable from the low point around 2017, it can't be so easily distinguished from where it was from 2012 to 2016. Several other ITLs are purely grey. Looking at any of those shows combinations of wide error rates and fairly flat change over time, considering the range of those confidence intervals. The apparent drop in the North West after 2017, for example, isn't clearly separable, though it looks strong. Other sources could help support or question that apparent change.
+
+![East Midlands GVA growth grid and growth over time, fabricated metals](images/clipboard-2722118486.png){@fig-eastmidsfab}
+
+Other notable patterns are discussed in a section at the end of this document.
+
+The binary cutoffs here are stark - this is a common issue with threshold-based statistical approaches... discuss pros and cons and say still probably better than the alternative. Consider these as part of decision-making under uncertainty. What does that look like?
