@@ -76,7 +76,7 @@ The **Annual Business Survey (ABS)** is a good source that allows an educated gu
 
 > Of all the data sources used in regional GVA, the ABS has the greatest overall impact, representing around 71% of GVA(P) and 22% of GVA(I)... It includes elements corresponding to all three of the categories of data we wish to analyse: directly collected from businesses operating in a single region; weighted to represent non-sampled businesses; and apportioned to regions from UK-wide company information.
 
-Data comes direct from firms- there is much less reliance on some of the more [heroic assumptions](https://exobrain.coveredinbees.org/attachments/heroic-assumptions/) that go into other aspects of regional GVA. \[Roadmap: exploring the implications of assumptions for finance, telecoms and public sectors\].
+Data comes direct from firms - there is much less reliance on some of the more [heroic assumptions](https://exobrain.coveredinbees.org/attachments/heroic-assumptions/) that go into other aspects of regional GVA. \[Roadmap: exploring the implications of assumptions for finance, telecoms and public sectors\].
 
 The publically available ABS sources are broken into the [central estimate data](https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/datasets/uknonfinancialbusinesseconomyannualbusinesssurveyregionalresultssectionsas) and [error data](https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/datasets/uknonfinancialbusinesseconomyannualbusinesssurveyregionalresultsqualitymeasures)[^1] giving GVA values and standard errors at ITL1 geography level and 2-digit SIC sectors. Here, I convert GVA and standard errors from the ABS to coefficients of variation (proportion of error) and then apply them to the regional/sectoral GVA national accounts data at the same geogaphical scale, and where sectors are present in both sources (there are 73 that match once ABS sector categories are processed to match the region/sector data's bespoke SIC list). Only years available in both sources are used - 2012 to 2023.
 
@@ -103,7 +103,7 @@ Change in CV values over time should represent actual growth or shrinkage in a p
 
 \[It doesn't use those errors to compare sectors across places... though might do this quickly... simulation again to add to CAGR\]
 
-The [interactive here](https://danolner.github.io/RegEconWorks/growth_errorgrids_viewer/) provides a way to look at individual sectors across all twelve ITL1 zones.
+[This interactive web page](https://danolner.github.io/RegEconWorks/growth_errorgrids_viewer/) provides a way to look at individual sectors across all twelve ITL1 zones.
 
 -   The inclusion of error rates immediately makes it very rare for year-to-year changes to be distinguishable from zero. So instead, what each grid plot does is compare each year to every other year, to show where each is clearly separable.
 
@@ -127,7 +127,11 @@ Scotland shows the opposite pattern, which can be seen from its growth slope cle
 
 ![East Midlands GVA growth grid and growth over time, fabricated metals](images/eastmids_growthgrid.png){#fig-eastmidsfab}
 
+Within this way of looking, the impact of the COVID19 pandemic on land transport is [very visible](https://danolner.github.io/RegEconWorks/growth_errorgrids_viewer/?sector=Landtransport). Mid-pandemic drops show up as an orange 'column year lower than most other years' band. London stands out as the one place that hasn't yet seen a bounce-back, remaining significantly lower than other ITL1s.
+
 Other notable patterns are discussed in a section at the end of this document.
+
+Discussion:
 
 The binary cutoffs here are stark - this is a common issue with threshold-based statistical approaches... discuss pros and cons and say still probably better than the alternative. Consider these as part of decision-making under uncertainty. What does that look like?
 
@@ -137,10 +141,28 @@ Location quotients (LQs) are an intuitive as easy to calculate way to assess the
 
 [^3]: because (A/B)/(C/D) is equivalent to (A/C)/(B/D), the LQ actually captures two related ways of seeing the same thing: how relatively concentrated sectors are *across a whole geography* like the UK, and how concentrated *within a subgeography* like South Yorkshire they are. (See the desciption and table in the [ONS' older LQ document](https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/datasets/locationquotientdataandindustrialspecialisationforlocalauthorities).)
 
-Put LQ formula here.
+Current price (CP) GVA data can be used for LQs because (unlike CV) it *can* be summed, as it is just the money value of each sector's output recorded in that year. CP data can't show real growth over time, but it can be used to examine economic structural change - how much a sector/place combination has *relatively* grown in concentration (which could be due to growth in that sector or other sectors increasing in nominal value faster).
 
-Current price (CP) GVA data can be used for LQs because (unlike CV) it *can* be summed, as it is just the money value of each sector's output recorded in that year. CP data can't show real growth over time, but it can be used to examine economic structural change - change in sector proportions relative to other sectors and places.
+::: {.callout-note appearance="minimal"}
+## Location quotient
+
+$$
+\text{LQ}_{s,r} = \frac{\text{GVA}_{s,r} \;/\; \text{GVA}_{r}}{\text{GVA}_{s,\text{UK}} \;/\; \text{GVA}_{\text{UK}}}
+$$
+
+where $\text{GVA}_{s,r}$ is the GVA of sector $s$ in region $r$, $\text{GVA}_{r}$ is total GVA across all sectors in that region, and $\text{GVA}_{s,\text{UK}}$ and $\text{GVA}_{\text{UK}}$ are the corresponding UK-wide values. An LQ above 1 means the sector is more concentrated in that region than nationally; below 1, less so.
+:::
 
 LQs are (in theory) perfect for thinking about regional specialisms, and to comparison and ranking, making them an obvious fit for industrial strategy thinking. But they also carry the "single accurate value" issue over from the underlying GVA data. One single LQ value exists per sector/place combination in any year.
 
-Including error rates is slightly trickier with LQs because of the proportions it uses.
+Including error rates around an LQ is trickier than for direct GVA because it is a derived value - it doesn't make sense to apply confidence intervals to an LQ directly. The solution used here is to simulate what the range of the underlying GVA values could be, and then calculate LQs based on those simulated values (each a normally distributed range based on the standard errors applied from the ABS, adjusted to make sure no negative values arise as these could break the LQ formula). This is then repeated 500 times to produce a range of possible LQs, built on a spread of likely underlying GVA numbers.
+
+[Here's the interactive page](https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/) for looking at the results, starting again with fabricated metals LQs for each ITL1 and including 95% confidence intervals (see also @fig-lqfabs). Considering overlapping error rates, East and West Midlands and Yorkshire & the Humber might be seen as one 'high concentration' group not really separable from each other, with London and the South East separately at the 'low concentration' end. West Midlands also appears to have clearly the highest concentration. Other ITL1s are not so separable, and four have error bars crossing zero - if these are reasonable, there is no way to say if fabricated metals is more or less concentrated than average.
+
+![](images/fabmetals_LQs.png){#fig-lqfabs}
+
+The plot also [has an option](https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/?sector=Manufactureoffabricatedmetalproducts&view=twoyear) to compare LQs across five years, between 2017 and 2023. If overlapping error bars suggest the LQ for fabricated metals may not have significantly changed in many places, the East Midlands (real LQ increase), Scotland and the South East (a plausible decrease in both) do suggest real change.
+
+## Claude-code edits and additions
+
+-   Claude code added the LQ formula and the lines from "where GVA..." to "below 1, less so" in [Current prices GVA: location quotients].
