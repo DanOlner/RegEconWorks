@@ -1,0 +1,84 @@
+---
+title: "Why adding uncertainty into regional GVA is a good thing"
+author: "Dan Olner"
+date: last-modified
+format:
+  html:
+    toc: true
+    output-file: uncertainty-regional-gva.html
+  pdf:
+    toc: true
+    output-file: uncertainty-regional-gva.pdf
+bibliography: references.bib
+---
+
+## Headlines
+
+-   
+
+-   This is in large part due to the constrictions of the (globally agreed so extremely slow to change) System of National Accounts [@coyle2014].
+
+## Resources/links
+
+## Introduction: how to avoid chasing vampires off cliff edges
+
+In the movie 'The Lost Boys', David and his west-coast vampire buddies [race motorbikes across a misty landscape](https://youtu.be/DP_lSpeK69c?si=klxDzst0hVvV0QlY). Michael (as yet unaware of the blood-drinking habits of his new associates) tries to keep up with them. They egg him on - but then he spots the faint beam of a lighthouse, puts two and two together and barely avoids hurtling over a cliff edge.
+
+One might say David was claiming 'incredible certitude' [@manski2020] about the cliff's location. "Don't worry Micheal, it's definitely, definitely miles from here."
+
+If there's fog, what you do about that depends on what you think is going on / what else you feel certain about. But the fog matters, the fog itself is information. (i.e. fog near a cliff is different info to fog walking on an open moor).
+
+## Being constructive in a noisy argument
+
+... ?
+
+## Getting away from perfect sums
+
+The issues all stem from the same root: national accounts methods (1) are designed to analyse nations, not regions, and (2) are accounts. They have to balance, every part of the economy has to add up correctly and consistently - including across all UK regions. This forces a national-level, top-down straitjacket on regional numbers. Let's make a start in this post on one of the most important consequences of that:
+
+-   Accounts only report single values. It's all they *can* report. Uncertainty doesn't feature.
+
+Through this lens, the UK [grew by exactly](https://www.ons.gov.uk/economy/grossdomesticproductgdp/bulletins/gdpmonthlyestimateuk/november2025) 0.1% in the three months to November 2025. Uncertainty only enters via later revisions to those exact figures - the image here is [from the ONS](https://www.ons.gov.uk/economy/grossdomesticproductgdp/articles/communicatinggrossdomesticproduct/2020-04-16) showing how much revisions over time differ from initial numbers. These are very much *not* confidence intervals showing the underlying uncertainty in the data.
+
+And they try to do this work when [chancellors and shadow chancellors shout and point fingers](https://www.bbc.co.uk/news/articles/cwyp7v7r28yo) over every 0.1% revision. Argh.
+
+Or: the ONS have no choice here - the national accounts straitjacket...
+
+In the [ONS' method doc](https://www.ons.gov.uk/economy/grossvalueaddedgva/methodologies/regionalgrossvalueaddedbalancedqmi) for regional GVA, they explicitly say:
+
+> "The complex process by which GVA estimates are produced means that it is not currently possible to define the accuracy of the estimates... for example, through their standard errors. Therefore, the reliability of the estimates is measured by the extent of revisions."
+
+I think ONS are doing themselves a disservice here - they could certainly handle the complexity. It's just the 'accounting' point again: the assembly of national output involves so many moving parts, and the need for perfect [balancing](https://www.ons.gov.uk/economy/grossdomesticproductgdp/articles/recentchallengesofbalancingthethreeapproachesofgdp/2022-04-20) (however baroque) so built-in, there just isn't scope to do anything else with regional economic numbers.
+
+The uncertainty, however, hasn't gone away. In this post, I'll have a go at showing what difference the uncertainty could make to the numbers, if we could see it.
+
+That's a different (though of course linked) question from "If things are uncertain, how does that change how we should act?" I'll come to that one in a later post (I'm just reading Manski's [Lure of Incredible Certitude](https://www.cambridge.org/core/journals/economics-and-philosophy/article/abs/lure-of-incredible-certitude/A1F09783377B05F20B83543CD40C7639) to warm up for that).
+
+This is all a slightly alarming look back at the certitude I've built into my own work too. It's very difficult to resist, both methods-wise (single values is all we have, often) and what-policymakers-want-to-see-wise. One of my plots below ([code here](https://danolner.github.io/RegionalEconomicTools/gdp_gaps.html)) is a prime example: GVA per hour, ITL2 zones ranked! Who's up, who's down on the scoreboard??
+
+## Making an educated guess about the level of regional GVA uncertainty
+
+Data is available from the **Annual Business Survey (ABS)** that allows an educated guess of confidence bounds around the regional/sectoral GVA data we often use to characterise our economies.
+
+(For the ABS, [point data](https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/datasets/uknonfinancialbusinesseconomyannualbusinesssurveyregionalresultssectionsas) and [error data](https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/datasets/uknonfinancialbusinesseconomyannualbusinesssurveyregionalresultsqualitymeasures) are in different places and formats - [code/comments here](https://github.com/DanOlner/RegionalEconomicTools/blob/gh-pages/bits_of_code/ABS_error_rates.R) run through the fun of combining them. Final joined CSV is [here](https://github.com/DanOlner/RegionalEconomicTools/blob/gh-pages/data/abs_gva_se_combo.csv), to save others the pain, though it's just for GVA, not turnover etc.)
+
+The ABS is [designed](https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/methodologies/annualbusinesssurveyqmi) to capture sectoral and regional data at a reasonable resolution. And as the ONS [say](https://www.ons.gov.uk/economy/grossvalueaddedgva/articles/analysisoftheextentofmodellingandestimationinregionalgrossvalueadded/2018-03-28#principal-data-sources-used-in-regional-gross-value-added) in their fascinating breakdown (if you're into that kind of thing) of "observed/estimated/modelled components of regional GVA":
+
+> Of all the data sources used in regional GVA, the ABS has the greatest overall impact, representing around 71% of GVA(P) and 22% of GVA(I)... It includes elements corresponding to all three of the categories of data we wish to analyse: directly collected from businesses operating in a single region; weighted to represent non-sampled businesses; and apportioned to regions from UK-wide company information.
+
+We get data direct from firms. As that page says:
+
+> The ABS data are not used in the agriculture or finance industries, or for the non-market public services or activities of households.
+
+We'll come back to those exclusions in later posts. But here, it means we're using actual survey results, not relying on some of the more [heroic assumptions](https://exobrain.coveredinbees.org/attachments/heroic-assumptions/) estimation/modelling assumptions that go into other aspects of GVA.
+
+Here's what I've done.
+
+-   Used two sources for GVA output of (2-digit SIC) sectors in ITL1 regions (ye olde Government Office Regions):
+    -   The chained volume data (inflation-adjusted / deflated - we'll come back to that in a later post too, and note 'telecoms' below). This aims to tell us 'real' output changes over time. From these, we can ask, "Did this sector grow or shrink here?" We can do a few other things e.g. was its growth slope really steeper than other places?
+    -   The current prices data, which (being prices as they were in the year they were counted) can be summed, and used to look at location quotients (LQs) - how concentrated a sector is in each place. It's where we can get a good sense of the UK's economic structure, because it's possible to compare sizes across the UK. We'll have a go at adding error rates to LQs.
+-   For both of those - for sectors where there's a match between this and the ABS - I've transplanted the GVA error rates. We're asking: "If the regional GVA data had the same error rates as the ABS, what would it look like?"
+
+Is that a reasonable thing to do? Well - (1) it's an "if then." If the error rates were this, then... For those sectors that match, I think it's a fair assumption that the ABS reasonably captures its uncertainty. Adding extra sources would be unlikely to reduce it much. And (2) the alternative is working with the point data as if it was perfectly accurate. Seeing what difference error makes - even if there's error in our error - could well be more useful than pretending there's none.
+
+And as we'll see, adding uncertainty in leads to some quite different ways of thinking about regions. So.
