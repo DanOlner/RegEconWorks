@@ -16,6 +16,10 @@ bibliography: references.bib
 
 -   Make clear this is focused on thinking through regional econ strategy and what difference it makes for that specifically.
 
+## Report details
+
+-   LLM outputs (I am using Claude Code within the project folder) are kept separate from my own writing here within their own breakout boxes. Anything in a box is CC output, not my writing.
+
 ## Headlines
 
 -   
