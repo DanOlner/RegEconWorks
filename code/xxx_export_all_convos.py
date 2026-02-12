@@ -6,7 +6,7 @@ Usage:
     python export_all_convos.py /path/to/project    # specify project root
     python export_all_convos.py --convo-dir ~/.claude/projects/my-project  # point directly
 
-Outputs markdown files into <project_root>/llm_convos/
+Outputs markdown files into <project_root>/claudecode_convos/
 """
 
 import json
@@ -158,7 +158,7 @@ def main():
     print(f"  {convo_dir}", file=sys.stderr)
 
     # Create output directory
-    output_dir = project_root / "llm_convos"
+    output_dir = project_root / "claudecode_convos"
     output_dir.mkdir(exist_ok=True)
 
     # Process each conversation
