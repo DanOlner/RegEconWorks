@@ -48,3 +48,17 @@ renv::restore()
 ```
 
 You may need to make sure you're running the approriate R version.
+
+
+## Contributors
+
+Via the [All Contributors bot](https://allcontributors.org) and manual addition to the list for people without github accounts.
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
