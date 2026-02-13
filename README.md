@@ -1,11 +1,11 @@
-# Project Title
+# RegEconWorks
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
 
-**RegEconWorks** is a **modular research repo** (prototype) focused on thinking through some key regional economic ideas for UK regional policy.
+**RegEconWorks** is a **modular research repository** (prototype) focused on thinking through some key regional economic ideas for UK regional policy.
 
 - **Modular research repo?** Yup - the idea is to produce smaller, self-contained **chunks** of work (e.g. [this](https://danolner.github.io/RegEconWorks/chunks/uncertainty_in_regionalGVA/), written in the [](docs/chunks/) folder) that are *smaller than pre-prints* (those are [meant to be](https://www.ntu.ac.uk/media/documents/library/preprints_faq.pdf) "a complete (full draft version) manuscript shared with a public audience without peer review"). The idea: increase the granularity of open feedback opportunities, but have something chunky enough to have its own DOI, so there's a permanent record.
 - **Err. Why?** To try and increase the odds of conversations/work across institutional boundaries, while keeping it reproducible, iterative and able to acknowledge contributions from *any source*. (See the [feedback doc here](FEEDBACK.md) for ways to input - any feedback, however big or small, will end up below in the contributor list). Hopefully it can grow into other, larger work (including academic papers if that's useful), but chunks don't need to.
