@@ -16,11 +16,13 @@ bibliography: references.bib
 
 -   Far from just introducing less precision, including uncertainty in regional economic data leads to some quite different, useful ways of thinking about regions, grounded in what we do and don't know. It becomes possible to filter signal from noise.
 
--   This is not standard practice mostly due to the constrictions of the System of National Accounts (globally agreed so extremely slow to change) [@coyle2014]. But it is not an either/or situation. Both accounts single point data and error-bar approaches can be used.
+-   This is not standard practice mostly due to the constrictions of the System of National Accounts (globally agreed so extremely slow to change) [@coyle2014]. But it is not an either/or situation. Accounts' single point data and error-bar approaches can both be used.
 
--   
+-   This report applies UK Annual Business Survey uncertainty rates to region-by-industry GVA data to explore what the impact of uncertainty could be.
 
--   I might argue - it's more powerful, because it short-circuits many unhelpful ways of thinking about growth and industrial strategy (some built right into the foundation e.g. see the CIA Russia assessment).
+-   It argues uncertainty is powerful because it short-circuits many unhelpful ways of thinking about growth and industrial strategy, including spurious ranks.
+
+-   This first piece asks questions about what this might mean for regional economic thinking, with the aim of putting feedback and other work into a follow up article for the same project.
 
 ## Resources/links
 
