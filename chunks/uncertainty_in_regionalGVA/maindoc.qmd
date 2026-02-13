@@ -36,29 +36,39 @@ I have prepared two interactive web pages for each of the GVA sources discussed 
 
 ## Introduction: how to avoid chasing vampires off cliff edges
 
-In the movie 'The Lost Boys', David and his west-coast vampire buddies [race motorbikes across a misty landscape](https://youtu.be/DP_lSpeK69c?si=klxDzst0hVvV0QlY). Michael (as yet unaware of the blood-drinking habits of his new associates) tries to keep up with them. They egg him on - but then he spots the faint beam of a lighthouse, puts two and two together and barely avoids hurtling over a cliff edge.
+In the movie 'The Lost Boys', David and his west-coast vampire buddies [race motorbikes across a misty landscape](https://youtu.be/DP_lSpeK69c?si=klxDzst0hVvV0QlY). Michael (as yet unaware of the blood-drinking habits of his new associates) tries to keep up with them. David eggs Michael on - but then Michael spots the faint beam of a lighthouse, puts two and two together and barely avoids hurtling over a cliff edge.
 
-One might say David was claiming 'incredible certitude' [@manski2020] about the cliff's location. "Don't worry Micheal, it's definitely, definitely miles from here."
+One might say David was claiming 'incredible certitude' [@manski2020] about the cliff's location. "Don't worry Micheal, there's no cliff. Why would I be racing you otherwise? It's miles away. Definitely."
 
-If there's fog, what you do about that depends on what you think is going on / what else you feel certain about. But the fog matters, the fog itself is information. (i.e. fog near a cliff is different info to fog walking on an open moor).
+Had Michael not seen the lighthouse through the fog, he may have made a type II error, believed David's false negative - "no cliff here" - and raced on. (See @tbl-lostboys for a full type I / II error breakdown.)
 
-+-----------------------+-------------------------------+-----------------------------------------------+-----------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Reality               | Michael believes / acts as if | Error type                                    | The scene                                                                               | The policy analogy                                                                                                                                                                                                                                      |
-+=======================+===============================+===============================================+=========================================================================================+=========================================================================================================================================================================================================================================================+
-| **Cliff is NOT near** | "Cliff IS near"               | **Type I (false positive / false alarm)**     | Over-cautious braking when it was actually safe. Embarrassing, slower, but not deadly.  | A region's GVA figures look suspiciously volatile, so you hold off on a major investment decision. Turns out the numbers were fine — you were over-cautious, and the opportunity cost is real but recoverable.                                          |
-|                       |                               |                                               |                                                                                         |                                                                                                                                                                                                                                                         |
-|                       | (brakes hard, swerves)        |                                               |                                                                                         |                                                                                                                                                                                                                                                         |
-+-----------------------+-------------------------------+-----------------------------------------------+-----------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| **Cliff IS near**     | "Cliff is NOT near"           | **Type II (false negative / missed warning)** | The catastrophic one: he trusts David's "definitely miles away" and goes over the edge. | The numbers say Region A is outperforming Region B by 3%. Nobody checks the error bars. Policy redirects £50m of funding. The difference was noise. The money is spent, the damage is done, and nobody connects the outcome to the original bad number. |
-|                       |                               |                                               |                                                                                         |                                                                                                                                                                                                                                                         |
-|                       | (keeps speeding)              |                                               |                                                                                         |                                                                                                                                                                                                                                                         |
-+-----------------------+-------------------------------+-----------------------------------------------+-----------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Cliff NOT near        | "Cliff NOT near"              | Correct                                       | Keeps up, no harm.                                                                      | The data is solid, the policy is well-founded, resources flow to the right place. The boring, good outcome.                                                                                                                                             |
-+-----------------------+-------------------------------+-----------------------------------------------+-----------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Cliff IS near         | "Cliff IS near"               | Correct                                       | Sees the lighthouse, updates belief, avoids disaster.                                   | Someone asks "how uncertain is this number?", checks the ABS standard errors, finds the confidence intervals overlap massively, and the policy conversation shifts from "who's winning?" to "what can we actually distinguish from noise?"              |
-+-----------------------+-------------------------------+-----------------------------------------------+-----------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+If there's fog, what you do about that depends on what you think is going on and what else you feel certain about. But the fog itself is information. Without David's certitude, Michael would do the the same as the rest of us - slow down and check his surroundings.
+
+I am of course going to apply this clunky metaphor to regional economic policy. Decisions are being constantly made on the basis of David-level certitude. But what are the implications of that for how we steer through the economic fog? And what would the implications be if we took the fog seriously?
+
+The issue is already well-explored (see below), but there has been little attempt to measure the fog and think through its policy effects at regional level. This is especially vexatious for place-based policies including trying to get a solid grip on industrial strategy. As devolution deepens, the problems will only multiply. We need to better understand what we do and don't know, and what that means for aligning choices.
+
+Reasons this hasn't happened so far usually come down to the complexity of identifying uncertainty in a national accounts framework. It's true that the scale of the task is intimidating and onerous. But we don't have to jump straight in at the deep end. Here, I argue it's useful to explore the implications using some plausible, evidence-based 'if/then' scenarios about regional economic uncertainty. From that, it should be possible to iteratively explore policy implications.
+
+In this opening piece, I lay out the problem with 'incredible certitude' (as others have done before) and then present two examples of what applying uncertainty to regional GVA data could look like.
+
+I then ask some questions about what the policy and decision-making implications could be. I will leave those open to try and get feedback for the next chunk of this work, where I hope to flesh out how much difference uncertainty could make. I'll save some 'decision-making under uncertainty' sources for that section.
+
+Introducing uncertainty doesn't have to mean losing information. In fact it can be the reverse - revealing genuine signal in the noise, like a lighthouse in fog.
+
+## A quick note on attitude
+
+A few words on the spirit of this work, going back to [a point I was mulling back in 2018](https://coveredinbees.org.archived.website/node/485.html) about how we should approach criticism of economic ideas. I've just been re-reading a [2023 post by Richard Murphy](GDP%20are%20an%20honest%20attempt%20to%20do%20something%20that%20is%20conceptually%20and%20technically%20very%20difficult%20–%20and%20there%20are%20honest%20debates%20about%20what%20to%20include%20and%20what%20not%20to%20include.) about [imputed rent](https://en.wikipedia.org/wiki/Imputed_rent) (the rent that would be paid if owner-occupier houses were rented). The post starts with a GOTCHA claim: imputed rent isn't real! "10% of GDP is made up – it simply does not exist in the real world". Just another example, he says, showing how ridiculous national accounts are.
+
+A commenter [replies](https://www.taxresearch.org.uk/Blog/2023/02/14/10-or-gdp-is-made-up-it-simply-does-not-exist-in-the-real-world/#comment-920070):
+
+> I really do wish you’d dial back the language a bit! GDP are an honest attempt to do something that is conceptually and technically very difficult – and there are honest debates about what to include and what not to include.
+
+I want to keep myself firmly grounded in that respect for work done by much smarter people than me, in the ONS and other places, often under extreme pressure (see example below). The ONS has come under immense pressure, while doing phenomenal work with less money and a much harder survey landscape.
 
 ## Getting away from perfect sums
+
+National accounts are just that - national - and issues arise straight away from re-purposing those tools for subnational thinking.
 
 Certitude is built into the system of national accounts. Like all accounts, everything has to sum correctly - the ledger of inputs and outputs must all balance exactly. It's a powerful, mature system that has grown to become part of global governance structures. As the latest SNA (2025 front page [says](https://unstats.un.org/unsd/nationalaccount/sna2025.asp), the goal is to:
 
@@ -187,20 +197,49 @@ The plot also [has an option](https://danolner.github.io/RegEconWorks/lq-errorba
 
 ## Discussion and next steps
 
-Discussion:
+This end discussion covers two things:
 
-The binary cutoffs here are stark - this is a common issue with threshold-based statistical approaches... discuss pros and cons and say still probably better than the alternative. Consider these as part of decision-making under uncertainty. What does that look like?
+1.  What the next step - thinking through implications for regional economic policy - might look like. That includes asking some open questions.
+2.  What else could be done to add uncertainty to economic data.
 
-Arguments about where to put the level
+### Next step: what are the implications for regional economic thinking if we take uncertainty seriously?
 
-But not limited to single one, and there isn't a single 'correct' answer. The approach above can pull out very clearly strong growth signals. We could explore less conservative assumptions and compare to other sources. We could also use other methods - for example, there is likely information in the correlation between timepoints in @fig-eastmidsfab's latter high values that could change the picture.
+How might it change what we do? There are two aspects to this. One: examining how more uncertain data differs to the single-point data and discussing what that could mean. Implications will be best tested at the point decisions are being mulled, including current industrial strategy choices. It is less theoretical, but more iterative and test/learn-oriented.
 
-None of that changes the fundamental point: introducing uncertainty doesn't have to mean losing information. In fact it can be the reverse - revealing genuine signal in the noise.
+Two: there is a vast body of theoretical work to consider under a "planning under conditions of deep uncertainty" @haasnoot2013 heading. Game-theoretic ideas, Manski's application of minimax regret @stoye2012, a full dive into cybernetic thinking, trying to comprehend decision-making as algedonic (pain/pleasure) signals in a viable system.
 
-That even with large error ranges, the signal you get is highly valuable
+It may help to return to the 'avoid chasing vampires off cliffs' idea. This 'be afraid of type II errors' approach is embodied in the precuationary principle: "extra precaution is justified when false negatives are worse than false positives" @persson2016. But it's not always that way round - and issue that signal detection theory attempts to grapple with (see e.g. @simchon2026) - as it says [here](https://www.keiseruniversity.edu/signal-detection-theory/), we are trying to detect the signal in the noise and then act appropriately. The potential damage depends on if we think cliff edges are ahead, or if we unnecessarily travel at a snail's pace or go in an entirely wrong direction.
 
-And arguably the risk of false positives is less than the opposite.
+Choices are never binary in the way that type I/II thinking encourages, however. Micheal was making constant steering decisions as he proceeded - initially on a 'no cliff ahead' basis until new lighthouse information arrived. This has to be part of the thinking - how to use uncertain data to steer? That does raise cybernetic ideas again, but I don't feel confident that any theoretical framework would do better than test/learning in context.
 
-## Claude-code edits and additions
+### Possible further uncertainty if... thens
+
+Possible extensions to adding uncertainty to GVA and other economic data could include:
+
+-   Applying the same methods to lower geographies like ITL2 and 3 would require making assumptions about sample size, but - in the same spirit of if/then - that would be entirely doable, and could be simply applied through the sample-to-standard error conversion. It is one extra estimation step away from the work above though (as it would be if we combined sectors).
+
+-   Chained volume data could be used to compare different places to each other. For example, it should be possible to estimate how much more uncertain growth slopes ('compound annual growth rates' i.e. putting straight lines through change over time) could be. This would allow the equivalent question to be answered: "Has this sector in this place really grown more than elsewhere?" (This would build on the 'significance of growth slopes' work I have already done e.g. [here](https://danolner.github.io/RegionalEconomicTools/quarto_docs/Yorkshire_n_Humber_growthslope_catalogue_Nov2025.html), but that just uses standard OLS error rates sometimes with [Newey West](https://en.wikipedia.org/wiki/Newey–West_estimator) applied).
+
+-   Error values are supplied for hours worked from the annual population survey. Combined with the GVA numbers, it would be possible to place uncertainty on productivity numbers.
+
+-   Using other sources to estimate uncertainty in job counts. There's BRES, and also Companies House data - the latter with very large 'sample sizes'.
+
+-   Sensitivity testing around assumptions. There are no single 'correct' answers. The approach above can pull out very clearly strong growth signals, but one could explore less conservative assumptions and compare to other sources. We could also use other statistical methods - for example, there is likely information in the correlation between timepoints in @fig-eastmidsfab's latter high values that could change the picture.
+
+## LLM edits and additions
 
 -   Claude code added the LQ formula and the lines from "where GVA..." to "below 1, less so" in [Current prices GVA: location quotients].
+-   ChatGPT made @tbl-lostboys for me, from this prompt. I tweaked some of the text. "Consider the following two bits of text. (1) "Never confuse Type I and II errors again: Just remember that the Boy Who Cried Wolf caused both Type I & II errors, in that order. First everyone believed there was a wolf, when there wasn't. Next they believed there was no wolf, when there was. Substitute "effect" for "wolf" and you're done." And (2) "In the movie 'The Lost Boys', David and his west-coast vampire buddies race motorbikes across a foggy landscape. Michael (unaware of the blood-drinking habits of his new associates) tries to keep up with them. They egg him on - but then he spots the faint beam of a lighthouse, puts two and two together and barely avoids hurtling over a cliff edge. One might say David was claiming 'incredible certitude' (Manski) about the cliff's location. "Don't worry Micheal, it's definitely, definitely miles from here." Can you (1) put the lost boys quote in a type1/2 error context for me? And (2) search for other online sources/links that discuss examples of uncertainty and 'incredible certitude' and their implications?"
+
+## Appendix
+
+::: {#tablelostboys .callout-note appearance="minimal"}
+| Reality | Michael believes / acts as if | Error type | The scene |
+|------------------|------------------|------------------|------------------|
+| **Cliff is NOT near** | "Cliff IS near" (brakes hard, swerves) | **Type I (false positive / false alarm)** | Over-cautious braking when it was actually safe. Embarrassing, slower, but not deadly. |
+| **Cliff IS near** | "Cliff is NOT near" (keeps speeding) | **Type II (false negative / missed warning)** | The catastrophic one: he trusts David's "definitely miles away" and goes over the edge. |
+| Cliff NOT near | "Cliff NOT near" | Correct | Keeps up, no harm. |
+| Cliff IS near | "Cliff IS near" | Correct | Sees the lighthouse, updates belief, avoids disaster. Punches David. |
+
+: The Lost Boys cliff scene in type I / II error form {#tbl-lostboys}
+:::

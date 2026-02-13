@@ -102,6 +102,7 @@ window.Quarto = {
   <li><a href="#headlines" id="toc-headlines" class="nav-link" data-scroll-target="#headlines">Headlines</a></li>
   <li><a href="#resourceslinks" id="toc-resourceslinks" class="nav-link" data-scroll-target="#resourceslinks">Resources/links</a></li>
   <li><a href="#introduction-how-to-avoid-chasing-vampires-off-cliff-edges" id="toc-introduction-how-to-avoid-chasing-vampires-off-cliff-edges" class="nav-link" data-scroll-target="#introduction-how-to-avoid-chasing-vampires-off-cliff-edges">Introduction: how to avoid chasing vampires off cliff edges</a></li>
+  <li><a href="#a-quick-note-on-attitude" id="toc-a-quick-note-on-attitude" class="nav-link" data-scroll-target="#a-quick-note-on-attitude">A quick note on attitude</a></li>
   <li><a href="#getting-away-from-perfect-sums" id="toc-getting-away-from-perfect-sums" class="nav-link" data-scroll-target="#getting-away-from-perfect-sums">Getting away from perfect sums</a></li>
   <li><a href="#making-a-data-driven-guess-about-the-level-of-regional-gva-uncertainty" id="toc-making-a-data-driven-guess-about-the-level-of-regional-gva-uncertainty" class="nav-link" data-scroll-target="#making-a-data-driven-guess-about-the-level-of-regional-gva-uncertainty">Making a data-driven guess about the level of regional GVA uncertainty</a>
   <ul class="collapse">
@@ -109,8 +110,13 @@ window.Quarto = {
   <li><a href="#chained-volume-gva-growth-over-time" id="toc-chained-volume-gva-growth-over-time" class="nav-link" data-scroll-target="#chained-volume-gva-growth-over-time">Chained volume GVA: growth over time</a></li>
   <li><a href="#current-prices-gva-location-quotients" id="toc-current-prices-gva-location-quotients" class="nav-link" data-scroll-target="#current-prices-gva-location-quotients">Current prices GVA: location quotients</a></li>
   </ul></li>
-  <li><a href="#discussion-and-next-steps" id="toc-discussion-and-next-steps" class="nav-link" data-scroll-target="#discussion-and-next-steps">Discussion and next steps</a></li>
-  <li><a href="#claude-code-edits-and-additions" id="toc-claude-code-edits-and-additions" class="nav-link" data-scroll-target="#claude-code-edits-and-additions">Claude-code edits and additions</a></li>
+  <li><a href="#discussion-and-next-steps" id="toc-discussion-and-next-steps" class="nav-link" data-scroll-target="#discussion-and-next-steps">Discussion and next steps</a>
+  <ul class="collapse">
+  <li><a href="#next-step-what-are-the-implications-for-regional-economic-thinking-if-we-take-uncertainty-seriously" id="toc-next-step-what-are-the-implications-for-regional-economic-thinking-if-we-take-uncertainty-seriously" class="nav-link" data-scroll-target="#next-step-what-are-the-implications-for-regional-economic-thinking-if-we-take-uncertainty-seriously">Next step: what are the implications for regional economic thinking if we take uncertainty seriously?</a></li>
+  <li><a href="#possible-further-uncertainty-if-thens" id="toc-possible-further-uncertainty-if-thens" class="nav-link" data-scroll-target="#possible-further-uncertainty-if-thens">Possible further uncertainty if… thens</a></li>
+  </ul></li>
+  <li><a href="#llm-edits-and-additions" id="toc-llm-edits-and-additions" class="nav-link" data-scroll-target="#llm-edits-and-additions">LLM edits and additions</a></li>
+  <li><a href="#appendix" id="toc-appendix" class="nav-link" data-scroll-target="#appendix">Appendix</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="uncertainty-regional-gva.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
@@ -172,62 +178,29 @@ window.Quarto = {
 </section>
 <section id="introduction-how-to-avoid-chasing-vampires-off-cliff-edges" class="level2">
 <h2 class="anchored" data-anchor-id="introduction-how-to-avoid-chasing-vampires-off-cliff-edges">Introduction: how to avoid chasing vampires off cliff edges</h2>
-<p>In the movie ‘The Lost Boys’, David and his west-coast vampire buddies <a href="https://youtu.be/DP_lSpeK69c?si=klxDzst0hVvV0QlY">race motorbikes across a misty landscape</a>. Michael (as yet unaware of the blood-drinking habits of his new associates) tries to keep up with them. They egg him on - but then he spots the faint beam of a lighthouse, puts two and two together and barely avoids hurtling over a cliff edge.</p>
-<p>One might say David was claiming ‘incredible certitude’ <span class="citation" data-cites="manski2020">(<a href="#ref-manski2020" role="doc-biblioref">Manski 2020</a>)</span> about the cliff’s location. “Don’t worry Micheal, it’s definitely, definitely miles from here.”</p>
-<p>If there’s fog, what you do about that depends on what you think is going on / what else you feel certain about. But the fog matters, the fog itself is information. (i.e.&nbsp;fog near a cliff is different info to fog walking on an open moor).</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 5%">
-<col style="width: 7%">
-<col style="width: 10%">
-<col style="width: 20%">
-<col style="width: 55%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Reality</th>
-<th>Michael believes / acts as if</th>
-<th>Error type</th>
-<th>The scene</th>
-<th>The policy analogy</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>Cliff is NOT near</strong></td>
-<td><p>“Cliff IS near”</p>
-<p>(brakes hard, swerves)</p></td>
-<td><strong>Type I (false positive / false alarm)</strong></td>
-<td>Over-cautious braking when it was actually safe. Embarrassing, slower, but not deadly.</td>
-<td>A region’s GVA figures look suspiciously volatile, so you hold off on a major investment decision. Turns out the numbers were fine — you were over-cautious, and the opportunity cost is real but recoverable.</td>
-</tr>
-<tr class="even">
-<td><strong>Cliff IS near</strong></td>
-<td><p>“Cliff is NOT near”</p>
-<p>(keeps speeding)</p></td>
-<td><strong>Type II (false negative / missed warning)</strong></td>
-<td>The catastrophic one: he trusts David’s “definitely miles away” and goes over the edge.</td>
-<td>The numbers say Region A is outperforming Region B by 3%. Nobody checks the error bars. Policy redirects £50m of funding. The difference was noise. The money is spent, the damage is done, and nobody connects the outcome to the original bad number.</td>
-</tr>
-<tr class="odd">
-<td>Cliff NOT near</td>
-<td>“Cliff NOT near”</td>
-<td>Correct</td>
-<td>Keeps up, no harm.</td>
-<td>The data is solid, the policy is well-founded, resources flow to the right place. The boring, good outcome.</td>
-</tr>
-<tr class="even">
-<td>Cliff IS near</td>
-<td>“Cliff IS near”</td>
-<td>Correct</td>
-<td>Sees the lighthouse, updates belief, avoids disaster.</td>
-<td>Someone asks “how uncertain is this number?”, checks the ABS standard errors, finds the confidence intervals overlap massively, and the policy conversation shifts from “who’s winning?” to “what can we actually distinguish from noise?”</td>
-</tr>
-</tbody>
-</table>
+<p>In the movie ‘The Lost Boys’, David and his west-coast vampire buddies <a href="https://youtu.be/DP_lSpeK69c?si=klxDzst0hVvV0QlY">race motorbikes across a misty landscape</a>. Michael (as yet unaware of the blood-drinking habits of his new associates) tries to keep up with them. David eggs Michael on - but then Michael spots the faint beam of a lighthouse, puts two and two together and barely avoids hurtling over a cliff edge.</p>
+<p>One might say David was claiming ‘incredible certitude’ <span class="citation" data-cites="manski2020">(<a href="#ref-manski2020" role="doc-biblioref">Manski 2020</a>)</span> about the cliff’s location. “Don’t worry Micheal, there’s no cliff. Why would I be racing you otherwise? It’s miles away. Definitely.”</p>
+<p>Had Michael not seen the lighthouse through the fog, he may have made a type II error, believed David’s false negative - “no cliff here” - and raced on. (See <a href="#tbl-lostboys" class="quarto-xref">Table&nbsp;1</a> for a full type I / II error breakdown.)</p>
+<p>If there’s fog, what you do about that depends on what you think is going on and what else you feel certain about. But the fog itself is information. Without David’s certitude, Michael would do the the same as the rest of us - slow down and check his surroundings.</p>
+<p>I am of course going to apply this clunky metaphor to regional economic policy. Decisions are being constantly made on the basis of David-level certitude. But what are the implications of that for how we steer through the economic fog? And what would the implications be if we took the fog seriously?</p>
+<p>The issue is already well-explored (see below), but there has been little attempt to measure the fog and think through its policy effects at regional level. This is especially vexatious for place-based policies including trying to get a solid grip on industrial strategy. As devolution deepens, the problems will only multiply. We need to better understand what we do and don’t know, and what that means for aligning choices.</p>
+<p>Reasons this hasn’t happened so far usually come down to the complexity of identifying uncertainty in a national accounts framework. It’s true that the scale of the task is intimidating and onerous. But we don’t have to jump straight in at the deep end. Here, I argue it’s useful to explore the implications using some plausible, evidence-based ‘if/then’ scenarios about regional economic uncertainty. From that, it should be possible to iteratively explore policy implications.</p>
+<p>In this opening piece, I lay out the problem with ‘incredible certitude’ (as others have done before) and then present two examples of what applying uncertainty to regional GVA data could look like.</p>
+<p>I then ask some questions about what the policy and decision-making implications could be. I will leave those open to try and get feedback for the next chunk of this work, where I hope to flesh out how much difference uncertainty could make. I’ll save some ‘decision-making under uncertainty’ sources for that section.</p>
+<p>Introducing uncertainty doesn’t have to mean losing information. In fact it can be the reverse - revealing genuine signal in the noise, like a lighthouse in fog.</p>
+</section>
+<section id="a-quick-note-on-attitude" class="level2">
+<h2 class="anchored" data-anchor-id="a-quick-note-on-attitude">A quick note on attitude</h2>
+<p>A few words on the spirit of this work, going back to <a href="https://coveredinbees.org.archived.website/node/485.html">a point I was mulling back in 2018</a> about how we should approach criticism of economic ideas. I’ve just been re-reading a <a href="GDP%20are%20an%20honest%20attempt%20to%20do%20something%20that%20is%20conceptually%20and%20technically%20very%20difficult%20–%20and%20there%20are%20honest%20debates%20about%20what%20to%20include%20and%20what%20not%20to%20include.">2023 post by Richard Murphy</a> about <a href="https://en.wikipedia.org/wiki/Imputed_rent">imputed rent</a> (the rent that would be paid if owner-occupier houses were rented). The post starts with a GOTCHA claim: imputed rent isn’t real! “10% of GDP is made up – it simply does not exist in the real world”. Just another example, he says, showing how ridiculous national accounts are.</p>
+<p>A commenter <a href="https://www.taxresearch.org.uk/Blog/2023/02/14/10-or-gdp-is-made-up-it-simply-does-not-exist-in-the-real-world/#comment-920070">replies</a>:</p>
+<blockquote class="blockquote">
+<p>I really do wish you’d dial back the language a bit! GDP are an honest attempt to do something that is conceptually and technically very difficult – and there are honest debates about what to include and what not to include.</p>
+</blockquote>
+<p>I want to keep myself firmly grounded in that respect for work done by much smarter people than me, in the ONS and other places, often under extreme pressure (see example below). The ONS has come under immense pressure, while doing phenomenal work with less money and a much harder survey landscape.</p>
 </section>
 <section id="getting-away-from-perfect-sums" class="level2">
 <h2 class="anchored" data-anchor-id="getting-away-from-perfect-sums">Getting away from perfect sums</h2>
+<p>National accounts are just that - national - and issues arise straight away from re-purposing those tools for subnational thinking.</p>
 <p>Certitude is built into the system of national accounts. Like all accounts, everything has to sum correctly - the ledger of inputs and outputs must all balance exactly. It’s a powerful, mature system that has grown to become part of global governance structures. As the latest SNA (2025 front page <a href="https://unstats.un.org/unsd/nationalaccount/sna2025.asp">says</a>, the goal is to:</p>
 <blockquote class="blockquote">
 <p>“… ensure the compilation of internationally comparable national accounts statistics according to best practice and in a consistent way, allowing policy makers to benchmark their economies.”</p>
@@ -362,19 +335,99 @@ Figure&nbsp;4
 </section>
 <section id="discussion-and-next-steps" class="level2">
 <h2 class="anchored" data-anchor-id="discussion-and-next-steps">Discussion and next steps</h2>
-<p>Discussion:</p>
-<p>The binary cutoffs here are stark - this is a common issue with threshold-based statistical approaches… discuss pros and cons and say still probably better than the alternative. Consider these as part of decision-making under uncertainty. What does that look like?</p>
-<p>Arguments about where to put the level</p>
-<p>But not limited to single one, and there isn’t a single ‘correct’ answer. The approach above can pull out very clearly strong growth signals. We could explore less conservative assumptions and compare to other sources. We could also use other methods - for example, there is likely information in the correlation between timepoints in <a href="#fig-eastmidsfab" class="quarto-xref">Figure&nbsp;3</a>’s latter high values that could change the picture.</p>
-<p>None of that changes the fundamental point: introducing uncertainty doesn’t have to mean losing information. In fact it can be the reverse - revealing genuine signal in the noise.</p>
-<p>That even with large error ranges, the signal you get is highly valuable</p>
-<p>And arguably the risk of false positives is less than the opposite.</p>
+<p>This end discussion covers two things:</p>
+<ol type="1">
+<li>What the next step - thinking through implications for regional economic policy - might look like. That includes asking some open questions.</li>
+<li>What else could be done to add uncertainty to economic data.</li>
+</ol>
+<section id="next-step-what-are-the-implications-for-regional-economic-thinking-if-we-take-uncertainty-seriously" class="level3">
+<h3 class="anchored" data-anchor-id="next-step-what-are-the-implications-for-regional-economic-thinking-if-we-take-uncertainty-seriously">Next step: what are the implications for regional economic thinking if we take uncertainty seriously?</h3>
+<p>How might it change what we do? There are two aspects to this. One: examining how more uncertain data differs to the single-point data and discussing what that could mean. Implications will be best tested at the point decisions are being mulled, including current industrial strategy choices. It is less theoretical, but more iterative and test/learn-oriented.</p>
+<p>Two: there is a vast body of theoretical work to consider under a “planning under conditions of deep uncertainty” <span class="citation" data-cites="haasnoot2013">Haasnoot et al. (<a href="#ref-haasnoot2013" role="doc-biblioref">2013</a>)</span> heading. Game-theoretic ideas, Manski’s application of minimax regret <span class="citation" data-cites="stoye2012">Stoye (<a href="#ref-stoye2012" role="doc-biblioref">2012</a>)</span>, a full dive into cybernetic thinking, trying to comprehend decision-making as algedonic (pain/pleasure) signals in a viable system.</p>
+<p>It may help to return to the ‘avoid chasing vampires off cliffs’ idea. This ‘be afraid of type II errors’ approach is embodied in the precuationary principle: “extra precaution is justified when false negatives are worse than false positives” <span class="citation" data-cites="persson2016">Persson (<a href="#ref-persson2016" role="doc-biblioref">2016</a>)</span>. But it’s not always that way round - and issue that signal detection theory attempts to grapple with (see e.g. <span class="citation" data-cites="simchon2026">Simchon et al. (<a href="#ref-simchon2026" role="doc-biblioref">2026</a>)</span>) - as it says <a href="https://www.keiseruniversity.edu/signal-detection-theory/">here</a>, we are trying to detect the signal in the noise and then act appropriately. The potential damage depends on if we think cliff edges are ahead, or if we unnecessarily travel at a snail’s pace or go in an entirely wrong direction.</p>
+<p>Choices are never binary in the way that type I/II thinking encourages, however. Micheal was making constant steering decisions as he proceeded - initially on a ‘no cliff ahead’ basis until new lighthouse information arrived. This has to be part of the thinking - how to use uncertain data to steer? That does raise cybernetic ideas again, but I don’t feel confident that any theoretical framework would do better than test/learning in context.</p>
 </section>
-<section id="claude-code-edits-and-additions" class="level2">
-<h2 class="anchored" data-anchor-id="claude-code-edits-and-additions">Claude-code edits and additions</h2>
+<section id="possible-further-uncertainty-if-thens" class="level3">
+<h3 class="anchored" data-anchor-id="possible-further-uncertainty-if-thens">Possible further uncertainty if… thens</h3>
+<p>Possible extensions to adding uncertainty to GVA and other economic data could include:</p>
+<ul>
+<li><p>Applying the same methods to lower geographies like ITL2 and 3 would require making assumptions about sample size, but - in the same spirit of if/then - that would be entirely doable, and could be simply applied through the sample-to-standard error conversion. It is one extra estimation step away from the work above though (as it would be if we combined sectors).</p></li>
+<li><p>Chained volume data could be used to compare different places to each other. For example, it should be possible to estimate how much more uncertain growth slopes (‘compound annual growth rates’ i.e.&nbsp;putting straight lines through change over time) could be. This would allow the equivalent question to be answered: “Has this sector in this place really grown more than elsewhere?” (This would build on the ‘significance of growth slopes’ work I have already done e.g.&nbsp;<a href="https://danolner.github.io/RegionalEconomicTools/quarto_docs/Yorkshire_n_Humber_growthslope_catalogue_Nov2025.html">here</a>, but that just uses standard OLS error rates sometimes with <a href="https://en.wikipedia.org/wiki/Newey–West_estimator">Newey West</a> applied).</p></li>
+<li><p>Error values are supplied for hours worked from the annual population survey. Combined with the GVA numbers, it would be possible to place uncertainty on productivity numbers.</p></li>
+<li><p>Using other sources to estimate uncertainty in job counts. There’s BRES, and also Companies House data - the latter with very large ‘sample sizes’.</p></li>
+<li><p>Sensitivity testing around assumptions. There are no single ‘correct’ answers. The approach above can pull out very clearly strong growth signals, but one could explore less conservative assumptions and compare to other sources. We could also use other statistical methods - for example, there is likely information in the correlation between timepoints in <a href="#fig-eastmidsfab" class="quarto-xref">Figure&nbsp;3</a>’s latter high values that could change the picture.</p></li>
+</ul>
+</section>
+</section>
+<section id="llm-edits-and-additions" class="level2">
+<h2 class="anchored" data-anchor-id="llm-edits-and-additions">LLM edits and additions</h2>
 <ul>
 <li>Claude code added the LQ formula and the lines from “where GVA…” to “below 1, less so” in <a href="#current-prices-gva-location-quotients">Current prices GVA: location quotients</a>.</li>
+<li>ChatGPT output <a href="#tbl-lostboys" class="quarto-xref">Table&nbsp;1</a> for me, from this prompt. I tweaked some of the text. “Consider the following two bits of text. (1)”Never confuse Type I and II errors again: Just remember that the Boy Who Cried Wolf caused both Type I &amp; II errors, in that order. First everyone believed there was a wolf, when there wasn’t. Next they believed there was no wolf, when there was. Substitute “effect” for “wolf” and you’re done.” And (2) “In the movie ‘The Lost Boys’, David and his west-coast vampire buddies race motorbikes across a foggy landscape. Michael (unaware of the blood-drinking habits of his new associates) tries to keep up with them. They egg him on - but then he spots the faint beam of a lighthouse, puts two and two together and barely avoids hurtling over a cliff edge. One might say David was claiming ‘incredible certitude’ (Manski) about the cliff’s location.”Don’t worry Micheal, it’s definitely, definitely miles from here.” Can you (1) put the lost boys quote in a type1/2 error context for me? And (2) search for other online sources/links that discuss examples of uncertainty and ‘incredible certitude’ and their implications?”</li>
 </ul>
+</section>
+<section id="appendix" class="level2">
+<h2 class="anchored" data-anchor-id="appendix">Appendix</h2>
+<div id="tablelostboys" class="callout callout-style-simple callout-note no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<div id="tbl-lostboys" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-lostboys-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: The Lost Boys cliff scene in type I / II error form
+</figcaption>
+<div aria-describedby="tbl-lostboys-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Reality</th>
+<th>Michael believes / acts as if</th>
+<th>Error type</th>
+<th>The scene</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Cliff is NOT near</strong></td>
+<td>“Cliff IS near” (brakes hard, swerves)</td>
+<td><strong>Type I (false positive / false alarm)</strong></td>
+<td>Over-cautious braking when it was actually safe. Embarrassing, slower, but not deadly.</td>
+</tr>
+<tr class="even">
+<td><strong>Cliff IS near</strong></td>
+<td>“Cliff is NOT near” (keeps speeding)</td>
+<td><strong>Type II (false negative / missed warning)</strong></td>
+<td>The catastrophic one: he trusts David’s “definitely miles away” and goes over the edge.</td>
+</tr>
+<tr class="odd">
+<td>Cliff NOT near</td>
+<td>“Cliff NOT near”</td>
+<td>Correct</td>
+<td>Keeps up, no harm.</td>
+</tr>
+<tr class="even">
+<td>Cliff IS near</td>
+<td>“Cliff IS near”</td>
+<td>Correct</td>
+<td>Sees the lighthouse, updates belief, avoids disaster. Punches David.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</div>
+</div>
+</div>
 
 </section>
 
@@ -389,8 +442,20 @@ Coyle, Diane. 2014. <em>GDP: A Brief but Affectionate History</em>. Princeton Un
 <div id="ref-galvão2024" class="csl-entry" role="listitem">
 Galvão, Ana Beatriz, and James Mitchell. 2024. <span>“Communicating Data Uncertainty: Multiwave Experimental Evidence for UK GDP.”</span> <em>Journal of Money, Credit and Banking</em> 56 (1): 81–114. <a href="https://doi.org/10.1111/jmcb.13044">https://doi.org/10.1111/jmcb.13044</a>.
 </div>
+<div id="ref-haasnoot2013" class="csl-entry" role="listitem">
+Haasnoot, Marjolijn, Jan H. Kwakkel, Warren E. Walker, and Judith ter Maat. 2013. <span>“Dynamic Adaptive Policy Pathways: A Method for Crafting Robust Decisions for a Deeply Uncertain World.”</span> <em>Global Environmental Change</em> 23 (2): 485–98. <a href="https://doi.org/10.1016/j.gloenvcha.2012.12.006">https://doi.org/10.1016/j.gloenvcha.2012.12.006</a>.
+</div>
 <div id="ref-manski2020" class="csl-entry" role="listitem">
 Manski, Charles F. 2020. <span>“The lure of incredible certitude.”</span> <em>Economics and philosophy</em> 36 (2): 216245. <a href="https://doi.org/10.1017/S0266267119000105">https://doi.org/10.1017/S0266267119000105</a>.
+</div>
+<div id="ref-persson2016" class="csl-entry" role="listitem">
+Persson, Erik. 2016. <span>“What Are the Core Ideas Behind the Precautionary Principle?”</span> <em>Science of The Total Environment</em> 557-558 (July): 134–41. <a href="https://doi.org/10.1016/j.scitotenv.2016.03.034">https://doi.org/10.1016/j.scitotenv.2016.03.034</a>.
+</div>
+<div id="ref-simchon2026" class="csl-entry" role="listitem">
+Simchon, Almog, Tomer Zipori, Louis Teitelbaum, Stephan Lewandowsky, and Sander van der Linden. 2026. <span>“A Signal Detection Theory Meta-Analysis of Psychological Inoculation Against Misinformation.”</span> <em>Current Opinion in Psychology</em> 67 (February): 102194. <a href="https://doi.org/10.1016/j.copsyc.2025.102194">https://doi.org/10.1016/j.copsyc.2025.102194</a>.
+</div>
+<div id="ref-stoye2012" class="csl-entry" role="listitem">
+Stoye, Jörg. 2012. <span>“Minimax Regret Treatment Choice with Covariates or with Limited Validity of Experiments.”</span> <em>Journal of Econometrics</em>, Annals issue on <span>“identification and decisions,”</span> in honor of chuck manski’s 60th birthday, 166 (1): 138–56. <a href="https://doi.org/10.1016/j.jeconom.2011.06.012">https://doi.org/10.1016/j.jeconom.2011.06.012</a>.
 </div>
 </div></section><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
 
