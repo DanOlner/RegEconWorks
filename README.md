@@ -40,13 +40,7 @@ If you use this software or analysis, please cite it via the DOI above or see th
 
 ## How to Give Feedback
 
-Feedback of all kinds is welcome — questions, suggestions, corrections, challenges.
-
-- **GitHub Issues**: [Open an issue](../../issues) (needs a free GitHub account)
-- **GitHub Discussions**: [Join the conversation](../../discussions)
-- **Email**: [your@email.com](mailto:your@email.com)
-- **LinkedIn**: [Your LinkedIn profile](https://linkedin.com/in/yourprofile)
-
+See the [feedback doc here](FEEDBACK.md) for ways to input/comment - any feedback, however big or small, will end up below in the contributor list.
 
 ## Related Outputs
 
