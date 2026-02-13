@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Dan Olner">
-<meta name="dcterms.date" content="2026-02-12">
+<meta name="dcterms.date" content="2026-02-13">
 
 <title>Why adding uncertainty into regional GVA is a good thing</title>
 <style>
@@ -98,18 +98,18 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#things-to-stick-in" id="toc-things-to-stick-in" class="nav-link active" data-scroll-target="#things-to-stick-in">Things to stick in</a></li>
-  <li><a href="#report-details" id="toc-report-details" class="nav-link" data-scroll-target="#report-details">Report details</a></li>
+  <li><a href="#report-details" id="toc-report-details" class="nav-link active" data-scroll-target="#report-details">Report details</a></li>
   <li><a href="#headlines" id="toc-headlines" class="nav-link" data-scroll-target="#headlines">Headlines</a></li>
   <li><a href="#resourceslinks" id="toc-resourceslinks" class="nav-link" data-scroll-target="#resourceslinks">Resources/links</a></li>
   <li><a href="#introduction-how-to-avoid-chasing-vampires-off-cliff-edges" id="toc-introduction-how-to-avoid-chasing-vampires-off-cliff-edges" class="nav-link" data-scroll-target="#introduction-how-to-avoid-chasing-vampires-off-cliff-edges">Introduction: how to avoid chasing vampires off cliff edges</a></li>
-  <li><a href="#being-constructive-in-a-noisy-argument" id="toc-being-constructive-in-a-noisy-argument" class="nav-link" data-scroll-target="#being-constructive-in-a-noisy-argument">Being constructive in a noisy argument</a></li>
   <li><a href="#getting-away-from-perfect-sums" id="toc-getting-away-from-perfect-sums" class="nav-link" data-scroll-target="#getting-away-from-perfect-sums">Getting away from perfect sums</a></li>
   <li><a href="#making-a-data-driven-guess-about-the-level-of-regional-gva-uncertainty" id="toc-making-a-data-driven-guess-about-the-level-of-regional-gva-uncertainty" class="nav-link" data-scroll-target="#making-a-data-driven-guess-about-the-level-of-regional-gva-uncertainty">Making a data-driven guess about the level of regional GVA uncertainty</a>
   <ul class="collapse">
+  <li><a href="#using-the-annual-business-survey" id="toc-using-the-annual-business-survey" class="nav-link" data-scroll-target="#using-the-annual-business-survey">Using the Annual Business Survey</a></li>
   <li><a href="#chained-volume-gva-growth-over-time" id="toc-chained-volume-gva-growth-over-time" class="nav-link" data-scroll-target="#chained-volume-gva-growth-over-time">Chained volume GVA: growth over time</a></li>
   <li><a href="#current-prices-gva-location-quotients" id="toc-current-prices-gva-location-quotients" class="nav-link" data-scroll-target="#current-prices-gva-location-quotients">Current prices GVA: location quotients</a></li>
   </ul></li>
+  <li><a href="#discussion-and-next-steps" id="toc-discussion-and-next-steps" class="nav-link" data-scroll-target="#discussion-and-next-steps">Discussion and next steps</a></li>
   <li><a href="#claude-code-edits-and-additions" id="toc-claude-code-edits-and-additions" class="nav-link" data-scroll-target="#claude-code-edits-and-additions">Claude-code edits and additions</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="uncertainty-regional-gva.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
@@ -135,7 +135,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 12, 2026</p>
+      <p class="date">February 13, 2026</p>
     </div>
   </div>
   
@@ -147,16 +147,10 @@ window.Quarto = {
 </header>
 
 
-<section id="things-to-stick-in" class="level2">
-<h2 class="anchored" data-anchor-id="things-to-stick-in">Things to stick in</h2>
-<ul>
-<li>Make clear this is focused on thinking through regional econ strategy and what difference it makes for that specifically.</li>
-</ul>
-</section>
 <section id="report-details" class="level2">
 <h2 class="anchored" data-anchor-id="report-details">Report details</h2>
 <ul>
-<li>LLM outputs (I am using Claude Code within the project folder) are kept separate from my own writing here within their own breakout boxes. Anything in a box is CC output, not my writing.</li>
+<li>LLM outputs (I am using Claude Code within the project folder) are kept separate from my own writing here within their own blue breakout boxes. Anything in a blue box is LLM output, not my writing.</li>
 </ul>
 </section>
 <section id="headlines" class="level2">
@@ -181,61 +175,128 @@ window.Quarto = {
 <p>In the movie ‘The Lost Boys’, David and his west-coast vampire buddies <a href="https://youtu.be/DP_lSpeK69c?si=klxDzst0hVvV0QlY">race motorbikes across a misty landscape</a>. Michael (as yet unaware of the blood-drinking habits of his new associates) tries to keep up with them. They egg him on - but then he spots the faint beam of a lighthouse, puts two and two together and barely avoids hurtling over a cliff edge.</p>
 <p>One might say David was claiming ‘incredible certitude’ <span class="citation" data-cites="manski2020">(<a href="#ref-manski2020" role="doc-biblioref">Manski 2020</a>)</span> about the cliff’s location. “Don’t worry Micheal, it’s definitely, definitely miles from here.”</p>
 <p>If there’s fog, what you do about that depends on what you think is going on / what else you feel certain about. But the fog matters, the fog itself is information. (i.e.&nbsp;fog near a cliff is different info to fog walking on an open moor).</p>
-</section>
-<section id="being-constructive-in-a-noisy-argument" class="level2">
-<h2 class="anchored" data-anchor-id="being-constructive-in-a-noisy-argument">Being constructive in a noisy argument</h2>
-<p>Put this in resources as its own thing/post. Would allow discussion of ‘concern trolling’ a bit?</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 5%">
+<col style="width: 7%">
+<col style="width: 10%">
+<col style="width: 20%">
+<col style="width: 55%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Reality</th>
+<th>Michael believes / acts as if</th>
+<th>Error type</th>
+<th>The scene</th>
+<th>The policy analogy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Cliff is NOT near</strong></td>
+<td><p>“Cliff IS near”</p>
+<p>(brakes hard, swerves)</p></td>
+<td><strong>Type I (false positive / false alarm)</strong></td>
+<td>Over-cautious braking when it was actually safe. Embarrassing, slower, but not deadly.</td>
+<td>A region’s GVA figures look suspiciously volatile, so you hold off on a major investment decision. Turns out the numbers were fine — you were over-cautious, and the opportunity cost is real but recoverable.</td>
+</tr>
+<tr class="even">
+<td><strong>Cliff IS near</strong></td>
+<td><p>“Cliff is NOT near”</p>
+<p>(keeps speeding)</p></td>
+<td><strong>Type II (false negative / missed warning)</strong></td>
+<td>The catastrophic one: he trusts David’s “definitely miles away” and goes over the edge.</td>
+<td>The numbers say Region A is outperforming Region B by 3%. Nobody checks the error bars. Policy redirects £50m of funding. The difference was noise. The money is spent, the damage is done, and nobody connects the outcome to the original bad number.</td>
+</tr>
+<tr class="odd">
+<td>Cliff NOT near</td>
+<td>“Cliff NOT near”</td>
+<td>Correct</td>
+<td>Keeps up, no harm.</td>
+<td>The data is solid, the policy is well-founded, resources flow to the right place. The boring, good outcome.</td>
+</tr>
+<tr class="even">
+<td>Cliff IS near</td>
+<td>“Cliff IS near”</td>
+<td>Correct</td>
+<td>Sees the lighthouse, updates belief, avoids disaster.</td>
+<td>Someone asks “how uncertain is this number?”, checks the ABS standard errors, finds the confidence intervals overlap massively, and the policy conversation shifts from “who’s winning?” to “what can we actually distinguish from noise?”</td>
+</tr>
+</tbody>
+</table>
 </section>
 <section id="getting-away-from-perfect-sums" class="level2">
 <h2 class="anchored" data-anchor-id="getting-away-from-perfect-sums">Getting away from perfect sums</h2>
-<p>The issues all stem from the same root: national accounts methods (1) are designed to analyse nations, not regions, and (2) are accounts. They have to balance, every part of the economy has to add up correctly and consistently - including across all UK regions. This forces a national-level, top-down straitjacket on regional numbers. Let’s make a start in this post on one of the most important consequences of that:</p>
-<ul>
-<li>Accounts only report single values. It’s all they <em>can</em> report. Uncertainty doesn’t feature.</li>
-</ul>
-<p>Through this lens, the UK <a href="https://www.ons.gov.uk/economy/grossdomesticproductgdp/bulletins/gdpmonthlyestimateuk/november2025">grew by exactly</a> 0.1% in the three months to November 2025. Uncertainty only enters via later revisions to those exact figures - the image here is <a href="https://www.ons.gov.uk/economy/grossdomesticproductgdp/articles/communicatinggrossdomesticproduct/2020-04-16">from the ONS</a> showing how much revisions over time differ from initial numbers. These are very much <em>not</em> confidence intervals showing the underlying uncertainty in the data.</p>
-<p>And they try to do this work when <a href="https://www.bbc.co.uk/news/articles/cwyp7v7r28yo">chancellors and shadow chancellors shout and point fingers</a> over every 0.1% revision. Argh.</p>
-<p>Or: the ONS have no choice here - the national accounts straitjacket…</p>
-<p>In the <a href="https://www.ons.gov.uk/economy/grossvalueaddedgva/methodologies/regionalgrossvalueaddedbalancedqmi">ONS’ method doc</a> for regional GVA, they explicitly say:</p>
+<p>Certitude is built into the system of national accounts. Like all accounts, everything has to sum correctly - the ledger of inputs and outputs must all balance exactly. It’s a powerful, mature system that has grown to become part of global governance structures. As the latest SNA (2025 front page <a href="https://unstats.un.org/unsd/nationalaccount/sna2025.asp">says</a>, the goal is to:</p>
+<blockquote class="blockquote">
+<p>“… ensure the compilation of internationally comparable national accounts statistics according to best practice and in a consistent way, allowing policy makers to benchmark their economies.”</p>
+</blockquote>
+<p>Methods to produce these accounts are focused at nation-level. As a result, estimating output for sub-regions is usually secondary, and usually a top-down process. This is the case for UK sub-regional data. As the ONS say in their <a href="https://www.ons.gov.uk/economy/grossvalueaddedgva/articles/analysisoftheextentofmodellingandestimationinregionalgrossvalueadded/2018-03-28#principal-data-sources-used-in-regional-gross-value-added">breakdown</a> of “observed/estimated/modelled components of regional GVA”:</p>
+<blockquote class="blockquote">
+<p>“Each of the components used in the measurement of regional gross value added (GVA) starts with a value for the UK as a whole, which is taken from the latest UK National Accounts Blue Book dataset. We then use the most appropriate available regional indicator to allocate the national total to parts of the UK, in a top-down hierarchical process. In this way we ensure that all of the regions sum to the published UK total and all sub-regions sum to their respective region total.”</p>
+</blockquote>
+<p>So this top down approach is an unavoidable outcome of the accounting framework it is part of. The ONS use “hundreds of input datasets to represent individual components of GVA” to achieve this accounting balance - in a separate regional GVA <a href="https://www.ons.gov.uk/economy/grossvalueaddedgva/methodologies/regionalgrossvalueaddedbalancedqmi">methods quality document</a>, they say of this:</p>
 <blockquote class="blockquote">
 <p>“The complex process by which GVA estimates are produced means that it is not currently possible to define the accuracy of the estimates… for example, through their standard errors. Therefore, the reliability of the estimates is measured by the extent of revisions.”</p>
 </blockquote>
-<p>I think ONS are doing themselves a disservice here - they could certainly handle the complexity. It’s just the ‘accounting’ point again: the assembly of national output involves so many moving parts, and the need for perfect <a href="https://www.ons.gov.uk/economy/grossdomesticproductgdp/articles/recentchallengesofbalancingthethreeapproachesofgdp/2022-04-20">balancing</a> (however baroque) so built-in, there just isn’t scope to do anything else with regional economic numbers.</p>
-<p>The uncertainty, however, hasn’t gone away. In this post, I’ll have a go at showing what difference the uncertainty could make to the numbers, if we could see it.</p>
-<p>That’s a different (though of course linked) question from “If things are uncertain, how does that change how we should act?” I’ll come to that one in a later post (I’m just reading Manski’s <a href="https://www.cambridge.org/core/journals/economics-and-philosophy/article/abs/lure-of-incredible-certitude/A1F09783377B05F20B83543CD40C7639">Lure of Incredible Certitude</a> to warm up for that).</p>
-<p>This is all a slightly alarming look back at the certitude I’ve built into my own work too. It’s very difficult to resist, both methods-wise (single values is all we have, often) and what-policymakers-want-to-see-wise. One of my plots below (<a href="https://danolner.github.io/RegionalEconomicTools/gdp_gaps.html">code here</a>) is a prime example: GVA per hour, ITL2 zones ranked! Who’s up, who’s down on the scoreboard??</p>
+<p>It isn’t the complexity that makes uncertainty estimates impossible, though. ONS statisticians would have no problems navigating that challenge. Again - it’s the accounting framework they are working in. Outside of that framework, it would be quite possible to examine what error rates were like in any administration or survey sources. For regional data, it wouldn’t have to be an either/or - national accounts approaches could sit alongside more bottom-up analyses that include uncertainty and have no need to artificially ‘balance’.</p>
+<p>Why does this matter? Because policy action is taken on the basis of this certitude. <span class="citation" data-cites="coyle2017">Coyle (<a href="#ref-coyle2017" role="doc-biblioref">2017</a>)</span> digs into this issue (open PDF <a href="https://www.roiw.org/2017/s2/3.pdf">here</a>), discussing the long history of the tiniest GPD shifts having huge political effects. <a href="https://www.ons.gov.uk/economy/grossdomesticproductgdp/bulletins/gdpmonthlyestimateuk/november2025">Here’s a recent example</a> from November 2025. The UK grew by exactly 0.1% in the three months to November 2025. An earlier 0.1% contraction led to predictably mature responses in the press (<a href="https://www.bbc.co.uk/news/articles/cwyp7v7r28yo">BBC example</a>), with the shadow chancellor accusing the government of having “misled the British public” over what is almost certainly statistical noise.</p>
+<p>Coyle explains the trap we’ve found ourselves in: accounting certainty and political demand for precision (however spurious) keeps us stuck here. But as she says:</p>
+<blockquote class="blockquote">
+<p>“… neither the degree of underlying uncertainty nor the everyday practice of ignoring it seems sustainable, even though this situation has lasted for decades.” <span class="citation" data-cites="coyle2017">(<a href="#ref-coyle2017" role="doc-biblioref">Coyle 2017, p.228</a>)</span></p>
+</blockquote>
+<p>Attempts have been made to move away from this spurious precision. The ONS has experimented with some uncertainty, but it isn’t from the data itself. It takes this form: “How much have revisions to official numbers moved in the past? What bounds does that imply?” <a href="#fig-onsuncertainty" class="quarto-xref">Figure&nbsp;1</a> is an example of their answer (<a href="https://www.ons.gov.uk/economy/grossdomesticproductgdp/articles/communicatinggrossdomesticproduct/2020-04-16">source</a>). But this doesn’t include any actual sample error. Work has also been done recently on public perceptions of national GDP uncertainty <span class="citation" data-cites="galvão2024">(<a href="#ref-galvão2024" role="doc-biblioref">Galvão and Mitchell 2024</a>)</span>.</p>
+<div id="fig-onsuncertainty" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-onsuncertainty-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/clipboard-4250318875.png" id="fig-onsuncertainty" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-onsuncertainty-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1
+</figcaption>
+</figure>
+</div>
+<p>This needs more, including: next stage = exploring implications of uncertainty in this data for how we think about econ policy. Could have those open bits in breakout boxes?</p>
+<p>GVA at sub-regional level, however, throws up other sets of problems that make spurious accuracy potentially more troublesome. Local and mayoral authorities don’t get national-level data support and resources. UK level economic data works at the level it was made for. So when regions are attempting to implement devolved policy - and especially if they’ve been tasked with driving national industrial strategy at a local level - spurious accuracy leads to potentially following-vampire-over-cliff levels of decision problems.</p>
 </section>
 <section id="making-a-data-driven-guess-about-the-level-of-regional-gva-uncertainty" class="level2">
 <h2 class="anchored" data-anchor-id="making-a-data-driven-guess-about-the-level-of-regional-gva-uncertainty">Making a data-driven guess about the level of regional GVA uncertainty</h2>
-<p>The <strong>Annual Business Survey (ABS)</strong> is a good source that allows an educated guess of confidence bounds around regional/sectoral GVA data. It is <a href="https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/methodologies/annualbusinesssurveyqmi">designed</a> to capture sectoral and regional GVA at a reasonable resolution. As the ONS <a href="https://www.ons.gov.uk/economy/grossvalueaddedgva/articles/analysisoftheextentofmodellingandestimationinregionalgrossvalueadded/2018-03-28#principal-data-sources-used-in-regional-gross-value-added">say</a> in their fascinating breakdown (if you’re into that kind of thing) of “observed/estimated/modelled components of regional GVA”:</p>
+<p>This section presents the method and results for making a data-driven educated guess at the level of uncertainty in UK regional-by-sector GVA numbers. The ONS <a href="https://www.ons.gov.uk/economy/grossvalueaddedgva/datasets/nominalandrealregionalgrossvalueaddedbalancedbyindustry">region by industry GVA data</a> is used for the central estimate output numbers.</p>
+<p>The <strong>Annual Business Survey (ABS)</strong> is used to get uncertainty numbers. It is an ideal source for reasonable confidence bounds around regional/sectoral GVA data. It is <a href="https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/methodologies/annualbusinesssurveyqmi">designed</a> to capture sectoral and regional GVA at a reasonable resolution, and - for the sectors it covers - gets its data direct from firms. It can be matched directly against the region by industry data’s ITL1 geographies and most 2-digit sectors.</p>
+<p>The ABS is also the most important input into regional GVA numbers. As the ONS <a href="https://www.ons.gov.uk/economy/grossvalueaddedgva/articles/analysisoftheextentofmodellingandestimationinregionalgrossvalueadded/2018-03-28#principal-data-sources-used-in-regional-gross-value-added">say</a> in their fascinating breakdown (if you’re into that kind of thing) of “observed/estimated/modelled components of regional GVA”:</p>
 <blockquote class="blockquote">
-<p>Of all the data sources used in regional GVA, the ABS has the greatest overall impact, representing around 71% of GVA(P) and 22% of GVA(I)… It includes elements corresponding to all three of the categories of data we wish to analyse: directly collected from businesses operating in a single region; weighted to represent non-sampled businesses; and apportioned to regions from UK-wide company information.</p>
+<p>“Of all the data sources used in regional GVA, the ABS has the greatest overall impact, representing around 71% of GVA(P) and 22% of GVA(I)… It includes elements corresponding to all three of the categories of data we wish to analyse: directly collected from businesses operating in a single region; weighted to represent non-sampled businesses; and apportioned to regions from UK-wide company information.”</p>
 </blockquote>
-<p>Data comes direct from firms - there is much less reliance on some of the more <a href="https://exobrain.coveredinbees.org/attachments/heroic-assumptions/">heroic assumptions</a> that go into other aspects of regional GVA. [Roadmap: exploring the implications of assumptions for finance, telecoms and public sectors].</p>
-<p>The publically available ABS sources are broken into the <a href="https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/datasets/uknonfinancialbusinesseconomyannualbusinesssurveyregionalresultssectionsas">central estimate data</a> and <a href="https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/datasets/uknonfinancialbusinesseconomyannualbusinesssurveyregionalresultsqualitymeasures">error data</a><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> giving GVA values and standard errors at ITL1 geography level and 2-digit SIC sectors. Here, I convert GVA and standard errors from the ABS to coefficients of variation (proportion of error) and then apply them to the regional/sectoral GVA national accounts data at the same geogaphical scale, and where sectors are present in both sources (there are 73 that match once ABS sector categories are processed to match the region/sector data’s bespoke SIC list). Only years available in both sources are used - 2012 to 2023.</p>
-<p>Below, I’ll explore the implications of these error rates when applied both available types of GVA data:</p>
+<p>Using the ABS means there is much less reliance on some of the more <a href="https://exobrain.coveredinbees.org/attachments/heroic-assumptions/">heroic assumptions</a> that go into other aspects of regional GVA, making it a perfect source for this section’s question: if the regional GVA data had the same error rates as the ABS, what would it look like and what would the implications for analysis and policy be?</p>
+<p>Is this a valid exercise? I”m arguing yes, on the basis of two things. First, there is definitely uncertainty in the GVA data. An educated guess at error rates may be smaller or larger than the true uncertainty, but including it is very likely more accurate than the alternative - working with the point data as if it was the single true value.</p>
+<p>Second, seeing what difference error makes - even if there’s error in our error - leads to quite different ways of thinking about regional economies and policy. This goes back to the ‘chasing vampires off cliffs’ point. Introducing uncertainty provides a chance to explore it implications. Incredible certitude cuts off that chance, and lends itself to horse-race / rank style thinking that may be - and I think probably is - serving us less well.</p>
+<p>It helps in this case that the ABS is a good survey, with included error rates, that can easily match against the accounts data. For those sectors that match, it’s a fair assumption that the ABS reasonably captures its uncertainty.</p>
+<p>Another argument against doing this would be straightforwardly methodological: the statistical approach is too basic. I’d argue that’s fine for this stage, where the goal is to explore what uncertainty might mean for regional policy. If the principle stands, the statistics can always be improved. As already mentioned, the ONS itself has a wealth of expertise that could achieve this, alongside partners testing the role of uncertainty in policy.</p>
+<section id="using-the-annual-business-survey" class="level3">
+<h3 class="anchored" data-anchor-id="using-the-annual-business-survey">Using the Annual Business Survey</h3>
+<p>The publically available ABS sources are broken into the <a href="https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/datasets/uknonfinancialbusinesseconomyannualbusinesssurveyregionalresultssectionsas">central estimate data</a> and <a href="https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/datasets/uknonfinancialbusinesseconomyannualbusinesssurveyregionalresultsqualitymeasures">error data</a><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> giving GVA values and standard errors at ITL1 geography level and 2-digit SIC sectors. Here, I convert GVA and standard errors from the ABS to coefficients of variation (proportion of error) and then apply them to the regional/sectoral GVA national accounts data at the same geogaphical scale, and where sectors are present in both sources (there are 73 that match once ABS sector categories are processed to match the region/sector data’s bespoke SIC list). Only years available across both sources are used - 2012 to 2023.</p>
+<p>Below, I’ll explore the implications of these error rates when applied both available types of regional GVA data:</p>
 <ul>
-<li>Chained volume (CV) data that aims to capture ‘real’ output changes over time. From these, we can ask, “Did this sector grow or shrink here?” We can do a few other things e.g.&nbsp;was its growth slope really steeper than other places?</li>
-<li>Current prices (CP) data, which (being prices as they were in the year they were counted) can be summed, and used to look at location quotients (LQs) - how concentrated a sector is in each place. It’s where we can get a good sense of the UK’s economic structure, because it’s possible to compare sizes across the UK. We’ll have a go at adding error rates to LQs.</li>
+<li>Chained volume (CV) data that aims to capture ‘real’ output changes over time. From these, we can ask, “Did this sector grow or shrink in this place?” (Later, we can do a few other things e.g.&nbsp;was its growth slope really steeper than other places?)</li>
+<li>Current prices (CP) data, which (being prices as they were in the year they were counted) can be summed, and used to calculate location quotients (LQs) - how concentrated a sector is in each place. This provides a good sense of the how the UK’s economic structure changes. We’ll have a go at adding error rates to LQs.</li>
 </ul>
-<p>For both of those, the question is: “If the regional GVA data had the same error rates as the ABS, what would it look like and what would some implications for analysis be?”</p>
-<p>Are those reasonable questions to ask? This is asking, “If the error rates were this, then…” For those sectors that match, it’s a fair assumption that the ABS reasonably captures its uncertainty. The error may be smaller or larger, but including it is almost certainly more accurate than the alternative - working with the point data as if it was the single true value.</p>
-<p>Seeing what difference error makes - even if there’s error in our error - leads to quite different ways of thinking.</p>
+</section>
 <section id="chained-volume-gva-growth-over-time" class="level3">
 <h3 class="anchored" data-anchor-id="chained-volume-gva-growth-over-time">Chained volume GVA: growth over time</h3>
-<p>Chained volume data is used to assess real economic change over time, accounting for inflation and quality changes in goods and services. Separate deflators are calculated for each sector within each region, with a single year set as the point where the chained volume and ‘prices that year’ amounts are the same. Other years are adjusted relative to that, for each sector/place combination. (As a result, each sector/place time series must be treated separately and cannot be summed.)</p>
-<p>Change in CV values over time should represent actual growth or shrinkage in a particular sector and place. This section limits itself to asking how much the growth signal changes for individual sectors in specific ITL1s with the inclusion of error rates.</p>
-<p>[It doesn’t use those errors to compare sectors across places… though might do this quickly… simulation again to add to CAGR]</p>
-<p><a href="https://danolner.github.io/RegEconWorks/growth_errorgrids_viewer/">This interactive web page</a> provides a way to look at individual sectors across all twelve ITL1 zones.</p>
+<p>Chained volume (CV) data is used to assess real economic change over time, accounting for inflation and quality changes in goods and services. The ONS calculate separate deflators for each sector within each region, with a single year set as the point where the chained volume and ‘prices that year’ amounts are the same. Other years are adjusted relative to that, for each sector/place combination. (As a result, each sector/place time series must be treated separately and -unlike the current prices data - cannot be summed.)</p>
+<p>This section asks how much the growth signal changes for individual sectors in specific ITL1s if error rates are included.</p>
+<p><a href="https://danolner.github.io/RegEconWorks/growth_errorgrids_viewer/">This interactive web page</a> provides a way to look at the results, for individual sectors across all twelve ITL1 zones.</p>
 <ul>
-<li><p>The inclusion of error rates immediately makes it very rare for year-to-year changes to be distinguishable from zero. So instead, what each grid plot does is compare each year to every other year, to show where each is clearly separable.</p></li>
+<li><p>The inclusion of error rates immediately makes it very rare for year-to-year changes to be distinguishable from zero, if looking at individual 2-digit SIC sectors in specific ITL1 zones. So instead, what each grid plot does is compare each year to every other year, to show where each is clearly separable.</p></li>
 <li><p>The assumptions used (on top of the if/then above) are: 95% confidence intervals, and assuming that GVA change isn’t clearly present if the possible minimum from one year is lower than the possible maximum from another year (and vice versa). This is a conservative assumption that the true value<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> could be at both confidence extremes between timepoints.</p></li>
 </ul>
-<p>Let’s talk through the default sector in the interactive, fabricated metals, to make more sense of that. Consider the example in <a href="#fig-ynhfab" class="quarto-xref">Figure&nbsp;1</a> - in the interactive, hover over Yorkshire and Humber to see its growth over time. What this shows:</p>
+<p>Let’s talk through the default sector in the interactive, fabricated metals, to make more sense of that. Consider the example in <a href="#fig-ynhfab" class="quarto-xref">Figure&nbsp;2</a> (you can see the same data in the interactive by hovering over Yorkshire and Humber to see its growth over time). What this shows:</p>
 <ul>
-<li><p>Blue squares in the grid indicate that the column year was clearly higher than the row year it is compared to (‘clearly’ as described above).</p></li>
+<li><p>Blue squares in the grid indicate that the column year was clearly higher than the row year it is compared to (‘clearly’ meaning, as described above, 95% mins and maxes don’t overlap).</p></li>
 <li><p>We can see that 2020 to 2023 are clearly higher than the earlier years in the data, from 2012 to 2016, though the high peak in 2021 is the only year consistently separable from others. 2020 to 2023 are years where the confidence interval minimum is separable from the earlier CI maxima.</p></li>
 <li><p>The rest of the grey area is showing that, for the first half of the data from 2012 to 2017 - on the assumptions we have here - no clear growth signal is coming through.</p></li>
-<li><p>Note, the grid is mirrored along the diagonal: here, orange squares are showing the same thing in reverse - earlier column years are clearly lower than some later ones.</p></li>
+<li><p>Note, the grid is mirrored along the diagonal. So orange squares are showing the same thing in reverse - earlier column years are clearly lower than some later ones.</p></li>
 </ul>
 <div id="fig-ynhfab" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -243,36 +304,29 @@ window.Quarto = {
 <img src="images/YNH_growthgrid.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ynhfab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Yorkshire &amp; Humber GVA growth grid and growth over time, fabricated metals.
+Figure&nbsp;2: Yorkshire &amp; Humber GVA growth grid and growth over time, fabricated metals.
 </figcaption>
 </figure>
 </div>
-<p>Scotland shows the opposite pattern, which can be seen from its growth slope in the interactive clearly too - bottom left orange squares indicate clearly lower values in the later part of the data. <a href="#fig-eastmidsfab" class="quarto-xref">Figure&nbsp;2</a> is showing that, while the later value increases appear separable from the low point around 2017, it can’t be so easily distinguished from where it was from 2012 to 2016, despite the central estimates looking higher (they could well have been higher in the earlier period and lower in the later one). The difference to <a href="#fig-ynhfab" class="quarto-xref">Figure&nbsp;1</a> is mainly driven by East Midland’s larger standard errors - the underlying GVA data is more uncertain in the ABS.</p>
-<p>Several other ITLs are purely grey. Looking at any of those shows combinations of wide error rates and fairly flat change over time, considering the range of those confidence intervals. The apparent drop in the North West after 2017, for example, isn’t clearly separable, though it looks strong. Other sources could help support or question that apparent change.</p>
+<p>Looking on the interactive, Scotland shows the opposite pattern, which can be seen from its growth slope in the interactive clearly too - bottom left orange squares indicate clearly lower values in the later part of the data.</p>
+<p><a href="#fig-eastmidsfab" class="quarto-xref">Figure&nbsp;3</a> shows fabricated metals in the East Midlands. While the later value increases appear separable from the low point around 2017, it can’t be so easily distinguished from where it was from 2012 to 2016, despite the central estimates looking higher (they could well have been higher in the earlier period and lower in the later one). That is, recent apparent growth could just be a return to the pre-Brexit status quo, not a step change. The difference to <a href="#fig-ynhfab" class="quarto-xref">Figure&nbsp;2</a> is mainly driven by East Midland’s larger standard errors - the underlying GVA data is more uncertain in the ABS. Other sources could be explored to triangulate. Have job numbers risen, for instance? What is known about any productivity changes in the sector here?</p>
+<p>Several other ITLs for fabricated metals in the interactive are purely grey. Looking at any of those shows combinations of wide error rates and fairly flat change over time, considering the range of those confidence intervals. The apparent drop in the North West after 2017, for example, isn’t clearly separable, though it looks strong. Again, other sources could help support or question that apparent change.</p>
 <div id="fig-eastmidsfab" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-eastmidsfab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/eastmids_growthgrid.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-eastmidsfab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: East Midlands GVA growth grid and growth over time, fabricated metals
+Figure&nbsp;3: East Midlands GVA growth grid and growth over time, fabricated metals
 </figcaption>
 </figure>
 </div>
-<p>Within this way of looking, the impact of the COVID19 pandemic on land transport is <a href="https://danolner.github.io/RegEconWorks/growth_errorgrids_viewer/?sector=Landtransport">very visible</a>. Mid-pandemic drops show up as an orange ‘column year lower than most other years’ band. London stands out as the one place that hasn’t yet seen a bounce-back, remaining significantly lower than other ITL1s.</p>
-<p>Other notable patterns are discussed in a section at the end of this document.</p>
-<p>Discussion:</p>
-<p>The binary cutoffs here are stark - this is a common issue with threshold-based statistical approaches… discuss pros and cons and say still probably better than the alternative. Consider these as part of decision-making under uncertainty. What does that look like?</p>
-<p>Arguments about where to put the level</p>
-<p>But not limited to single one, and there isn’t a single ‘correct’ answer. The approach above can pull out very clearly strong growth signals. We could explore less conservative assumptions and compare to other sources. We could also use other methods - for example, there is likely information in the correlation between timepoints in <a href="#fig-eastmidsfab" class="quarto-xref">Figure&nbsp;2</a>’s latter high values that could change the picture.</p>
-<p>None of that changes the fundamental point: introducing uncertainty doesn’t have to mean losing information. In fact it can be the reverse - revealing genuine signal in the noise.</p>
-<p>That even with large error ranges, the signal you get is highly valuable</p>
-<p>And arguably the risk of false positives is less than the opposite.</p>
+<p>Within this way of looking, the impact of the COVID19 pandemic on land transport is very visible (<a href="https://danolner.github.io/RegEconWorks/growth_errorgrids_viewer/?sector=Landtransport">view on interactive page</a>). Mid-pandemic drops show up as an orange ‘column year lower than most other years’ band. London stands out as the one place that hasn’t yet seen bounced back to its pre-pandemic state, remaining significantly lower than other ITL1s.</p>
 </section>
 <section id="current-prices-gva-location-quotients" class="level3">
 <h3 class="anchored" data-anchor-id="current-prices-gva-location-quotients">Current prices GVA: location quotients</h3>
-<p>Location quotients (LQs) are an intuitive as easy to calculate way to assess the relative strength of sectors in regions. It is the ratio of a sector’s proportion of a region versus that sector’s proportion of the UK as a whole. If, say, fabricated metals is 20% of a sub-region’s GVA but only 10% nationally, it is twice as concentrated - the LQ is two<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>.</p>
-<p>Current price (CP) GVA data can be used for LQs because (unlike CV) it <em>can</em> be summed, as it is just the money value of each sector’s output recorded in that year. CP data can’t show real growth over time, but it can be used to examine economic structural change - how much a sector/place combination has <em>relatively</em> grown in concentration (which could be due to growth in that sector or other sectors increasing in nominal value faster).</p>
+<p>Location quotients (LQs) are an intuitive way to assess the relative strength of sectors in regions. An LQ is the ratio of a sector’s proportion of a region’s whole economy versus that sector’s proportion of the UK as a whole. If, say, fabricated metals is 20% of a sub-region’s GVA but only 10% nationally, it is twice as concentrated - the LQ is two<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>.</p>
+<p>Current price (CP) GVA data can be used for LQs because (unlike CV) it <em>can</em> be summed, as it is just the money value of each sector’s output recorded in that year. CP data can’t show real growth over time, but it can be used to examine economic structural change - how much a sector/place combination has <em>relatively</em> grown in concentration (which could be due to nominal growth in that sector, or other sectors increasing in value faster).</p>
 <div class="callout callout-style-simple callout-note no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -289,21 +343,32 @@ Figure&nbsp;2: East Midlands GVA growth grid and growth over time, fabricated me
 <p>where <span class="math inline">\(\text{GVA}_{s,r}\)</span> is the GVA of sector <span class="math inline">\(s\)</span> in region <span class="math inline">\(r\)</span>, <span class="math inline">\(\text{GVA}_{r}\)</span> is total GVA across all sectors in that region, and <span class="math inline">\(\text{GVA}_{s,\text{UK}}\)</span> and <span class="math inline">\(\text{GVA}_{\text{UK}}\)</span> are the corresponding UK-wide values. An LQ above 1 means the sector is more concentrated in that region than nationally; below 1, less so.</p>
 </div>
 </div>
-<p>LQs are (in theory) perfect for thinking about regional specialisms, and to comparison and ranking, making them an obvious fit for industrial strategy thinking. But they also carry the “single accurate value” issue over from the underlying GVA data. One single LQ value exists per sector/place combination in any year.</p>
-<p>Including error rates around an LQ is trickier than for direct GVA because it is a derived value - it doesn’t make sense to apply confidence intervals to an LQ directly. The solution used here is to simulate what the range of the underlying GVA values could be, and then calculate LQs based on those simulated values (each a normally distributed range based on the standard errors applied from the ABS, adjusted to make sure no negative values arise as these could break the LQ formula). This is then repeated 500 times to produce a range of possible LQs, built on a spread of likely underlying GVA numbers.</p>
-<p><a href="https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/">Here’s the interactive page</a> for looking at the results, starting again with fabricated metals LQs for each ITL1 and including 95% confidence intervals (see also <a href="#fig-lqfabs" class="quarto-xref">Figure&nbsp;3</a>). Considering overlapping error rates, East and West Midlands and Yorkshire &amp; the Humber might be seen as one ‘high concentration’ group not really separable from each other, with London and the South East separately at the ‘low concentration’ end. West Midlands also appears to have clearly the highest concentration. Other ITL1s are not so separable, and four have error bars crossing zero - if these are reasonable, there is no way to say if fabricated metals is more or less concentrated than average.</p>
+<p>LQs are (in theory) perfect for thinking about regional specialisms, and for comparison and ranking, making them an obvious fit for industrial strategy thinking. But they also carry the “single accurate value” issue over from the underlying GVA data.</p>
+<p>Including error rates around an LQ is trickier than for direct GVA because it is a derived value - it doesn’t make sense to apply confidence intervals to an LQ directly. The solution used here is to simulate what the range of the underlying GVA values could be using applied uncertainty, and then calculate LQs based on those simulated values.</p>
+<p>Each simulation pulls a sample from a normally distributed range based on the standard errors applied from the ABS, adjusted to make sure no negative values arise as these could break the LQ formula. This is then repeated 500 times to produce a range of possible LQs.</p>
+<p><a href="https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/">Here is the interactive page</a> for looking at the results, starting again with fabricated metals. There are LQs for each ITL1, including 95% confidence intervals (see also <a href="#fig-lqfabs" class="quarto-xref">Figure&nbsp;4</a>). Considering overlapping error rates, East and West Midlands and Yorkshire &amp; the Humber might be seen as one ‘high concentration’ group not really separable from each other, with London and the South East separately at the ‘low concentration’ end. West Midlands also appears to have clearly the highest concentration. Other ITL1s are not so separable, and four have error bars crossing zero - if these are reasonable, there is no way to say if fabricated metals is more or less concentrated than the UK average.</p>
 <div id="fig-lqfabs" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-lqfabs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/fabmetals_LQs.png" id="fig-lqfabs" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-lqfabs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3
+Figure&nbsp;4
 </figcaption>
 </figure>
 </div>
-<p>The plot also <a href="https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/?sector=Manufactureoffabricatedmetalproducts&amp;view=twoyear">has an option</a> to compare LQs across five years, between 2017 and 2023. If overlapping error bars suggest the LQ for fabricated metals may not have significantly changed in many places, the East Midlands (real LQ increase), Scotland and the South East (a plausible decrease in both) do suggest real change.</p>
+<p>The plot also <a href="https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/?sector=Manufactureoffabricatedmetalproducts&amp;view=twoyear">has an option</a> to compare LQs across five years, between 2017 and 2023. Overlapping error bars suggest the LQ for fabricated metals may not have significantly changed between those year in many places. The East Midlands (real LQ increase), Scotland and the South East (a plausible decrease in both) do suggest genuine structural change over time.</p>
 </section>
+</section>
+<section id="discussion-and-next-steps" class="level2">
+<h2 class="anchored" data-anchor-id="discussion-and-next-steps">Discussion and next steps</h2>
+<p>Discussion:</p>
+<p>The binary cutoffs here are stark - this is a common issue with threshold-based statistical approaches… discuss pros and cons and say still probably better than the alternative. Consider these as part of decision-making under uncertainty. What does that look like?</p>
+<p>Arguments about where to put the level</p>
+<p>But not limited to single one, and there isn’t a single ‘correct’ answer. The approach above can pull out very clearly strong growth signals. We could explore less conservative assumptions and compare to other sources. We could also use other methods - for example, there is likely information in the correlation between timepoints in <a href="#fig-eastmidsfab" class="quarto-xref">Figure&nbsp;3</a>’s latter high values that could change the picture.</p>
+<p>None of that changes the fundamental point: introducing uncertainty doesn’t have to mean losing information. In fact it can be the reverse - revealing genuine signal in the noise.</p>
+<p>That even with large error ranges, the signal you get is highly valuable</p>
+<p>And arguably the risk of false positives is less than the opposite.</p>
 </section>
 <section id="claude-code-edits-and-additions" class="level2">
 <h2 class="anchored" data-anchor-id="claude-code-edits-and-additions">Claude-code edits and additions</h2>
@@ -318,6 +383,12 @@ Figure&nbsp;3
 <div id="ref-coyle2014" class="csl-entry" role="listitem">
 Coyle, Diane. 2014. <em>GDP: A Brief but Affectionate History</em>. Princeton University Press.
 </div>
+<div id="ref-coyle2017" class="csl-entry" role="listitem">
+———. 2017. <span>“The Future of the National Accounts: Statistics and the Democratic Conversation.”</span> <em>Review of Income and Wealth</em> 63 (s2): S223–37. <a href="https://doi.org/10.1111/roiw.12333">https://doi.org/10.1111/roiw.12333</a>.
+</div>
+<div id="ref-galvão2024" class="csl-entry" role="listitem">
+Galvão, Ana Beatriz, and James Mitchell. 2024. <span>“Communicating Data Uncertainty: Multiwave Experimental Evidence for UK GDP.”</span> <em>Journal of Money, Credit and Banking</em> 56 (1): 81–114. <a href="https://doi.org/10.1111/jmcb.13044">https://doi.org/10.1111/jmcb.13044</a>.
+</div>
 <div id="ref-manski2020" class="csl-entry" role="listitem">
 Manski, Charles F. 2020. <span>“The lure of incredible certitude.”</span> <em>Economics and philosophy</em> 36 (2): 216245. <a href="https://doi.org/10.1017/S0266267119000105">https://doi.org/10.1017/S0266267119000105</a>.
 </div>
@@ -326,7 +397,7 @@ Manski, Charles F. 2020. <span>“The lure of incredible certitude.”</span> <e
 <ol>
 <li id="fn1"><p><a href="https://github.com/DanOlner/RegionalEconomicTools/blob/gh-pages/bits_of_code/ABS_error_rates.R">code/comments here</a> run through combining those two sources. A final joined CSV is <a href="https://github.com/DanOlner/RegionalEconomicTools/blob/gh-pages/data/abs_gva_se_combo.csv">here</a>, to save others the pain, though it’s just for GVA, not every ABS value.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p>‘True value’ being used as shorthand for the cumbersome ‘95% confidence interval would contain the true value 95% of the time if the survey sample was taken again’. [ONS source…]<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn3"><p>because (A/B)/(C/D) is equivalent to (A/C)/(B/D), the LQ actually captures two related ways of seeing the same thing: how relatively concentrated sectors are&nbsp;<em>across a whole geography</em>&nbsp;like the UK, and how concentrated&nbsp;<em>within a subgeography</em>&nbsp;like South Yorkshire they are. (See the desciption and table in the <a href="https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/datasets/locationquotientdataandindustrialspecialisationforlocalauthorities">ONS’ older LQ document</a>.)<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>Because (A/B)/(C/D) is equivalent to (A/C)/(B/D), the LQ actually captures two related ways of seeing the same thing: how relatively concentrated sectors are&nbsp;<em>across a whole geography</em>&nbsp;like the UK, and how concentrated&nbsp;<em>within a subgeography</em>&nbsp;like South Yorkshire they are. (See the desciption and table in the <a href="https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/datasets/locationquotientdataandindustrialspecialisationforlocalauthorities">ONS’ older LQ document</a>.)<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section></div></main>
 <!-- /main column -->
