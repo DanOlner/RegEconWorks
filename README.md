@@ -8,14 +8,14 @@ One-paragraph description of the research project: what it's about, what stage i
 
 If you use this software or analysis, please cite it via the DOI above or see the [CITATION.cff](CITATION.cff) file.
 
-## Module Index
+## Chunk Index
 
-| Module | Status | Description |
+| Chunk | Status | Description |
 |---|---|---|
-| [Expected vs Observed Flows](modules/expected-vs-observed/) | draft | Method for comparing expected and observed economic flows |
-| [Another Module](modules/another-module/) | draft | Description of this module |
+| [Uncertainty in regional GVA: if/then](chunks/uncertainty_in_regionalGVA) | draft | Method for comparing expected and observed economic flows |
+| [GVA uncertainty: thinking through regional policy implications](chunks/uncertainy_implications/) | draft | What might all the uncertainty mean? |
 
-See [modules.yml](modules.yml) for the full machine-readable manifest.
+See [chunks.yml](chunks.yml) for the full machine-readable manifest.
 
 ## How to Give Feedback
 
@@ -26,12 +26,12 @@ Feedback of all kinds is welcome — questions, suggestions, corrections, challe
 - **Email**: [your@email.com](mailto:your@email.com)
 - **LinkedIn**: [Your LinkedIn profile](https://linkedin.com/in/yourprofile)
 
-See [FEEDBACK.md](FEEDBACK.md) for full details, including how feedback from any channel gets logged.
 
 ## Related Outputs
 
 - **Blog**: [coveredinbees.org](https://coveredinbees.org/)
-- **Working papers**: See [papers/](papers/) folder
+- **Exobrain**: [exobrain.coveredinbees.org](https://exobrain.coveredinbees.org/)
+- **Working papers**: See [papers/](papers/) folder - none completed
 
 ## Licence
 
@@ -46,3 +46,5 @@ This project uses [`renv`](https://rstudio.github.io/renv/) to lock R package ve
 ```r
 renv::restore()
 ```
+
+You may need to make sure you're running the approriate R version.

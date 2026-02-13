@@ -32,6 +32,10 @@ I have prepared two interactive web pages for each of the GVA sources discussed 
 
 2.  [Current prices GVA](https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/): What happens to location quotients if error rates are included?
 
+The repository for this project is here. This includes all code (which mostly downloads data directly to be processed) and writing, as well as a record of any Claude-Code conversations used in the process. See [this draft set of guidelines](https://exobrain.coveredinbees.org/llm-use-in-work-experimenting-with-short-guidelines/) on how to clearly keep one's own work separable from LLM use, treating it no differently to any other source (with some complications). A section at the end explains how LLMs were (minimally) used in this article and points to other sources outlining how they were (more extensively) used in code production.
+
+------------------------------------------------------------------------
+
 ## Introduction: how to avoid chasing vampires off cliff edges
 
 In the movie 'The Lost Boys', David and his west-coast vampire buddies [race motorbikes across a misty landscape](https://youtu.be/DP_lSpeK69c?si=klxDzst0hVvV0QlY). Michael (as yet unaware of the blood-drinking habits of his new associates) tries to keep up with them. David eggs Michael on - but then Michael spots the faint beam of a lighthouse, puts two and two together and barely avoids hurtling over a cliff edge.
@@ -253,10 +257,14 @@ Possible extensions to adding uncertainty to GVA and other economic data could i
 
 -   Sensitivity testing around assumptions. There are no single 'correct' answers. The approach above can pull out very clearly strong growth signals, but one could explore less conservative assumptions and compare to other sources. We could also use other statistical methods - for example, there is likely information in the correlation between timepoints in @fig-eastmidsfab's latter high values that could change the picture.
 
-## LLM edits and additions
+## LLM use
+
+In this article:
 
 -   Claude code added the LQ formula and the lines from "where GVA..." to "below 1, less so" in [Current prices GVA: location quotients].
 -   ChatGPT made @tbl-lostboys for me, from this prompt. I tweaked some of the text. "Consider the following two bits of text. (1) "Never confuse Type I and II errors again: Just remember that the Boy Who Cried Wolf caused both Type I & II errors, in that order. First everyone believed there was a wolf, when there wasn't. Next they believed there was no wolf, when there was. Substitute "effect" for "wolf" and you're done." And (2) "In the movie 'The Lost Boys', David and his west-coast vampire buddies race motorbikes across a foggy landscape. Michael (unaware of the blood-drinking habits of his new associates) tries to keep up with them. They egg him on - but then he spots the faint beam of a lighthouse, puts two and two together and barely avoids hurtling over a cliff edge. One might say David was claiming 'incredible certitude' (Manski) about the cliff's location. "Don't worry Micheal, it's definitely, definitely miles from here." Can you (1) put the lost boys quote in a type1/2 error context for me? And (2) search for other online sources/links that discuss examples of uncertainty and 'incredible certitude' and their implications?"
+
+In this project as whole:
 
 ## Appendix
 
