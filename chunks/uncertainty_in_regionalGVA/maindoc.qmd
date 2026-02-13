@@ -12,17 +12,13 @@ format:
 bibliography: references.bib
 ---
 
-## Report details
-
--   LLM outputs (I am using Claude Code within the project folder) are kept separate from my own writing here within their own blue breakout boxes. Anything in a blue box is LLM output, not my writing.
-
 ## Headlines
 
+-   Far from just introducing less precision, including uncertainty in regional economic data leads to some quite different, useful ways of thinking about regions, grounded in what we do and don't know. It becomes possible to filter signal from noise.
+
+-   This is not standard practice mostly due to the constrictions of the System of National Accounts (globally agreed so extremely slow to change) [@coyle2014]. But it is not an either/or situation. Both accounts single point data and error-bar approaches can be used.
+
 -   
-
--   This is in large part due to the constrictions of the (globally agreed so extremely slow to change) System of National Accounts [@coyle2014].
-
--   Far from just introducing less precision, including uncertainty leads to some quite different, useful ways of thinking about regions, grounded in what we do and don't know.
 
 -   I might argue - it's more powerful, because it short-circuits many unhelpful ways of thinking about growth and industrial strategy (some built right into the foundation e.g. see the CIA Russia assessment).
 
@@ -94,9 +90,13 @@ Attempts have been made to move away from this spurious precision. The ONS has e
 
 ![](images/clipboard-4250318875.png){#fig-onsuncertainty}
 
-This needs more, including: next stage = exploring implications of uncertainty in this data for how we think about econ policy. Could have those open bits in breakout boxes?
-
 GVA at sub-regional level, however, throws up other sets of problems that make spurious accuracy potentially more troublesome. Local and mayoral authorities don't get national-level data support and resources. UK level economic data works at the level it was made for. So when regions are attempting to implement devolved policy - and especially if they've been tasked with driving national industrial strategy at a local level - spurious accuracy leads to potentially following-vampire-over-cliff levels of decision problems.
+
+Adding error rates helps because it short-circuits many unhelpful ways of thinking about growth and industrial strategy. Applying national accounts level methods lends itself to making ranks of places and perceiving regional economics as a who's up / who's down competition for position (a problem Prof. Richard Harris [has pointed out](https://medium.com/@profrichharris/the-certain-uncertainty-of-university-rankings-6917b40300f2) also happens in university rankings, where he shows it is equally as spurious).
+
+This competitive view has deep roots in national accounts approaches, originating as they do in managing wartime economies. They were later [used by the CIA](https://www.cia.gov/readingroom/docs/DOC_0000498181.pdf) to model the U.S/ Soviet economies as part of Cold War strategy, where the stakes were about as high as they could be: proving which economic model would be victorious.
+
+Having a certain grip on uncertainty short-circuits all of this, as it makes horse-race thinking much more difficult, and points policy toward iterative, slow-test improvements based on a whole range of sources beyond just uncertain data.
 
 ## Making a data-driven guess about the level of regional GVA uncertainty
 
@@ -112,7 +112,7 @@ Using the ABS means there is much less reliance on some of the more [heroic assu
 
 Is this a valid exercise? I"m arguing yes, on the basis of two things. First, there is definitely uncertainty in the GVA data. An educated guess at error rates may be smaller or larger than the true uncertainty, but including it is very likely more accurate than the alternative - working with the point data as if it was the single true value.
 
-Second, seeing what difference error makes - even if there's error in our error - leads to quite different ways of thinking about regional economies and policy. This goes back to the 'chasing vampires off cliffs' point. Introducing uncertainty provides a chance to explore it implications. Incredible certitude cuts off that chance, and lends itself to horse-race / rank style thinking that may be - and I think probably is - serving us less well.
+Second, seeing what difference error makes - even if there's error in our error - leads to quite different ways of thinking about regional economies and policy. This goes back to the 'chasing vampires off cliffs' point. Introducing uncertainty provides a chance to explore it implications. Incredible certitude cuts off that chance, and as mentioned lends itself to horse-race / rank style thinking that may be - and I think probably is - serving us less well.
 
 It helps in this case that the ABS is a good survey, with included error rates, that can easily match against the accounts data. For those sectors that match, it's a fair assumption that the ABS reasonably captures its uncertainty.
 

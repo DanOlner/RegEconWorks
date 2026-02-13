@@ -98,8 +98,7 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#report-details" id="toc-report-details" class="nav-link active" data-scroll-target="#report-details">Report details</a></li>
-  <li><a href="#headlines" id="toc-headlines" class="nav-link" data-scroll-target="#headlines">Headlines</a></li>
+  <li><a href="#headlines" id="toc-headlines" class="nav-link active" data-scroll-target="#headlines">Headlines</a></li>
   <li><a href="#resourceslinks" id="toc-resourceslinks" class="nav-link" data-scroll-target="#resourceslinks">Resources/links</a></li>
   <li><a href="#introduction-how-to-avoid-chasing-vampires-off-cliff-edges" id="toc-introduction-how-to-avoid-chasing-vampires-off-cliff-edges" class="nav-link" data-scroll-target="#introduction-how-to-avoid-chasing-vampires-off-cliff-edges">Introduction: how to avoid chasing vampires off cliff edges</a></li>
   <li><a href="#a-quick-note-on-attitude" id="toc-a-quick-note-on-attitude" class="nav-link" data-scroll-target="#a-quick-note-on-attitude">A quick note on attitude</a></li>
@@ -154,18 +153,12 @@ window.Quarto = {
 </header>
 
 
-<section id="report-details" class="level2">
-<h2 class="anchored" data-anchor-id="report-details">Report details</h2>
-<ul>
-<li>LLM outputs (I am using Claude Code within the project folder) are kept separate from my own writing here within their own blue breakout boxes. Anything in a blue box is LLM output, not my writing.</li>
-</ul>
-</section>
 <section id="headlines" class="level2">
 <h2 class="anchored" data-anchor-id="headlines">Headlines</h2>
 <ul>
+<li><p>Far from just introducing less precision, including uncertainty in regional economic data leads to some quite different, useful ways of thinking about regions, grounded in what we do and don’t know. It becomes possible to filter signal from noise.</p></li>
+<li><p>This is not standard practice mostly due to the constrictions of the System of National Accounts (globally agreed so extremely slow to change) <span class="citation" data-cites="coyle2014">(<a href="#ref-coyle2014" role="doc-biblioref">Coyle 2014</a>)</span>. But it is not an either/or situation. Both accounts single point data and error-bar approaches can be used.</p></li>
 <li></li>
-<li><p>This is in large part due to the constrictions of the (globally agreed so extremely slow to change) System of National Accounts <span class="citation" data-cites="coyle2014">(<a href="#ref-coyle2014" role="doc-biblioref">Coyle 2014</a>)</span>.</p></li>
-<li><p>Far from just introducing less precision, including uncertainty leads to some quite different, useful ways of thinking about regions, grounded in what we do and don’t know.</p></li>
 <li><p>I might argue - it’s more powerful, because it short-circuits many unhelpful ways of thinking about growth and industrial strategy (some built right into the foundation e.g.&nbsp;see the CIA Russia assessment).</p></li>
 </ul>
 </section>
@@ -231,8 +224,10 @@ Figure&nbsp;1
 </figcaption>
 </figure>
 </div>
-<p>This needs more, including: next stage = exploring implications of uncertainty in this data for how we think about econ policy. Could have those open bits in breakout boxes?</p>
 <p>GVA at sub-regional level, however, throws up other sets of problems that make spurious accuracy potentially more troublesome. Local and mayoral authorities don’t get national-level data support and resources. UK level economic data works at the level it was made for. So when regions are attempting to implement devolved policy - and especially if they’ve been tasked with driving national industrial strategy at a local level - spurious accuracy leads to potentially following-vampire-over-cliff levels of decision problems.</p>
+<p>Adding error rates helps because it short-circuits many unhelpful ways of thinking about growth and industrial strategy. Applying national accounts level methods lends itself to making ranks of places and perceiving regional economics as a who’s up / who’s down competition for position (a problem Prof.&nbsp;Richard Harris <a href="https://medium.com/@profrichharris/the-certain-uncertainty-of-university-rankings-6917b40300f2">has pointed out</a> also happens in university rankings, where he shows it is equally as spurious).</p>
+<p>This competitive view has deep roots in national accounts approaches, originating as they do in managing wartime economies. They were later <a href="https://www.cia.gov/readingroom/docs/DOC_0000498181.pdf">used by the CIA</a> to model the U.S/ Soviet economies as part of Cold War strategy, where the stakes were about as high as they could be: proving which economic model would be victorious.</p>
+<p>Having a certain grip on uncertainty short-circuits all of this, as it makes horse-race thinking much more difficult, and points policy toward iterative, slow-test improvements based on a whole range of sources beyond just uncertain data.</p>
 </section>
 <section id="making-a-data-driven-guess-about-the-level-of-regional-gva-uncertainty" class="level2">
 <h2 class="anchored" data-anchor-id="making-a-data-driven-guess-about-the-level-of-regional-gva-uncertainty">Making a data-driven guess about the level of regional GVA uncertainty</h2>
@@ -244,7 +239,7 @@ Figure&nbsp;1
 </blockquote>
 <p>Using the ABS means there is much less reliance on some of the more <a href="https://exobrain.coveredinbees.org/attachments/heroic-assumptions/">heroic assumptions</a> that go into other aspects of regional GVA, making it a perfect source for this section’s question: if the regional GVA data had the same error rates as the ABS, what would it look like and what would the implications for analysis and policy be?</p>
 <p>Is this a valid exercise? I”m arguing yes, on the basis of two things. First, there is definitely uncertainty in the GVA data. An educated guess at error rates may be smaller or larger than the true uncertainty, but including it is very likely more accurate than the alternative - working with the point data as if it was the single true value.</p>
-<p>Second, seeing what difference error makes - even if there’s error in our error - leads to quite different ways of thinking about regional economies and policy. This goes back to the ‘chasing vampires off cliffs’ point. Introducing uncertainty provides a chance to explore it implications. Incredible certitude cuts off that chance, and lends itself to horse-race / rank style thinking that may be - and I think probably is - serving us less well.</p>
+<p>Second, seeing what difference error makes - even if there’s error in our error - leads to quite different ways of thinking about regional economies and policy. This goes back to the ‘chasing vampires off cliffs’ point. Introducing uncertainty provides a chance to explore it implications. Incredible certitude cuts off that chance, and as mentioned lends itself to horse-race / rank style thinking that may be - and I think probably is - serving us less well.</p>
 <p>It helps in this case that the ABS is a good survey, with included error rates, that can easily match against the accounts data. For those sectors that match, it’s a fair assumption that the ABS reasonably captures its uncertainty.</p>
 <p>Another argument against doing this would be straightforwardly methodological: the statistical approach is too basic. I’d argue that’s fine for this stage, where the goal is to explore what uncertainty might mean for regional policy. If the principle stands, the statistics can always be improved. As already mentioned, the ONS itself has a wealth of expertise that could achieve this, alongside partners testing the role of uncertainty in policy.</p>
 <section id="using-the-annual-business-survey" class="level3">
