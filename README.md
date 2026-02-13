@@ -21,7 +21,7 @@ A couple of other goals:
 What's here so far, and the roadap for things to add (which will update and change as the direction of travel changes).
 
 - [ ] Paper 1: Why introducing uncertainty into regional GVA is a good thing and what it means for industrial policy.
-  - [ ] Chunk 1: Applying Annual Business Survey uncertainty data to regional GVA and looking at the results; asking some questions about implications; discussing a top Lost Boys scene that helps with type I / II errors. Online draft [here](https://danolner.github.io/RegEconWorks/chunks/uncertainty_in_regionalGVA/), made in [this folder](docs/chunks/).
+  - [x] Chunk 1: Applying Annual Business Survey uncertainty data to regional GVA and looking at the results; asking some questions about implications; discussing a top Lost Boys scene that helps with type I / II errors. Online draft [here](https://danolner.github.io/RegEconWorks/chunks/uncertainty_in_regionalGVA/), made in [this folder](docs/chunks/).
   - [ ] Chunk 2 (not started): What chunk 1 - trying to separate economic signal and noise - might imply for regional decionmaking. Chunk 1 discusses this a bit in its closing section.
 
 Other national-accounts related chunks that may be useful:
