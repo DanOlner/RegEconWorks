@@ -42,7 +42,7 @@ If you use this software or analysis, please cite it via the DOI above or see th
 
 See the [feedback doc here](FEEDBACK.md) for ways to input/comment - any feedback, however big or small, will end up below in the contributor list.
 
-## Related Outputs
+## Related links
 
 - **Blog**: [coveredinbees.org](https://coveredinbees.org/)
 - **Exobrain**: [exobrain.coveredinbees.org](https://exobrain.coveredinbees.org/)
@@ -50,7 +50,7 @@ See the [feedback doc here](FEEDBACK.md) for ways to input/comment - any feedbac
 
 ## Licence
 
-- **Code**: [MIT](LICENSE) (or your chosen licence)
+- **Code**: [MIT](LICENSE)
 - **Text/narrative**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 - **Data**: See [data/README.md](data/README.md) for data-specific terms
 
