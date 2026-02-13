@@ -5,7 +5,7 @@ date: last-modified
 format:
   html:
     toc: true
-    output-file: uncertainty-regional-gva.html
+    output-file: index.html
   pdf:
     toc: true
     output-file: uncertainty-regional-gva.pdf

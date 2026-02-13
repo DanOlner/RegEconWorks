@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Dan Olner">
+<meta name="dcterms.date" content="2026-02-13">
+
+<title>Why adding uncertainty into regional GVA is a good thing</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="maindoc_files/libs/clipboard/clipboard.min.js"></script>
+<script src="maindoc_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="maindoc_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="maindoc_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="maindoc_files/libs/quarto-html/popper.min.js"></script>
+<script src="maindoc_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="maindoc_files/libs/quarto-html/anchor.min.js"></script>
+<link href="maindoc_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="maindoc_files/libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="maindoc_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="maindoc_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="maindoc_files/libs/bootstrap/bootstrap-d6a003b94517c951b2d65075d42fb01b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#headlines" id="toc-headlines" class="nav-link active" data-scroll-target="#headlines">Headlines</a></li>
+  <li><a href="#resourceslinks" id="toc-resourceslinks" class="nav-link" data-scroll-target="#resourceslinks">Resources/links</a></li>
+  <li><a href="#introduction-how-to-avoid-chasing-vampires-off-cliff-edges" id="toc-introduction-how-to-avoid-chasing-vampires-off-cliff-edges" class="nav-link" data-scroll-target="#introduction-how-to-avoid-chasing-vampires-off-cliff-edges">Introduction: how to avoid chasing vampires off cliff edges</a></li>
+  <li><a href="#a-quick-note-on-attitude" id="toc-a-quick-note-on-attitude" class="nav-link" data-scroll-target="#a-quick-note-on-attitude">A quick note on attitude</a></li>
+  <li><a href="#getting-away-from-perfect-sums" id="toc-getting-away-from-perfect-sums" class="nav-link" data-scroll-target="#getting-away-from-perfect-sums">Getting away from perfect sums</a></li>
+  <li><a href="#making-a-data-driven-guess-about-the-level-of-regional-gva-uncertainty" id="toc-making-a-data-driven-guess-about-the-level-of-regional-gva-uncertainty" class="nav-link" data-scroll-target="#making-a-data-driven-guess-about-the-level-of-regional-gva-uncertainty">Making a data-driven guess about the level of regional GVA uncertainty</a>
+  <ul class="collapse">
+  <li><a href="#using-the-annual-business-survey" id="toc-using-the-annual-business-survey" class="nav-link" data-scroll-target="#using-the-annual-business-survey">Using the Annual Business Survey</a></li>
+  <li><a href="#chained-volume-gva-growth-over-time" id="toc-chained-volume-gva-growth-over-time" class="nav-link" data-scroll-target="#chained-volume-gva-growth-over-time">Chained volume GVA: growth over time</a></li>
+  <li><a href="#current-prices-gva-location-quotients" id="toc-current-prices-gva-location-quotients" class="nav-link" data-scroll-target="#current-prices-gva-location-quotients">Current prices GVA: location quotients</a></li>
+  <li><a href="#highlighting-some-differences-between-single-point-estimates-and-with-uncertainty" id="toc-highlighting-some-differences-between-single-point-estimates-and-with-uncertainty" class="nav-link" data-scroll-target="#highlighting-some-differences-between-single-point-estimates-and-with-uncertainty">Highlighting some differences between single point estimates and with uncertainty</a></li>
+  </ul></li>
+  <li><a href="#discussion-and-next-steps" id="toc-discussion-and-next-steps" class="nav-link" data-scroll-target="#discussion-and-next-steps">Discussion and next steps</a>
+  <ul class="collapse">
+  <li><a href="#next-step-what-are-the-implications-for-regional-economic-thinking-if-we-take-uncertainty-seriously" id="toc-next-step-what-are-the-implications-for-regional-economic-thinking-if-we-take-uncertainty-seriously" class="nav-link" data-scroll-target="#next-step-what-are-the-implications-for-regional-economic-thinking-if-we-take-uncertainty-seriously">Next step: what are the implications for regional economic thinking if we take uncertainty seriously?</a></li>
+  <li><a href="#possible-further-uncertainty-if-thens" id="toc-possible-further-uncertainty-if-thens" class="nav-link" data-scroll-target="#possible-further-uncertainty-if-thens">Possible further uncertainty if… thens</a></li>
+  </ul></li>
+  <li><a href="#llm-use" id="toc-llm-use" class="nav-link" data-scroll-target="#llm-use">LLM use</a></li>
+  <li><a href="#appendix" id="toc-appendix" class="nav-link" data-scroll-target="#appendix">Appendix</a></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="uncertainty-regional-gva.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Why adding uncertainty into regional GVA is a good thing</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Dan Olner </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">February 13, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="headlines" class="level2">
+<h2 class="anchored" data-anchor-id="headlines">Headlines</h2>
+<ul>
+<li><p>Far from just introducing less precision, including uncertainty in regional economic data leads to some quite different, useful ways of thinking about regions, grounded in what we do and don’t know. It becomes possible to filter signal from noise.</p></li>
+<li><p>This is not standard practice mostly due to the constrictions of the System of National Accounts (globally agreed so extremely slow to change) <span class="citation" data-cites="coyle2014">(<a href="#ref-coyle2014" role="doc-biblioref">Coyle 2014</a>)</span>. But it is not an either/or situation. Accounts’ single point data and error-bar approaches can both be used.</p></li>
+<li><p>This report applies UK Annual Business Survey uncertainty rates to region-by-industry GVA data to explore what the impact of uncertainty could be.</p></li>
+<li><p>It argues uncertainty is powerful because it short-circuits many unhelpful ways of thinking about growth and industrial strategy, including spurious ranks.</p></li>
+<li><p>This first piece asks questions about what this might mean for regional economic thinking, with the aim of putting feedback and other work into a follow up article for the same project.</p></li>
+</ul>
+</section>
+<section id="resourceslinks" class="level2">
+<h2 class="anchored" data-anchor-id="resourceslinks">Resources/links</h2>
+<p>I have prepared two interactive web pages for each of the GVA sources discussed below. I’ll refer back to these with links.</p>
+<ol type="1">
+<li><p><a href="https://danolner.github.io/RegEconWorks/growth_errorgrids_viewer/">Chained volume GVA</a>: What is the growth signal if error rates are included in regional data?</p></li>
+<li><p><a href="https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/">Current prices GVA</a>: What happens to location quotients if error rates are included?</p></li>
+</ol>
+<p>The repository for this project is here. This includes all code (which mostly downloads data directly to be processed) and writing, as well as a record of any Claude-Code conversations used in the process. See <a href="https://exobrain.coveredinbees.org/llm-use-in-work-experimenting-with-short-guidelines/">this draft set of guidelines</a> on how to clearly keep one’s own work separable from LLM use, treating it no differently to any other source (with some complications). A section at the end explains how LLMs were (minimally) used in this article and points to other sources outlining how they were (more extensively) used in code production.</p>
+<hr>
+</section>
+<section id="introduction-how-to-avoid-chasing-vampires-off-cliff-edges" class="level2">
+<h2 class="anchored" data-anchor-id="introduction-how-to-avoid-chasing-vampires-off-cliff-edges">Introduction: how to avoid chasing vampires off cliff edges</h2>
+<p>In the movie ‘The Lost Boys’, David and his west-coast vampire buddies <a href="https://youtu.be/DP_lSpeK69c?si=klxDzst0hVvV0QlY">race motorbikes across a misty landscape</a>. Michael (as yet unaware of the blood-drinking habits of his new associates) tries to keep up with them. David eggs Michael on - but then Michael spots the faint beam of a lighthouse, puts two and two together and barely avoids hurtling over a cliff edge.</p>
+<p>One might say David was claiming ‘incredible certitude’ <span class="citation" data-cites="manski2020">(<a href="#ref-manski2020" role="doc-biblioref">Manski 2020</a>)</span> about the cliff’s location. “Don’t worry Micheal, there’s no cliff. Why would I be racing you otherwise? It’s miles away. Definitely.”</p>
+<p>Had Michael not seen the lighthouse through the fog, he may have made a type II error, believed David’s false negative - “no cliff here” - and raced on. (See <a href="#tbl-lostboys" class="quarto-xref">Table&nbsp;1</a> for a full type I / II error breakdown.)</p>
+<p>If there’s fog, what you do about that depends on what you think is going on and what else you feel certain about. But the fog itself is information. Without David’s certitude, Michael would do the the same as the rest of us - slow down and check his surroundings.</p>
+<p>I am of course going to apply this clunky metaphor to regional economic policy. Decisions are being constantly made on the basis of David-level certitude. But what are the implications of that for how we steer through the economic fog? And what would the implications be if we took the fog seriously?</p>
+<p>The issue is already well-explored (see below), but there has been little attempt to measure the fog and think through its policy effects at regional level. This is especially vexatious for place-based policies including trying to get a solid grip on industrial strategy. As devolution deepens, the problems will only multiply. We need to better understand what we do and don’t know, and what that means for aligning choices.</p>
+<p>Reasons this hasn’t happened so far usually come down to the complexity of identifying uncertainty in a national accounts framework. It’s true that the scale of the task is intimidating and onerous. But we don’t have to jump straight in at the deep end. Here, I argue it’s useful to explore the implications using some plausible, evidence-based ‘if/then’ scenarios about regional economic uncertainty. From that, it should be possible to iteratively explore policy implications.</p>
+<p>In this opening piece, I lay out the problem with ‘incredible certitude’ (as others have done before) and then present two examples of what applying uncertainty to regional GVA data could look like.</p>
+<p>I then ask some questions about what the policy and decision-making implications could be. I will leave those open to try and get feedback for the next chunk of this work, where I hope to flesh out how much difference uncertainty could make. I’ll save some ‘decision-making under uncertainty’ sources for that section.</p>
+<p>Introducing uncertainty doesn’t have to mean losing information. In fact it can be the reverse - revealing genuine signal in the noise, like a lighthouse in fog.</p>
+</section>
+<section id="a-quick-note-on-attitude" class="level2">
+<h2 class="anchored" data-anchor-id="a-quick-note-on-attitude">A quick note on attitude</h2>
+<p>A few words on the spirit of this work, going back to <a href="https://coveredinbees.org.archived.website/node/485.html">a point I was mulling back in 2018</a> about how we should approach criticism of economic ideas. I’ve just been re-reading a <a href="GDP%20are%20an%20honest%20attempt%20to%20do%20something%20that%20is%20conceptually%20and%20technically%20very%20difficult%20–%20and%20there%20are%20honest%20debates%20about%20what%20to%20include%20and%20what%20not%20to%20include.">2023 post by Richard Murphy</a> about <a href="https://en.wikipedia.org/wiki/Imputed_rent">imputed rent</a> (the rent that would be paid if owner-occupier houses were rented). The post starts with a GOTCHA claim: imputed rent isn’t real! “10% of GDP is made up – it simply does not exist in the real world”. Just another example, he says, showing how ridiculous national accounts are.</p>
+<p>A commenter <a href="https://www.taxresearch.org.uk/Blog/2023/02/14/10-or-gdp-is-made-up-it-simply-does-not-exist-in-the-real-world/#comment-920070">replies</a>:</p>
+<blockquote class="blockquote">
+<p>I really do wish you’d dial back the language a bit! GDP are an honest attempt to do something that is conceptually and technically very difficult – and there are honest debates about what to include and what not to include.</p>
+</blockquote>
+<p>I want to keep myself firmly grounded in that respect for work done by much smarter people than me, in the ONS and other places, often under extreme pressure (see example below). The ONS has come under immense pressure, while doing phenomenal work with less money and a much harder survey landscape.</p>
+</section>
+<section id="getting-away-from-perfect-sums" class="level2">
+<h2 class="anchored" data-anchor-id="getting-away-from-perfect-sums">Getting away from perfect sums</h2>
+<p>National accounts are just that - national - and issues arise straight away from re-purposing those tools for subnational thinking.</p>
+<p>Certitude is built into the system of national accounts. Like all accounts, everything has to sum correctly - the ledger of inputs and outputs must all balance exactly. It’s a powerful, mature system that has grown to become part of global governance structures. As the latest SNA (2025 front page <a href="https://unstats.un.org/unsd/nationalaccount/sna2025.asp">says</a>, the goal is to:</p>
+<blockquote class="blockquote">
+<p>“… ensure the compilation of internationally comparable national accounts statistics according to best practice and in a consistent way, allowing policy makers to benchmark their economies.”</p>
+</blockquote>
+<p>Methods to produce these accounts are focused at nation-level. As a result, estimating output for sub-regions is usually secondary, and usually a top-down process. This is the case for UK sub-regional data. As the ONS say in their <a href="https://www.ons.gov.uk/economy/grossvalueaddedgva/articles/analysisoftheextentofmodellingandestimationinregionalgrossvalueadded/2018-03-28#principal-data-sources-used-in-regional-gross-value-added">breakdown</a> of “observed/estimated/modelled components of regional GVA”:</p>
+<blockquote class="blockquote">
+<p>“Each of the components used in the measurement of regional gross value added (GVA) starts with a value for the UK as a whole, which is taken from the latest UK National Accounts Blue Book dataset. We then use the most appropriate available regional indicator to allocate the national total to parts of the UK, in a top-down hierarchical process. In this way we ensure that all of the regions sum to the published UK total and all sub-regions sum to their respective region total.”</p>
+</blockquote>
+<p>So this top down approach is an unavoidable outcome of the accounting framework it is part of. The ONS use “hundreds of input datasets to represent individual components of GVA” to achieve this accounting balance - in a separate regional GVA <a href="https://www.ons.gov.uk/economy/grossvalueaddedgva/methodologies/regionalgrossvalueaddedbalancedqmi">methods quality document</a>, they say of this:</p>
+<blockquote class="blockquote">
+<p>“The complex process by which GVA estimates are produced means that it is not currently possible to define the accuracy of the estimates… for example, through their standard errors. Therefore, the reliability of the estimates is measured by the extent of revisions.”</p>
+</blockquote>
+<p>It isn’t the complexity that makes uncertainty estimates impossible, though. ONS statisticians would have no problems navigating that challenge. Again - it’s the accounting framework they are working in. Outside of that framework, it would be quite possible to examine what error rates were like in any administration or survey sources. For regional data, it wouldn’t have to be an either/or - national accounts approaches could sit alongside more bottom-up analyses that include uncertainty and have no need to artificially ‘balance’.</p>
+<p>Why does this matter? Because policy action is taken on the basis of this certitude. <span class="citation" data-cites="coyle2017">Coyle (<a href="#ref-coyle2017" role="doc-biblioref">2017</a>)</span> digs into this issue (open PDF <a href="https://www.roiw.org/2017/s2/3.pdf">here</a>), discussing the long history of the tiniest GPD shifts having huge political effects. <a href="https://www.ons.gov.uk/economy/grossdomesticproductgdp/bulletins/gdpmonthlyestimateuk/november2025">Here’s a recent example</a> from November 2025. The UK grew by exactly 0.1% in the three months to November 2025. An earlier 0.1% contraction led to predictably mature responses in the press (<a href="https://www.bbc.co.uk/news/articles/cwyp7v7r28yo">BBC example</a>), with the shadow chancellor accusing the government of having “misled the British public” over what is almost certainly statistical noise.</p>
+<p>Coyle explains the trap we’ve found ourselves in: accounting certainty and political demand for precision (however spurious) keeps us stuck here. But as she says:</p>
+<blockquote class="blockquote">
+<p>“… neither the degree of underlying uncertainty nor the everyday practice of ignoring it seems sustainable, even though this situation has lasted for decades.” <span class="citation" data-cites="coyle2017">(<a href="#ref-coyle2017" role="doc-biblioref">Coyle 2017, p.228</a>)</span></p>
+</blockquote>
+<p>Attempts have been made to move away from this spurious precision. The ONS has experimented with some uncertainty, but it isn’t from the data itself. It takes this form: “How much have revisions to official numbers moved in the past? What bounds does that imply?” <a href="#fig-onsuncertainty" class="quarto-xref">Figure&nbsp;1</a> is an example of their answer (<a href="https://www.ons.gov.uk/economy/grossdomesticproductgdp/articles/communicatinggrossdomesticproduct/2020-04-16">source</a>). But this doesn’t include any actual sample error. Work has also been done recently on public perceptions of national GDP uncertainty <span class="citation" data-cites="galvão2024">(<a href="#ref-galvão2024" role="doc-biblioref">Galvão and Mitchell 2024</a>)</span>.</p>
+<div id="fig-onsuncertainty" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-onsuncertainty-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/clipboard-4250318875.png" id="fig-onsuncertainty" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-onsuncertainty-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1
+</figcaption>
+</figure>
+</div>
+<p>GVA at sub-regional level, however, throws up other sets of problems that make spurious accuracy potentially more troublesome. Local and mayoral authorities don’t get national-level data support and resources. UK level economic data works at the level it was made for. So when regions are attempting to implement devolved policy - and especially if they’ve been tasked with driving national industrial strategy at a local level - spurious accuracy leads to potentially following-vampire-over-cliff levels of decision problems.</p>
+<p>Adding error rates helps because it short-circuits many unhelpful ways of thinking about growth and industrial strategy. Applying national accounts level methods lends itself to making ranks of places and perceiving regional economics as a who’s up / who’s down competition for position (a problem Prof.&nbsp;Richard Harris <a href="https://medium.com/@profrichharris/the-certain-uncertainty-of-university-rankings-6917b40300f2">has pointed out</a> also happens in university rankings, where he shows it is equally as spurious).</p>
+<p>This competitive view has deep roots in national accounts approaches, originating as they do in managing wartime economies. They were later <a href="https://www.cia.gov/readingroom/docs/DOC_0000498181.pdf">used by the CIA</a> to model the U.S/ Soviet economies as part of Cold War strategy, where the stakes were about as high as they could be: proving which economic model would be victorious.</p>
+<p>Having a certain grip on uncertainty short-circuits all of this, as it makes horse-race thinking much more difficult, and points policy toward iterative, slow-test improvements based on a whole range of sources beyond just uncertain data.</p>
+</section>
+<section id="making-a-data-driven-guess-about-the-level-of-regional-gva-uncertainty" class="level2">
+<h2 class="anchored" data-anchor-id="making-a-data-driven-guess-about-the-level-of-regional-gva-uncertainty">Making a data-driven guess about the level of regional GVA uncertainty</h2>
+<p>This section presents the method and results for making a data-driven educated guess at the level of uncertainty in UK regional-by-sector GVA numbers. The ONS <a href="https://www.ons.gov.uk/economy/grossvalueaddedgva/datasets/nominalandrealregionalgrossvalueaddedbalancedbyindustry">region by industry GVA data</a> is used for the central estimate output numbers.</p>
+<p>The <strong>Annual Business Survey (ABS)</strong> is used to get uncertainty numbers. It is an ideal source for reasonable confidence bounds around regional/sectoral GVA data. It is <a href="https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/methodologies/annualbusinesssurveyqmi">designed</a> to capture sectoral and regional GVA at a reasonable resolution, and - for the sectors it covers - gets its data direct from firms. It can be matched directly against the region by industry data’s ITL1 geographies and most 2-digit sectors.</p>
+<p>The ABS is also the most important input into regional GVA numbers. As the ONS <a href="https://www.ons.gov.uk/economy/grossvalueaddedgva/articles/analysisoftheextentofmodellingandestimationinregionalgrossvalueadded/2018-03-28#principal-data-sources-used-in-regional-gross-value-added">say</a> in their fascinating breakdown (if you’re into that kind of thing) of “observed/estimated/modelled components of regional GVA”:</p>
+<blockquote class="blockquote">
+<p>“Of all the data sources used in regional GVA, the ABS has the greatest overall impact, representing around 71% of GVA(P) and 22% of GVA(I)… It includes elements corresponding to all three of the categories of data we wish to analyse: directly collected from businesses operating in a single region; weighted to represent non-sampled businesses; and apportioned to regions from UK-wide company information.”</p>
+</blockquote>
+<p>Using the ABS means there is much less reliance on some of the more <a href="https://exobrain.coveredinbees.org/attachments/heroic-assumptions/">heroic assumptions</a> that go into other aspects of regional GVA, making it a perfect source for this section’s question: if the regional GVA data had the same error rates as the ABS, what would it look like and what would the implications for analysis and policy be?</p>
+<p>Is this a valid exercise? I”m arguing yes, on the basis of two things. First, there is definitely uncertainty in the GVA data. An educated guess at error rates may be smaller or larger than the true uncertainty, but including it is very likely more accurate than the alternative - working with the point data as if it was the single true value.</p>
+<p>Second, seeing what difference error makes - even if there’s error in our error - leads to quite different ways of thinking about regional economies and policy. This goes back to the ‘chasing vampires off cliffs’ point. Introducing uncertainty provides a chance to explore it implications. Incredible certitude cuts off that chance, and as mentioned lends itself to horse-race / rank style thinking that may be - and I think probably is - serving us less well.</p>
+<p>It helps in this case that the ABS is a good survey, with included error rates, that can easily match against the accounts data. For those sectors that match, it’s a fair assumption that the ABS reasonably captures its uncertainty.</p>
+<p>Another argument against doing this would be straightforwardly methodological: the statistical approach is too basic. I’d argue that’s fine for this stage, where the goal is to explore what uncertainty might mean for regional policy. If the principle stands, the statistics can always be improved. As already mentioned, the ONS itself has a wealth of expertise that could achieve this, alongside partners testing the role of uncertainty in policy.</p>
+<section id="using-the-annual-business-survey" class="level3">
+<h3 class="anchored" data-anchor-id="using-the-annual-business-survey">Using the Annual Business Survey</h3>
+<p>The publically available ABS sources are broken into the <a href="https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/datasets/uknonfinancialbusinesseconomyannualbusinesssurveyregionalresultssectionsas">central estimate data</a> and <a href="https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/datasets/uknonfinancialbusinesseconomyannualbusinesssurveyregionalresultsqualitymeasures">error data</a><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> giving GVA values and standard errors at ITL1 geography level and 2-digit SIC sectors. Here, I convert GVA and standard errors from the ABS to coefficients of variation (proportion of error) and then apply them to the regional/sectoral GVA national accounts data at the same geogaphical scale, and where sectors are present in both sources (there are 73 that match once ABS sector categories are processed to match the region/sector data’s bespoke SIC list). Only years available across both sources are used - 2012 to 2023.</p>
+<p>Below, I’ll explore the implications of these error rates when applied both available types of regional GVA data:</p>
+<ul>
+<li>Chained volume (CV) data that aims to capture ‘real’ output changes over time. From these, we can ask, “Did this sector grow or shrink in this place?” (Later, we can do a few other things e.g.&nbsp;was its growth slope really steeper than other places?)</li>
+<li>Current prices (CP) data, which (being prices as they were in the year they were counted) can be summed, and used to calculate location quotients (LQs) - how concentrated a sector is in each place. This provides a good sense of the how the UK’s economic structure changes. We’ll have a go at adding error rates to LQs.</li>
+</ul>
+</section>
+<section id="chained-volume-gva-growth-over-time" class="level3">
+<h3 class="anchored" data-anchor-id="chained-volume-gva-growth-over-time">Chained volume GVA: growth over time</h3>
+<p>Chained volume (CV) data is used to assess real economic change over time, accounting for inflation and quality changes in goods and services. The ONS calculate separate deflators for each sector within each region, with a single year set as the point where the chained volume and ‘prices that year’ amounts are the same. Other years are adjusted relative to that, for each sector/place combination. (As a result, each sector/place time series must be treated separately and -unlike the current prices data - cannot be summed.)</p>
+<p>This section asks how much the growth signal changes for individual sectors in specific ITL1s if error rates are included.</p>
+<p><a href="https://danolner.github.io/RegEconWorks/growth_errorgrids_viewer/">This interactive web page</a> provides a way to look at the results, for individual sectors across all twelve ITL1 zones.</p>
+<ul>
+<li><p>The inclusion of error rates immediately makes it very rare for year-to-year changes to be distinguishable from zero, if looking at individual 2-digit SIC sectors in specific ITL1 zones. So instead, what each grid plot does is compare each year to every other year, to show where each is clearly separable.</p></li>
+<li><p>The assumptions used (on top of the if/then above) are: 95% confidence intervals, and assuming that GVA change isn’t clearly present if the possible minimum from one year is lower than the possible maximum from another year (and vice versa). This is a conservative assumption that the true value<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> could be at both confidence extremes between timepoints.</p></li>
+</ul>
+<p>Let’s talk through the default sector in the interactive, fabricated metals, to make more sense of that. Consider the example in <a href="#fig-ynhfab" class="quarto-xref">Figure&nbsp;2</a> (you can see the same data in the interactive by hovering over Yorkshire and Humber to see its growth over time). What this shows:</p>
+<ul>
+<li><p>Blue squares in the grid indicate that the column year was clearly higher than the row year it is compared to (‘clearly’ meaning, as described above, 95% mins and maxes don’t overlap).</p></li>
+<li><p>We can see that 2020 to 2023 are clearly higher than the earlier years in the data, from 2012 to 2016, though the high peak in 2021 is the only year consistently separable from others. 2020 to 2023 are years where the confidence interval minimum is separable from the earlier CI maxima.</p></li>
+<li><p>The rest of the grey area is showing that, for the first half of the data from 2012 to 2017 - on the assumptions we have here - no clear growth signal is coming through.</p></li>
+<li><p>Note, the grid is mirrored along the diagonal. So orange squares are showing the same thing in reverse - earlier column years are clearly lower than some later ones.</p></li>
+</ul>
+<div id="fig-ynhfab" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ynhfab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/YNH_growthgrid.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ynhfab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Yorkshire &amp; Humber GVA growth grid and growth over time, fabricated metals.
+</figcaption>
+</figure>
+</div>
+<p>Looking on the interactive, Scotland shows the opposite pattern, which can be seen from its growth slope in the interactive clearly too - bottom left orange squares indicate clearly lower values in the later part of the data.</p>
+<p><a href="#fig-eastmidsfab" class="quarto-xref">Figure&nbsp;3</a> shows fabricated metals in the East Midlands. While the later value increases appear separable from the low point around 2017, it can’t be so easily distinguished from where it was from 2012 to 2016, despite the central estimates looking higher (they could well have been higher in the earlier period and lower in the later one). That is, recent apparent growth could just be a return to the pre-Brexit status quo, not a step change. The difference to <a href="#fig-ynhfab" class="quarto-xref">Figure&nbsp;2</a> is mainly driven by East Midland’s larger standard errors - the underlying GVA data is more uncertain in the ABS. Other sources could be explored to triangulate. Have job numbers risen, for instance? What is known about any productivity changes in the sector here?</p>
+<p>Several other ITLs for fabricated metals in the interactive are purely grey. Looking at any of those shows combinations of wide error rates and fairly flat change over time, considering the range of those confidence intervals. The apparent drop in the North West after 2017, for example, isn’t clearly separable, though it looks strong. Again, other sources could help support or question that apparent change.</p>
+<div id="fig-eastmidsfab" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-eastmidsfab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/eastmids_growthgrid.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-eastmidsfab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: East Midlands GVA growth grid and growth over time, fabricated metals
+</figcaption>
+</figure>
+</div>
+<p>Within this way of looking, the data signal of the COVID19 pandemic comes straight through for land transport (<a href="https://danolner.github.io/RegEconWorks/growth_errorgrids_viewer/?sector=Landtransport">view on interactive page</a>), as it does for accommodation (<a href="https://danolner.github.io/RegEconWorks/growth_errorgrids_viewer/?sector=Accommodation">here</a>) and food services (<a href="https://danolner.github.io/RegEconWorks/growth_errorgrids_viewer/?sector=Foodandbeverageserviceactivities">here</a>). Other sectors where one might expect a pandemic impact (<a href="https://danolner.github.io/RegEconWorks/growth_errorgrids_viewer/?sector=Creativeartsandentertainmentactivities">arts/entertainment</a> and <a href="https://danolner.github.io/RegEconWorks/growth_errorgrids_viewer/?sector=Librariesarchivesmuseumsandotherculturalactivities">museums/culture</a>) are short on data. Mid-pandemic drops show up as an orange ‘column year lower than most other years’ band. London stands out as the one place that hasn’t yet seen bounced back to its pre-pandemic state, remaining significantly lower than other ITL1s.</p>
+</section>
+<section id="current-prices-gva-location-quotients" class="level3">
+<h3 class="anchored" data-anchor-id="current-prices-gva-location-quotients">Current prices GVA: location quotients</h3>
+<p>Location quotients (LQs) are an intuitive way to assess the relative strength of sectors in regions. An LQ is the ratio of a sector’s proportion of a region’s whole economy versus that sector’s proportion of the UK as a whole. If, say, fabricated metals is 20% of a sub-region’s GVA but only 10% nationally, it is twice as concentrated - the LQ is two<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>.</p>
+<p>Current price (CP) GVA data can be used for LQs because (unlike CV) it <em>can</em> be summed, as it is just the money value of each sector’s output recorded in that year. CP data can’t show real growth over time, but it can be used to examine economic structural change - how much a sector/place combination has <em>relatively</em> grown in concentration (which could be due to nominal growth in that sector, or other sectors increasing in value faster).</p>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Location quotient
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><span class="math display">\[
+\text{LQ}_{s,r} = \frac{\text{GVA}_{s,r} \;/\; \text{GVA}_{r}}{\text{GVA}_{s,\text{UK}} \;/\; \text{GVA}_{\text{UK}}}
+\]</span></p>
+<p>where <span class="math inline">\(\text{GVA}_{s,r}\)</span> is the GVA of sector <span class="math inline">\(s\)</span> in region <span class="math inline">\(r\)</span>, <span class="math inline">\(\text{GVA}_{r}\)</span> is total GVA across all sectors in that region, and <span class="math inline">\(\text{GVA}_{s,\text{UK}}\)</span> and <span class="math inline">\(\text{GVA}_{\text{UK}}\)</span> are the corresponding UK-wide values. An LQ above 1 means the sector is more concentrated in that region than nationally; below 1, less so.</p>
+</div>
+</div>
+<p>LQs are (in theory) perfect for thinking about regional specialisms, and for comparison and ranking, making them an obvious fit for industrial strategy thinking. But they also carry the “single accurate value” issue over from the underlying GVA data.</p>
+<p>Including error rates around an LQ is trickier than for direct GVA because it is a derived value - it doesn’t make sense to apply confidence intervals to an LQ directly. The solution used here is to simulate what the range of the underlying GVA values could be using applied uncertainty, and then calculate LQs based on those simulated values.</p>
+<p>Each simulation pulls a sample from a normally distributed range based on the standard errors applied from the ABS, adjusted to make sure no negative values arise as these could break the LQ formula. This is then repeated 500 times to produce a range of possible LQs.</p>
+<p><a href="https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/">Here is the interactive page</a> for looking at the results, starting again with fabricated metals. There are LQs for each ITL1, including 95% confidence intervals (see also <a href="#fig-lqfabs" class="quarto-xref">Figure&nbsp;4</a>). Considering overlapping error rates, East and West Midlands and Yorkshire &amp; the Humber might be seen as one ‘high concentration’ group not really separable from each other, with London and the South East separately at the ‘low concentration’ end. West Midlands also appears to have clearly the highest concentration. Other ITL1s are not so separable, and four have error bars crossing zero - if these are reasonable, there is no way to say if fabricated metals is more or less concentrated than the UK average.</p>
+<div id="fig-lqfabs" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-lqfabs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/fabmetals_LQs.png" id="fig-lqfabs" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-lqfabs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4
+</figcaption>
+</figure>
+</div>
+<p>The plot also <a href="https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/?sector=Manufactureoffabricatedmetalproducts&amp;view=twoyear">has an option</a> to compare LQs across five years, between 2017 and 2023. Overlapping error bars suggest the LQ for fabricated metals may not have significantly changed between those year in many places. The East Midlands (real LQ increase), Scotland and the South East (a plausible decrease in both) do suggest genuine structural change over time.</p>
+</section>
+<section id="highlighting-some-differences-between-single-point-estimates-and-with-uncertainty" class="level3">
+<h3 class="anchored" data-anchor-id="highlighting-some-differences-between-single-point-estimates-and-with-uncertainty">Highlighting some differences between single point estimates and with uncertainty</h3>
+<p>This is a brief section that picks a few example sectors and looks at their LQs. It compares the single-point values (the centre dots in the visualisations, which is the data we’d have without any uncertainty) to how introducing error bars may change the findings.</p>
+<p>I don’t attempt any policy implication statements based on that. See the final section - that is left open for the follow up report, after an attempt to get feedback on this piece.</p>
+<p>Before three examples, note what difference the overall error rate can make. Some sectors have very high uncertainty, present in the ABS. The error rates for <a href="https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/?sector=Constructionofbuildings&amp;view=single">construction of buildings</a>, for example, make it clear that any single-point differences need treating with much caution. only the North East (relative growth) and London (shrinking) appear to have a clear signal. This is also true for <a href="https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/?sector=Foodandbeverageserviceactivities&amp;view=single">food services</a> - huge uncertainty here (seen also in the CV data) also suggests being careful with claims about the service economy from this data.</p>
+<p>Error bars for sectors like <a href="https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/?sector=Creativeartsandentertainmentactivities&amp;view=single">arts/entertainment</a> show uncertainty varying a lot across ITL1s. Clearly there is better ABS data for Wales, the North East and Northern Ireland. Elsewhere, many places are not distinguishable from the UK average concentration. London is also quite uncertain but because it’s so concentrated, it’s easy to separate.</p>
+<p>Here’s a quick run-through comparing findings if considering just single point data versus with uncertainty.</p>
+<ul>
+<li><a href="https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/?sector=Manufactureoffabricatedmetalproducts&amp;view=twoyear">Architecture and engineering activities</a>:
+<ul>
+<li>Single points: East Midlands, the North East and Scotland seem to have lost a lot of concentration over time, while West Midlands, Wales and South West appear to have seen relative growth.</li>
+<li>With uncertainty: East Midlands earlier error range makes recent changes difficult to separate; nothing may have changed. Wales’ uncertainty is strong in both time periods. The drop in the North East seems large but can’t be separated clearly - can we find any other sources to clarify? The only clear stand-out is still Scotland, with what looks like definite relative growth.</li>
+</ul></li>
+<li><a href="https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/?sector=Computerprogrammingandconsultancy&amp;view=twoyear">Computer programming/consultancy</a>:
+<ul>
+<li>Single points: a split between places where the sector has relatively grown - North East, Yorkshire/Humber, Northern Ireland and London - with shrinkage in the South West, North West, Scotland, West Midlands, the East of England and the South East.</li>
+<li>With uncertainty: the only clear signals are definite relative shrinkage in the South West and strong growth in London. Uncertainty is especially strong in the East Midlands and East of England.</li>
+</ul></li>
+<li><a href="https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/?sector=Telecommunications&amp;view=twoyear">Telecommunications</a>:
+<ul>
+<li>A sector, similar to <a href="https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/?sector=Informationserviceactivities&amp;view=twoyear">Information service activities</a>, that has benefited from some more direct firm data, and this shows in the smaller error bars. It is still a different set of stories for single point data versus with uncertainty.</li>
+<li>Single points: London, Northern Ireland, East England, East Midlands and the North East have relatively shrunk; many other places have grown.</li>
+<li>With uncertainty: only Northern Ireland’s shrinkage has a clear signal. Growth signal is also clear only in Scotland, the South West and the West Midlands.</li>
+</ul></li>
+</ul>
+</section>
+</section>
+<section id="discussion-and-next-steps" class="level2">
+<h2 class="anchored" data-anchor-id="discussion-and-next-steps">Discussion and next steps</h2>
+<p>This end discussion covers two things:</p>
+<ol type="1">
+<li>What the next step - thinking through implications for regional economic policy - might look like. That includes asking some open questions.</li>
+<li>What else could be done to add uncertainty to economic data.</li>
+</ol>
+<section id="next-step-what-are-the-implications-for-regional-economic-thinking-if-we-take-uncertainty-seriously" class="level3">
+<h3 class="anchored" data-anchor-id="next-step-what-are-the-implications-for-regional-economic-thinking-if-we-take-uncertainty-seriously">Next step: what are the implications for regional economic thinking if we take uncertainty seriously?</h3>
+<p>How might it change what we do? There are two aspects to this. One: examining how more uncertain data differs to the single-point data and discussing what that could mean. Implications will be best tested at the point decisions are being mulled, including current industrial strategy choices. It is less theoretical, but more iterative and test/learn-oriented.</p>
+<p>The three examples included above could be one way of exploring these implications. If these are the differences between single-point and uncertain estimates, what could that mean for thinking through where regional economies really are?</p>
+<p>Two: there is a vast body of theoretical work to consider with a “planning under conditions of deep uncertainty” <span class="citation" data-cites="haasnoot2013">Haasnoot et al. (<a href="#ref-haasnoot2013" role="doc-biblioref">2013</a>)</span> heading. Game-theoretic ideas, Manski’s application of minimax regret <span class="citation" data-cites="stoye2012">Stoye (<a href="#ref-stoye2012" role="doc-biblioref">2012</a>)</span>, a full dive into cybernetic thinking, trying to comprehend decision-making as algedonic (pain/pleasure) signals in a viable system.</p>
+<p>Let’s return to the ‘avoid chasing vampires off cliffs’ idea. This ‘be afraid of type II errors’ approach is embodied in the precuationary principle: “extra precaution is justified when false negatives are worse than false positives” <span class="citation" data-cites="persson2016">Persson (<a href="#ref-persson2016" role="doc-biblioref">2016</a>)</span>. But it’s not always that way round - an issue that signal detection theory attempts to grapple with (see e.g. <span class="citation" data-cites="simchon2026">Simchon et al. (<a href="#ref-simchon2026" role="doc-biblioref">2026</a>)</span>) - as it says <a href="https://www.keiseruniversity.edu/signal-detection-theory/">here</a>, we are trying to detect the signal in the noise and then act appropriately. The potential damage depends on if we think cliff edges are ahead, or if we unnecessarily travel at a snail’s pace or go in an entirely wrong direction.</p>
+<p>Choices are never binary in the way that type I/II thinking encourages, however. Michael was making constant steering decisions as he proceeded - initially on a ‘no cliff ahead’ basis until new lighthouse information arrived. This has to be part of the thinking - how to use uncertain data to steer? That does raise cybernetic ideas again, but any theoretical ideas are probably most valuable inside a test/learning context, not set in stone beforehand.</p>
+</section>
+<section id="possible-further-uncertainty-if-thens" class="level3">
+<h3 class="anchored" data-anchor-id="possible-further-uncertainty-if-thens">Possible further uncertainty if… thens</h3>
+<p>Possible extensions to adding uncertainty to GVA and other economic data could include:</p>
+<ul>
+<li><p>Applying the same methods to lower geographies like ITL2 and 3 would require making assumptions about sample size, but - in the same spirit of if/then - that would be entirely doable, and could be simply applied through the sample-to-standard error conversion. It is one extra estimation step away from the work above though (as it would be if we combined sectors).</p></li>
+<li><p>Chained volume data could be used to compare different places to each other. For example, it should be possible to estimate how much more uncertain growth slopes (‘compound annual growth rates’ i.e.&nbsp;putting straight lines through change over time) could be. This would allow the equivalent question to be answered: “Has this sector in this place really grown more than elsewhere?” (This would build on the ‘significance of growth slopes’ work I have already done e.g.&nbsp;<a href="https://danolner.github.io/RegionalEconomicTools/quarto_docs/Yorkshire_n_Humber_growthslope_catalogue_Nov2025.html">here</a>, but that just uses standard OLS error rates sometimes with <a href="https://en.wikipedia.org/wiki/Newey–West_estimator">Newey West</a> applied).</p></li>
+<li><p>Error values are supplied for hours worked from the annual population survey. Combined with the GVA numbers, it would be possible to place uncertainty on productivity numbers.</p></li>
+<li><p>Using other sources to estimate uncertainty in job counts. There’s BRES, and also Companies House data - the latter with very large ‘sample sizes’.</p></li>
+<li><p>Sensitivity testing around assumptions. There are no single ‘correct’ answers. The approach above can pull out very clearly strong growth signals, but one could explore less conservative assumptions and compare to other sources. We could also use other statistical methods - for example, there is likely information in the correlation between timepoints in <a href="#fig-eastmidsfab" class="quarto-xref">Figure&nbsp;3</a>’s latter high values that could change the picture.</p></li>
+</ul>
+</section>
+</section>
+<section id="llm-use" class="level2">
+<h2 class="anchored" data-anchor-id="llm-use">LLM use</h2>
+<p>In this article:</p>
+<ul>
+<li>Claude code added the LQ formula and the lines from “where GVA…” to “below 1, less so” in <a href="#current-prices-gva-location-quotients">Current prices GVA: location quotients</a>.</li>
+<li>ChatGPT made <a href="#tbl-lostboys" class="quarto-xref">Table&nbsp;1</a> for me, from this prompt. I tweaked some of the text. “Consider the following two bits of text. (1)”Never confuse Type I and II errors again: Just remember that the Boy Who Cried Wolf caused both Type I &amp; II errors, in that order. First everyone believed there was a wolf, when there wasn’t. Next they believed there was no wolf, when there was. Substitute “effect” for “wolf” and you’re done.” And (2) “In the movie ‘The Lost Boys’, David and his west-coast vampire buddies race motorbikes across a foggy landscape. Michael (unaware of the blood-drinking habits of his new associates) tries to keep up with them. They egg him on - but then he spots the faint beam of a lighthouse, puts two and two together and barely avoids hurtling over a cliff edge. One might say David was claiming ‘incredible certitude’ (Manski) about the cliff’s location.”Don’t worry Micheal, it’s definitely, definitely miles from here.” Can you (1) put the lost boys quote in a type1/2 error context for me? And (2) search for other online sources/links that discuss examples of uncertainty and ‘incredible certitude’ and their implications?”</li>
+</ul>
+<p>In this project as whole:</p>
+</section>
+<section id="appendix" class="level2">
+<h2 class="anchored" data-anchor-id="appendix">Appendix</h2>
+<div id="tablelostboys" class="callout callout-style-simple callout-note no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<div id="tbl-lostboys" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-lostboys-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: The Lost Boys cliff scene in type I / II error form
+</figcaption>
+<div aria-describedby="tbl-lostboys-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Reality</th>
+<th>Michael believes / acts as if</th>
+<th>Error type</th>
+<th>The scene</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Cliff is NOT near</strong></td>
+<td>“Cliff IS near” (brakes hard, swerves)</td>
+<td><strong>Type I (false positive / false alarm)</strong></td>
+<td>Over-cautious braking when it was actually safe. Embarrassing, slower, but not deadly.</td>
+</tr>
+<tr class="even">
+<td><strong>Cliff IS near</strong></td>
+<td>“Cliff is NOT near” (keeps speeding)</td>
+<td><strong>Type II (false negative / missed warning)</strong></td>
+<td>The catastrophic one: he trusts David’s “definitely miles away” and goes over the edge.</td>
+</tr>
+<tr class="odd">
+<td>Cliff NOT near</td>
+<td>“Cliff NOT near”</td>
+<td>Correct</td>
+<td>Keeps up, no harm.</td>
+</tr>
+<tr class="even">
+<td>Cliff IS near</td>
+<td>“Cliff IS near”</td>
+<td>Correct</td>
+<td>Sees the lighthouse, updates belief, avoids disaster. Punches David.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</div>
+</div>
+</div>
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-coyle2014" class="csl-entry" role="listitem">
+Coyle, Diane. 2014. <em>GDP: A Brief but Affectionate History</em>. Princeton University Press.
+</div>
+<div id="ref-coyle2017" class="csl-entry" role="listitem">
+———. 2017. <span>“The Future of the National Accounts: Statistics and the Democratic Conversation.”</span> <em>Review of Income and Wealth</em> 63 (s2): S223–37. <a href="https://doi.org/10.1111/roiw.12333">https://doi.org/10.1111/roiw.12333</a>.
+</div>
+<div id="ref-galvão2024" class="csl-entry" role="listitem">
+Galvão, Ana Beatriz, and James Mitchell. 2024. <span>“Communicating Data Uncertainty: Multiwave Experimental Evidence for UK GDP.”</span> <em>Journal of Money, Credit and Banking</em> 56 (1): 81–114. <a href="https://doi.org/10.1111/jmcb.13044">https://doi.org/10.1111/jmcb.13044</a>.
+</div>
+<div id="ref-haasnoot2013" class="csl-entry" role="listitem">
+Haasnoot, Marjolijn, Jan H. Kwakkel, Warren E. Walker, and Judith ter Maat. 2013. <span>“Dynamic Adaptive Policy Pathways: A Method for Crafting Robust Decisions for a Deeply Uncertain World.”</span> <em>Global Environmental Change</em> 23 (2): 485–98. <a href="https://doi.org/10.1016/j.gloenvcha.2012.12.006">https://doi.org/10.1016/j.gloenvcha.2012.12.006</a>.
+</div>
+<div id="ref-manski2020" class="csl-entry" role="listitem">
+Manski, Charles F. 2020. <span>“The lure of incredible certitude.”</span> <em>Economics and philosophy</em> 36 (2): 216245. <a href="https://doi.org/10.1017/S0266267119000105">https://doi.org/10.1017/S0266267119000105</a>.
+</div>
+<div id="ref-persson2016" class="csl-entry" role="listitem">
+Persson, Erik. 2016. <span>“What Are the Core Ideas Behind the Precautionary Principle?”</span> <em>Science of The Total Environment</em> 557-558 (July): 134–41. <a href="https://doi.org/10.1016/j.scitotenv.2016.03.034">https://doi.org/10.1016/j.scitotenv.2016.03.034</a>.
+</div>
+<div id="ref-simchon2026" class="csl-entry" role="listitem">
+Simchon, Almog, Tomer Zipori, Louis Teitelbaum, Stephan Lewandowsky, and Sander van der Linden. 2026. <span>“A Signal Detection Theory Meta-Analysis of Psychological Inoculation Against Misinformation.”</span> <em>Current Opinion in Psychology</em> 67 (February): 102194. <a href="https://doi.org/10.1016/j.copsyc.2025.102194">https://doi.org/10.1016/j.copsyc.2025.102194</a>.
+</div>
+<div id="ref-stoye2012" class="csl-entry" role="listitem">
+Stoye, Jörg. 2012. <span>“Minimax Regret Treatment Choice with Covariates or with Limited Validity of Experiments.”</span> <em>Journal of Econometrics</em>, Annals issue on <span>“identification and decisions,”</span> in honor of chuck manski’s 60th birthday, 166 (1): 138–56. <a href="https://doi.org/10.1016/j.jeconom.2011.06.012">https://doi.org/10.1016/j.jeconom.2011.06.012</a>.
+</div>
+</div></section><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p><a href="https://github.com/DanOlner/RegionalEconomicTools/blob/gh-pages/bits_of_code/ABS_error_rates.R">code/comments here</a> run through combining those two sources. A final joined CSV is <a href="https://github.com/DanOlner/RegionalEconomicTools/blob/gh-pages/data/abs_gva_se_combo.csv">here</a>, to save others the pain, though it’s just for GVA, not every ABS value.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>‘True value’ being used as shorthand for the cumbersome ‘95% confidence interval would contain the true value 95% of the time if the survey sample was taken again’. [ONS source…]<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>Because (A/B)/(C/D) is equivalent to (A/C)/(B/D), the LQ actually captures two related ways of seeing the same thing: how relatively concentrated sectors are&nbsp;<em>across a whole geography</em>&nbsp;like the UK, and how concentrated&nbsp;<em>within a subgeography</em>&nbsp;like South Yorkshire they are. (See the desciption and table in the <a href="https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/datasets/locationquotientdataandindustrialspecialisationforlocalauthorities">ONS’ older LQ document</a>.)<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
