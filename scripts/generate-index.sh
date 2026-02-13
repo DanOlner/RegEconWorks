@@ -9,16 +9,20 @@ set -euo pipefail
 DOCS_DIR="docs"
 OUT="$DOCS_DIR/index.html"
 
-# Collect entries: folder name + title
+# Collect entries: relative path + title
+# Searches both docs/*/index.html and docs/chunks/*/index.html
 entries=()
 while IFS= read -r html_file; do
-  folder="$(basename "$(dirname "$html_file")")"
+  # Build the relative path from docs/ to the folder containing index.html
+  rel_path="${html_file#$DOCS_DIR/}"        # e.g. "chunks/uncertainty_in_regionalGVA/index.html"
+  rel_dir="$(dirname "$rel_path")"          # e.g. "chunks/uncertainty_in_regionalGVA"
+  display_name="$(basename "$rel_dir")"
   # Extract content of first <title> tag
   title=$(sed -n 's/.*<title>\(.*\)<\/title>.*/\1/p' "$html_file" | head -1)
   # Fall back to folder name if no title found
-  [ -z "$title" ] && title="$folder"
-  entries+=("$folder|$title")
-done < <(find "$DOCS_DIR" -mindepth 2 -maxdepth 2 -name "index.html" | sort)
+  [ -z "$title" ] && title="$display_name"
+  entries+=("$rel_dir|$title")
+done < <(find "$DOCS_DIR" -mindepth 2 -maxdepth 3 -name "index.html" -not -path "$OUT" | sort)
 
 # Build the HTML
 cat > "$OUT" <<'HEADER'
@@ -68,10 +72,10 @@ cat > "$OUT" <<'HEADER'
 HEADER
 
 for entry in "${entries[@]}"; do
-  folder="${entry%%|*}"
+  rel_dir="${entry%%|*}"
   title="${entry#*|}"
   cat >> "$OUT" <<LINK
-    <li><a href="${folder}/">${title}</a> <span class="folder">${folder}/</span></li>
+    <li><a href="${rel_dir}/">${title}</a> <span class="folder">${rel_dir}/</span></li>
 LINK
 done
 

@@ -192,3 +192,65 @@ You then manually update the markdown table in your README to match. The bot won
 ### The Bottom Line
 
 The All Contributors *tooling* is GitHub-centric, but the *specification* and the *output format* are just JSON + markdown. For a research project where contributors include civil servants and public sector people without GitHub accounts, you'd be maintaining the contributor list manually anyway -- which is fine, and arguably more appropriate than asking non-technical collaborators to create GitHub accounts just to be credited.
+
+## All Contributors Emoji Key: Suggested Effort Levels for Open Research
+
+The [All Contributors emoji key](https://allcontributors.org/emoji-key/) lists 33 contribution types but treats them all as flat -- no indication of how much effort or depth they typically represent. For an open research project that wants to acknowledge everything from a one-line comment to months of co-production, it helps to sort these into rough effort tiers.
+
+Three levels seem to capture the range well:
+
+- **Light touch** -- a brief, bounded input. Could be a single comment, a quick flag, a one-off action. Worth recording; doesn't imply ongoing involvement.
+- **Moderate** -- sustained or skilled input on a specific aspect of the work. More than a passing comment, less than shaping the whole project.
+- **Substantial** -- deep, ongoing, or structurally important work. The project would look meaningfully different without this contribution.
+
+These aren't rigid -- someone could make a "light touch" contribution that turns out to be pivotal. The levels describe *typical effort*, not *impact*.
+
+| Emoji | Type | Key | Suggested Level | Rationale |
+|---|---|---|---|---|
+| 🤔 | Ideas | `ideas` | Light touch | Suggesting a direction, flagging an issue, raising a question. Can be a single sentence. |
+| 🐛 | Bug reports | `bug` | Light touch | Reporting an error or problem. Often a one-off observation. |
+| 💬 | Community Q&A | `question` | Light touch | Answering a question from someone else. Brief, responsive. |
+| 📣 | Promotion | `promotion` | Light touch | Sharing or advocating for the work (e.g. a social media post, forwarding to a policy network). |
+| 💵 | Financial | `financial` | Light touch | Providing funds. Important, but typically a discrete action rather than ongoing work. |
+| 👀 | Review | `review` | Moderate | Reviewing a draft, dataset, or piece of code. Requires reading and considered feedback. |
+| 🔬 | Research | `research` | Moderate | Literature review, evidence gathering, sourcing references. Focused but requires time. |
+| 📖 | Documentation | `doc` | Moderate | Writing or improving guides, wikis, explanations. Skilled writing work on a specific part. |
+| 🖋 | Content | `content` | Moderate | Website copy, written material beyond documentation. |
+| 📝 | Blog | `blog` | Moderate | Writing a blog post about the work. Requires understanding and composition. |
+| 🔣 | Data | `data` | Moderate | Contributing or curating datasets. Can range widely, but typically requires domain knowledge. |
+| ⚠️ | Tests | `test` | Moderate | Writing or running tests. Requires understanding of what should be validated. |
+| 📓 | User Testing | `userTesting` | Moderate | Testing outputs from a user's perspective and providing structured feedback. |
+| 🔍 | Funding Finding | `fundingFinding` | Moderate | Identifying and pursuing grant opportunities. Skilled, time-consuming work. |
+| 📢 | Talks | `talk` | Moderate | Presenting the work at events, councils, or public forums. Requires preparation. |
+| ✅ | Tutorials | `tutorial` | Moderate | Creating educational materials. Requires understanding the work well enough to teach it. |
+| 🌍 | Translation | `translation` | Moderate | Translating outputs into other languages. Skilled, often invisible labour. |
+| 💡 | Examples | `example` | Moderate | Creating worked examples or sample use cases. |
+| 📋 | Event Organising | `eventOrganizing` | Moderate | Planning and running workshops, hackathons, stakeholder events. Logistical and relational work. |
+| 🔊 | Audio | `audio` | Moderate | Podcasts, sound design. Production work on a specific output. |
+| 📹 | Video | `video` | Moderate | Video explainers, recorded presentations. Production work. |
+| ♿️ | Accessibility | `a11y` | Moderate | Making outputs usable by people with disabilities. Specialist knowledge required. |
+| 💻 | Code | `code` | Substantial | Writing core code. Typically sustained, skilled work that shapes the project. |
+| 🎨 | Design | `design` | Substantial | Visual design, data visualisation, UX. Shapes how the work is understood. |
+| 🔧 | Tools | `tool` | Substantial | Building tools or utilities that support the project. Engineering work. |
+| 🔌 | Plugins | `plugin` | Substantial | Creating plugins or extensions. Requires deep understanding of the system. |
+| 🚇 | Infrastructure | `infra` | Substantial | Build systems, CI/CD, hosting, deployment. Structural work the project depends on. |
+| 📦 | Platform | `platform` | Substantial | Porting to different systems or environments. Requires broad technical knowledge. |
+| 🚧 | Maintenance | `maintenance` | Substantial | Ongoing upkeep over time. Sustained commitment beyond a single contribution. |
+| 📆 | Project Management | `projectManagement` | Substantial | Coordinating people, timelines, deliverables. Ongoing leadership work. |
+| 🧑‍🏫 | Mentoring | `mentoring` | Substantial | Teaching and supporting other contributors over time. Relational, sustained. |
+| 🛡️ | Security | `security` | Substantial | Identifying and fixing security/privacy issues. Specialist, high-responsibility work. |
+| 💼 | Business Development | `business` | Substantial | Building partnerships, sustainability models, commercial pathways. Strategic, ongoing. |
+
+### How This Maps to the Research Context
+
+For an open research project wanting to acknowledge civil servants, public sector practitioners, and community members:
+
+- **A colleague who emails "have you considered X?"** -- `ideas` (light touch). One emoji, clear signal this was a brief input.
+- **A civil servant who reviewed a draft and sent comments** -- `review` (moderate). They engaged with the substance.
+- **A local authority analyst who checked your results against their data** -- `review` + `data` (moderate). Two emojis, still clearly bounded.
+- **Someone who shared the work on social media or forwarded it to a mailing list** -- `promotion` (light touch).
+- **A practitioner who spotted an error in your assumptions** -- `bug` (light touch). Brief, but valuable.
+- **A researcher who contributed a literature review section** -- `research` + `doc` (moderate).
+- **Someone who co-designed the methodology and wrote code throughout** -- `ideas` + `code` + `design` (substantial). Multiple emojis across levels; the accumulation tells the story.
+
+The combination of **which emojis** and **how many** gives a natural visual signal of contribution depth, without needing a separate "level" field. Light-touch contributors get one or two emojis; substantial contributors accumulate several across categories. The table above gives a shared reference for what each level means, so the assignment isn't arbitrary.

@@ -115,7 +115,7 @@ window.Quarto = {
   <li><a href="#next-step-what-are-the-implications-for-regional-economic-thinking-if-we-take-uncertainty-seriously" id="toc-next-step-what-are-the-implications-for-regional-economic-thinking-if-we-take-uncertainty-seriously" class="nav-link" data-scroll-target="#next-step-what-are-the-implications-for-regional-economic-thinking-if-we-take-uncertainty-seriously">Next step: what are the implications for regional economic thinking if we take uncertainty seriously?</a></li>
   <li><a href="#possible-further-uncertainty-if-thens" id="toc-possible-further-uncertainty-if-thens" class="nav-link" data-scroll-target="#possible-further-uncertainty-if-thens">Possible further uncertainty if… thens</a></li>
   </ul></li>
-  <li><a href="#llm-edits-and-additions" id="toc-llm-edits-and-additions" class="nav-link" data-scroll-target="#llm-edits-and-additions">LLM edits and additions</a></li>
+  <li><a href="#llm-use" id="toc-llm-use" class="nav-link" data-scroll-target="#llm-use">LLM use</a></li>
   <li><a href="#appendix" id="toc-appendix" class="nav-link" data-scroll-target="#appendix">Appendix</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="uncertainty-regional-gva.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
@@ -170,6 +170,8 @@ window.Quarto = {
 <li><p><a href="https://danolner.github.io/RegEconWorks/growth_errorgrids_viewer/">Chained volume GVA</a>: What is the growth signal if error rates are included in regional data?</p></li>
 <li><p><a href="https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/">Current prices GVA</a>: What happens to location quotients if error rates are included?</p></li>
 </ol>
+<p>The repository for this project is here. This includes all code (which mostly downloads data directly to be processed) and writing, as well as a record of any Claude-Code conversations used in the process. See <a href="https://exobrain.coveredinbees.org/llm-use-in-work-experimenting-with-short-guidelines/">this draft set of guidelines</a> on how to clearly keep one’s own work separable from LLM use, treating it no differently to any other source (with some complications). A section at the end explains how LLMs were (minimally) used in this article and points to other sources outlining how they were (more extensively) used in code production.</p>
+<hr>
 </section>
 <section id="introduction-how-to-avoid-chasing-vampires-off-cliff-edges" class="level2">
 <h2 class="anchored" data-anchor-id="introduction-how-to-avoid-chasing-vampires-off-cliff-edges">Introduction: how to avoid chasing vampires off cliff edges</h2>
@@ -383,12 +385,14 @@ Figure&nbsp;4
 </ul>
 </section>
 </section>
-<section id="llm-edits-and-additions" class="level2">
-<h2 class="anchored" data-anchor-id="llm-edits-and-additions">LLM edits and additions</h2>
+<section id="llm-use" class="level2">
+<h2 class="anchored" data-anchor-id="llm-use">LLM use</h2>
+<p>In this article:</p>
 <ul>
 <li>Claude code added the LQ formula and the lines from “where GVA…” to “below 1, less so” in <a href="#current-prices-gva-location-quotients">Current prices GVA: location quotients</a>.</li>
 <li>ChatGPT made <a href="#tbl-lostboys" class="quarto-xref">Table&nbsp;1</a> for me, from this prompt. I tweaked some of the text. “Consider the following two bits of text. (1)”Never confuse Type I and II errors again: Just remember that the Boy Who Cried Wolf caused both Type I &amp; II errors, in that order. First everyone believed there was a wolf, when there wasn’t. Next they believed there was no wolf, when there was. Substitute “effect” for “wolf” and you’re done.” And (2) “In the movie ‘The Lost Boys’, David and his west-coast vampire buddies race motorbikes across a foggy landscape. Michael (unaware of the blood-drinking habits of his new associates) tries to keep up with them. They egg him on - but then he spots the faint beam of a lighthouse, puts two and two together and barely avoids hurtling over a cliff edge. One might say David was claiming ‘incredible certitude’ (Manski) about the cliff’s location.”Don’t worry Micheal, it’s definitely, definitely miles from here.” Can you (1) put the lost boys quote in a type1/2 error context for me? And (2) search for other online sources/links that discuss examples of uncertainty and ‘incredible certitude’ and their implications?”</li>
 </ul>
+<p>In this project as whole:</p>
 </section>
 <section id="appendix" class="level2">
 <h2 class="anchored" data-anchor-id="appendix">Appendix</h2>

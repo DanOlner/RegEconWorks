@@ -5,7 +5,9 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
 
-One-paragraph description of the research project: what it's about, what stage it's at, and what it aims to contribute.
+**RegEconWorks** is a **modular research repo** (a 1st prototype) focused on thinking through some key regional economic ideas for UK regional policy.
+
+- **Modular research repo?** Yup - the idea is to produce smaller, self-contained chunks of work 
 
 ## How to Cite
 
