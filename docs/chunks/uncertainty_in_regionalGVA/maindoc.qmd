@@ -37,7 +37,7 @@ I have prepared two interactive web pages for each of the GVA sources discussed 
 
 2.  [Current prices GVA](https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/): What happens to location quotients if error rates are included?
 
-The repository for this project is here. This includes all code (which mostly downloads data directly to be processed) and writing, as well as a record of any Claude-Code conversations used in the process. See [this draft set of guidelines](https://exobrain.coveredinbees.org/llm-use-in-work-experimenting-with-short-guidelines/) on how to clearly keep one's own work separable from LLM use, treating it no differently to any other source (with some complications). A section at the end explains how LLMs were (minimally) used in this article and points to other sources outlining how they were (more extensively) used in code production.
+The repository for this project is [here](https://github.com/DanOlner/RegEconWorks). This includes all code (which mostly downloads data directly to be processed) and writing, as well as a record of any Claude-Code conversations used in development. See [this draft set of guidelines](https://exobrain.coveredinbees.org/llm-use-in-work-experimenting-with-short-guidelines/) on how to clearly keep one's own work separable from LLM use, treating it no differently to any other source (with some complications). A section at the end explains how LLMs were (minimally) used in this article and points to other sources outlining how they were (more extensively) used in code production.
 
 ------------------------------------------------------------------------
 
@@ -256,6 +256,12 @@ Let's return to the 'avoid chasing vampires off cliffs' idea. This 'be afraid of
 
 Choices are never binary in the way that type I/II thinking encourages, however. Michael was making constant steering decisions as he proceeded - initially on a 'no cliff ahead' basis until new lighthouse information arrived. This has to be part of the thinking - how to use uncertain data to steer? That does raise cybernetic ideas again, but any theoretical ideas are probably most valuable inside a test/learning context, not set in stone beforehand.
 
+We've had false positives from spuriously accurate data where there were actual errors, both of the ranking type: "this city is the UK's number one for growth" and "this region is the UK's number one advanced cluster for x."
+
+The issue might not be that the ranking was wrong, but that this kind of thinking is fundamentally unproductive. As we can see above, where it's possible to detect signal in the noise, that is useful. But where fog remains, that points policy back towards the region itself, and what we concretely know about it - without having to enter into horse-race thinking. We know exactly which firms are here. We can know (from sources like Companies House) what much of the job picture is. We can sense-check quantitative data findings against deep local expertise, to build a much richer picture, and develop partnerships using that.
+
+If we drop the statistically unnatural need for everything to sum, how far can we get with a bottom-up, grounded-data version of economic reality? Again not either or.
+
 ### Possible further uncertainty if... thens
 
 Possible extensions to adding uncertainty to GVA and other economic data could include:
@@ -272,12 +278,20 @@ Possible extensions to adding uncertainty to GVA and other economic data could i
 
 ## LLM use
 
-In this article:
+**In this article:**
 
 -   Claude code added the LQ formula and the lines from "where GVA..." to "below 1, less so" in [Current prices GVA: location quotients].
 -   ChatGPT made @tbl-lostboys for me, from this prompt. I tweaked some of the text. "Consider the following two bits of text. (1) "Never confuse Type I and II errors again: Just remember that the Boy Who Cried Wolf caused both Type I & II errors, in that order. First everyone believed there was a wolf, when there wasn't. Next they believed there was no wolf, when there was. Substitute "effect" for "wolf" and you're done." And (2) "In the movie 'The Lost Boys', David and his west-coast vampire buddies race motorbikes across a foggy landscape. Michael (unaware of the blood-drinking habits of his new associates) tries to keep up with them. They egg him on - but then he spots the faint beam of a lighthouse, puts two and two together and barely avoids hurtling over a cliff edge. One might say David was claiming 'incredible certitude' (Manski) about the cliff's location. "Don't worry Micheal, it's definitely, definitely miles from here." Can you (1) put the lost boys quote in a type1/2 error context for me? And (2) search for other online sources/links that discuss examples of uncertainty and 'incredible certitude' and their implications?"
 
-In this project as whole:
+**In this project as whole:**
+
+-   The [main R code script here](https://github.com/DanOlner/RegEconWorks/blob/master/code/ABS_error_rates.R) has sections clearly marked where Claude Code (CC) was used to output code, mostly for visualisations.
+
+-   CC was used to output the two HTML/Javascript interactives, built around saved images. The prompt back-and-forth for that process is [here](https://github.com/DanOlner/RegEconWorks/blob/master/llm_convos/llm_convos_from_regecontools/2026-02-09_1356_The_user_opened_the_file_UsersdanolnerCodeRegional.md).
+
+-   CC drafted a first version of the project folder structure that I then tweaked. That built on [this source-synthesis](https://exobrain.coveredinbees.org/ll-moutput/modular-open-publishing-workflow/) from CC on 'modular open publishing workflow'.
+
+-   There is a CC-drafted source summary exploring why the ABI and region-by-industry GVA values differ [here](https://github.com/DanOlner/RegEconWorks/blob/master/llm_output/abs_v_regbyindustry.md).
 
 ## Appendix
 
