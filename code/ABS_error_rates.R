@@ -339,7 +339,6 @@ itl1.cv.linked = itl1.cv %>%
 
 # Save...
 write_csv(itl1.cv.linked,'data/itl1_cv_withestimatederrorratefromABS.csv')
-write_csv(itl1.cp.linked,'data/itl1_cp_withestimatederrorratefromABS.csv')
 
 
 
@@ -353,6 +352,180 @@ unique(itl1.cv$SIC07_description)
 # OK - out of public sectors, only health is still present in the ABS data
 unique(itl1.cv$SIC07_description)[!unique(itl1.cv$SIC07_description) %in% unique(itl1.cv.linked$SIC07_description)]
 
+
+
+# CHECK ON GVA DIFFERENCE BETWEEN REG BY INDUSTRY DATA VS ABS----
+
+# Or: why have I chosen to apply CoV to the regxind data, not just use the original GVA?
+# So can compare to the values we're using, though they're constructed to be top down 
+# But would be good to check how similar they are.
+
+# We'll just use sectors that directly match
+# Not any where we've used the weighted avs above
+abs_gva = read_csv('data/abs_gva_se_combo.csv') %>% 
+  rename(Region_name = Country_and_Region) %>% 
+  mutate(
+    SIC07_code_numeric = as.numeric(SIC)#To match longenated GVA SICs
+  ) %>% 
+  mutate(
+    Region_name = ifelse(Region_name == 'East of England', 'East', Region_name)#To match other data
+  )
+
+# Check direct matches...
+# Only on CP too, these are raw numbers (I believe)
+itl1.cp = itl1.cp %>% 
+  mutate(
+    SIC07_code_numeric = as.numeric(SIC07_code)
+  )
+
+# NAs produced there will be the combo sectors we're not going to use anyway
+table(unique(itl1.cp$SIC07_code_numeric))
+
+# Falses will be sectors not directly surveyed presumably...
+table(unique(itl1.cp$SIC07_code_numeric) %in% abs_gva$SIC07_code_numeric)
+
+# Yep, plus ones that are combinations of SICs
+unique(itl1.cp$SIC07_description[!itl1.cp$SIC07_code_numeric %in% unique(abs_gva$SIC07_code_numeric)])
+
+
+# OK, inner join where we have both
+gva.check = abs_gva %>% 
+  select(Region_name,year = Year,gva_from_abs = GVA,CoV100,SIC07_code_numeric) %>% 
+  inner_join(
+    itl1.cp %>% select(-SIC07_code) %>% rename(gva_from_regbyindustry = value),
+    by = c('Region_name','year','SIC07_code_numeric')
+  )
+
+
+
+
+
+
+## Visualise discrepancy between ABS GVA and regional-by-industry GVA----
+
+# Remove rows where either source is missing
+gva.check.clean = gva.check %>%
+  filter(!is.na(gva_from_abs), !is.na(gva_from_regbyindustry))
+
+# Nominal difference
+gva.check.clean = gva.check.clean %>%
+  mutate(
+    diff_nominal = gva_from_abs - gva_from_regbyindustry,
+    diff_pct = ((gva_from_abs - gva_from_regbyindustry) / gva_from_regbyindustry) * 100
+  )
+
+# --- Plot 1: Nominal difference by sector (averaged across regions and years) ---
+sector_diffs = gva.check.clean %>%
+  left_join(
+    itl1.cp %>% select(SIC07_code_numeric, SIC07_description) %>% distinct(),
+    by = 'SIC07_code_numeric'
+  ) %>%
+  group_by(SIC07_description) %>%
+  summarise(
+    mean_diff = mean(diff_nominal, na.rm = TRUE),
+    median_diff = median(diff_nominal, na.rm = TRUE),
+    mean_pct_diff = mean(diff_pct, na.rm = TRUE),
+    median_pct_diff = median(diff_pct, na.rm = TRUE),
+    n = n()
+  ) %>%
+  filter(!is.na(SIC07_description))
+
+p_nominal = ggplot(
+  sector_diffs %>% mutate(abs_higher = mean_diff > 0),
+  aes(y = fct_reorder(SIC07_description, mean_diff), x = mean_diff, fill = abs_higher)
+) +
+  geom_col() +
+  geom_vline(xintercept = 0, linetype = 'dashed') +
+  scale_fill_manual(
+    values = c('TRUE' = 'steelblue', 'FALSE' = 'coral'),
+    labels = c('TRUE' = 'ABS higher', 'FALSE' = 'Reg-by-Industry higher'),
+    name = ''
+  ) +
+  labs(
+    title = "Mean nominal GVA difference: ABS minus Regional-by-Industry",
+    subtitle = "Averaged across all ITL1 regions and years",
+    x = "Mean difference (£m)",
+    y = ""
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 11, face = "bold"),
+    plot.subtitle = element_text(size = 9, colour = "grey40"),
+    axis.text.y = element_text(size = 7),
+    legend.position = "bottom"
+  )
+
+p_nominal
+
+# --- Plot 2: Percentage difference by sector ---
+p_pct = ggplot(
+  sector_diffs %>% mutate(abs_higher = mean_pct_diff > 0),
+  aes(y = fct_reorder(SIC07_description, mean_pct_diff), x = mean_pct_diff, fill = abs_higher)
+) +
+  geom_col() +
+  geom_vline(xintercept = 0, linetype = 'dashed') +
+  scale_fill_manual(
+    values = c('TRUE' = 'steelblue', 'FALSE' = 'coral'),
+    labels = c('TRUE' = 'ABS higher', 'FALSE' = 'Reg-by-Industry higher'),
+    name = ''
+  ) +
+  labs(
+    title = "Mean percentage GVA difference: ABS minus Regional-by-Industry",
+    subtitle = "Averaged across all ITL1 regions and years. % of regional-by-industry value.",
+    x = "Mean difference (%)",
+    y = ""
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 11, face = "bold"),
+    plot.subtitle = element_text(size = 9, colour = "grey40"),
+    axis.text.y = element_text(size = 7),
+    legend.position = "bottom"
+  )
+
+p_pct
+
+# --- Plot 3: Scatter of the two values, coloured by region ---
+gva.check.labelled = gva.check.clean %>%
+  left_join(
+    itl1.cp %>% select(SIC07_code_numeric, SIC07_description) %>% distinct(),
+    by = 'SIC07_code_numeric'
+  )
+
+ggplot(gva.check.labelled, aes(x = gva_from_regbyindustry, y = gva_from_abs, colour = Region_name)) +
+  geom_abline(slope = 1, intercept = 0, linetype = 'dashed', colour = 'grey50') +
+  geom_point(alpha = 0.4, size = 1) +
+  scale_x_continuous(labels = scales::comma_format()) +
+  scale_y_continuous(labels = scales::comma_format()) +
+  labs(
+    title = "ABS GVA vs Regional-by-Industry GVA",
+    subtitle = "Each point = one sector/region/year. Dashed line = 1:1.",
+    x = "GVA from Regional-by-Industry (£m)",
+    y = "GVA from ABS (£m)",
+    colour = "Region"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 11, face = "bold"),
+    plot.subtitle = element_text(size = 9, colour = "grey40"),
+    legend.position = "right"
+  )
+
+# --- Plot 4: Percentage difference distribution by region ---
+ggplot(gva.check.labelled, aes(x = diff_pct, y = fct_reorder(Region_name, diff_pct, .fun = median))) +
+  geom_boxplot(outlier.size = 0.8, fill = 'steelblue', alpha = 0.3) +
+  geom_vline(xintercept = 0, linetype = 'dashed') +
+  labs(
+    title = "Distribution of % GVA difference by region",
+    subtitle = "(ABS - Regional-by-Industry) / Regional-by-Industry × 100",
+    x = "Difference (%)",
+    y = ""
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 11, face = "bold"),
+    plot.subtitle = element_text(size = 9, colour = "grey40")
+  )
 
 
 # CLAUDE CODE SECTION:----
