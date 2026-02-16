@@ -485,6 +485,9 @@ p_pct = ggplot(
 
 p_pct
 
+# Save plot for use in output
+saveRDS(p_pct,'local/abs_v_regbyindustry_gvapercentplot.rds')
+
 # --- Plot 3: Scatter of the two values, coloured by region ---
 gva.check.labelled = gva.check.clean %>%
   left_join(

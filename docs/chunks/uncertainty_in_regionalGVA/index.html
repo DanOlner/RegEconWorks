@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Dan Olner">
-<meta name="dcterms.date" content="2026-02-13">
+<meta name="dcterms.date" content="2026-02-16">
 
 <title>Why adding uncertainty into regional GVA is a good thing</title>
 <style>
@@ -116,7 +116,11 @@ window.Quarto = {
   <li><a href="#possible-further-uncertainty-if-thens" id="toc-possible-further-uncertainty-if-thens" class="nav-link" data-scroll-target="#possible-further-uncertainty-if-thens">Possible further uncertainty if… thens</a></li>
   </ul></li>
   <li><a href="#llm-use" id="toc-llm-use" class="nav-link" data-scroll-target="#llm-use">LLM use</a></li>
-  <li><a href="#appendix" id="toc-appendix" class="nav-link" data-scroll-target="#appendix">Appendix</a></li>
+  <li><a href="#appendix" id="toc-appendix" class="nav-link" data-scroll-target="#appendix">Appendix</a>
+  <ul class="collapse">
+  <li><a href="#table-lost-boys-cliff-scene-in-type-i-ii-terms" id="toc-table-lost-boys-cliff-scene-in-type-i-ii-terms" class="nav-link" data-scroll-target="#table-lost-boys-cliff-scene-in-type-i-ii-terms">Table: Lost Boys cliff scene in type I / II terms</a></li>
+  <li><a href="#figure-gva-from-the-abs-versus-gva-from-the-ons-region-by-industry-data-average-percent-difference" id="toc-figure-gva-from-the-abs-versus-gva-from-the-ons-region-by-industry-data-average-percent-difference" class="nav-link" data-scroll-target="#figure-gva-from-the-abs-versus-gva-from-the-ons-region-by-industry-data-average-percent-difference">Figure: GVA from the ABS versus GVA from the ONS region-by-industry data, average percent difference</a></li>
+  </ul></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="uncertainty-regional-gva.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
@@ -141,7 +145,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 13, 2026</p>
+      <p class="date">February 16, 2026</p>
     </div>
   </div>
   
@@ -220,7 +224,7 @@ window.Quarto = {
 <div id="fig-onsuncertainty" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-onsuncertainty-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="images/clipboard-4250318875.png" id="fig-onsuncertainty" class="img-fluid figure-img">
+<img src="images/clipboard-4250318875.png" id="fig-onsuncertainty" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-onsuncertainty-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;1
@@ -241,13 +245,15 @@ Figure&nbsp;1
 <p>“Of all the data sources used in regional GVA, the ABS has the greatest overall impact, representing around 71% of GVA(P) and 22% of GVA(I)… It includes elements corresponding to all three of the categories of data we wish to analyse: directly collected from businesses operating in a single region; weighted to represent non-sampled businesses; and apportioned to regions from UK-wide company information.”</p>
 </blockquote>
 <p>Using the ABS means there is much less reliance on some of the more <a href="https://exobrain.coveredinbees.org/attachments/heroic-assumptions/">heroic assumptions</a> that go into other aspects of regional GVA, making it a perfect source for this section’s question: if the regional GVA data had the same error rates as the ABS, what would it look like and what would the implications for analysis and policy be?</p>
+<p>It is important to note, though, that single-point GVA values in the ABS versus the region-by-industry GVA can be quite different. <a href="#fig-gva_2sources" class="quarto-xref">Figure&nbsp;5</a> did that work?</p>
 <p>Is this a valid exercise? I”m arguing yes, on the basis of two things. First, there is definitely uncertainty in the GVA data. An educated guess at error rates may be smaller or larger than the true uncertainty, but including it is very likely more accurate than the alternative - working with the point data as if it was the single true value.</p>
 <p>Second, seeing what difference error makes - even if there’s error in our error - leads to quite different ways of thinking about regional economies and policy. This goes back to the ‘chasing vampires off cliffs’ point. Introducing uncertainty provides a chance to explore it implications. Incredible certitude cuts off that chance, and as mentioned lends itself to horse-race / rank style thinking that may be - and I think probably is - serving us less well.</p>
 <p>It helps in this case that the ABS is a good survey, with included error rates, that can easily match against the accounts data. For those sectors that match, it’s a fair assumption that the ABS reasonably captures its uncertainty.</p>
 <p>Another argument against doing this would be straightforwardly methodological: the statistical approach is too basic. I’d argue that’s fine for this stage, where the goal is to explore what uncertainty might mean for regional policy. If the principle stands, the statistics can always be improved. As already mentioned, the ONS itself has a wealth of expertise that could achieve this, alongside partners testing the role of uncertainty in policy.</p>
 <section id="using-the-annual-business-survey" class="level3">
 <h3 class="anchored" data-anchor-id="using-the-annual-business-survey">Using the Annual Business Survey</h3>
-<p>The publically available ABS sources are broken into the <a href="https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/datasets/uknonfinancialbusinesseconomyannualbusinesssurveyregionalresultssectionsas">central estimate data</a> and <a href="https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/datasets/uknonfinancialbusinesseconomyannualbusinesssurveyregionalresultsqualitymeasures">error data</a><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> giving GVA values and standard errors at ITL1 geography level and 2-digit SIC sectors. Here, I convert GVA and standard errors from the ABS to coefficients of variation (proportion of error) and then apply them to the regional/sectoral GVA national accounts data at the same geogaphical scale, and where sectors are present in both sources (there are 73 that match once ABS sector categories are processed to match the region/sector data’s bespoke SIC list). Only years available across both sources are used - 2012 to 2023.</p>
+<p>The publically available ABS sources are broken into the <a href="https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/datasets/uknonfinancialbusinesseconomyannualbusinesssurveyregionalresultssectionsas">central estimate data</a> and <a href="https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/datasets/uknonfinancialbusinesseconomyannualbusinesssurveyregionalresultsqualitymeasures">error data</a><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> giving GVA values and standard errors at ITL1 geography level and 2-digit SIC sectors. Here, I convert GVA and standard errors from the ABS to coefficients of variation (proportion of error) and then apply them to the regional/sectoral GVA national accounts data at the same geogaphical scale, and where sectors are present in both sources.</p>
+<p>The region-by-industry GVA data uses bespoke groupings of SIC sectors (different groupings for each geography level, to keep to disclosure requirements). The ABS has single-digit SICs, for those sectors in the survey. In order to match the small number of grouped sectors to the ABS, each sector group (such as SIC sectors 5 to 8, covering four of the five mining/quarrying/fossil fuels sectors in SIC section B) is used to get an average coefficient of variation, weighted by the sector’s GVA value from the ABS. There are 73 sectorsthat match once ABS sector categories are processed to match. Only years available across both sources are used - 2012 to 2023.</p>
 <p>Below, I’ll explore the implications of these error rates when applied both available types of regional GVA data:</p>
 <ul>
 <li>Chained volume (CV) data that aims to capture ‘real’ output changes over time. From these, we can ask, “Did this sector grow or shrink in this place?” (Later, we can do a few other things e.g.&nbsp;was its growth slope really steeper than other places?)</li>
@@ -273,7 +279,7 @@ Figure&nbsp;1
 <div id="fig-ynhfab" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ynhfab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="images/YNH_growthgrid.png" class="img-fluid figure-img">
+<img src="images/YNH_growthgrid.png" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ynhfab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;2: Yorkshire &amp; Humber GVA growth grid and growth over time, fabricated metals.
@@ -286,7 +292,7 @@ Figure&nbsp;2: Yorkshire &amp; Humber GVA growth grid and growth over time, fabr
 <div id="fig-eastmidsfab" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-eastmidsfab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="images/eastmids_growthgrid.png" class="img-fluid figure-img">
+<img src="images/eastmids_growthgrid.png" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-eastmidsfab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;3: East Midlands GVA growth grid and growth over time, fabricated metals
@@ -322,7 +328,7 @@ Figure&nbsp;3: East Midlands GVA growth grid and growth over time, fabricated me
 <div id="fig-lqfabs" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-lqfabs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="images/fabmetals_LQs.png" id="fig-lqfabs" class="img-fluid figure-img">
+<img src="images/fabmetals_LQs.png" id="fig-lqfabs" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-lqfabs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;4
@@ -396,6 +402,8 @@ Figure&nbsp;4
 </section>
 <section id="appendix" class="level2">
 <h2 class="anchored" data-anchor-id="appendix">Appendix</h2>
+<section id="table-lost-boys-cliff-scene-in-type-i-ii-terms" class="level3">
+<h3 class="anchored" data-anchor-id="table-lost-boys-cliff-scene-in-type-i-ii-terms">Table: Lost Boys cliff scene in type I / II terms</h3>
 <div id="tablelostboys" class="callout callout-style-simple callout-note no-icon">
 <div class="callout-body d-flex">
 <div class="callout-icon-container">
@@ -456,7 +464,25 @@ Table&nbsp;1: The Lost Boys cliff scene in type I / II error form
 </div>
 </div>
 </div>
+</section>
+<section id="figure-gva-from-the-abs-versus-gva-from-the-ons-region-by-industry-data-average-percent-difference" class="level3">
+<h3 class="anchored" data-anchor-id="figure-gva-from-the-abs-versus-gva-from-the-ons-region-by-industry-data-average-percent-difference">Figure: GVA from the ABS versus GVA from the ONS region-by-industry data, average percent difference</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-gva_2sources" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-gva_2sources-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="maindoc_files/figure-html/fig-gva_2sources-1.png" width="672" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-gva_2sources-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: GVA from the Annual Business Survey vs GVA from the ONS region-by-industry data
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
 
+</section>
 </section>
 
 
