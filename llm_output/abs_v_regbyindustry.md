@@ -2,6 +2,8 @@
 
 Claude Code research output, February 2026. Sources listed at the end.
 
+Prompt for this output is [here](llm_convos/2026-02-16_0952_In_codeABS_error_ratesR_line_391_Ive_joined.md#human-4).
+
 ---
 
 ## Overview
