@@ -13,7 +13,6 @@ execute:
   echo: false
   message: false
   warning: false
-fig-responsive: false
 bibliography: references.bib
 ---
 
