@@ -19,7 +19,7 @@ bibliography: references.bib
 
 ## Headlines
 
--   Far from just introducing less precision, including uncertainty in regional economic data leads to some quite different, useful ways of thinking about regions, grounded in what we do and don't know. It becomes possible to filter signal from noise.
+-   Far from just introducing less precision, including uncertainty in regional economic data leads to quite different, useful ways of thinking about regions, grounded in what we do and don't know. It becomes possible to filter signal from noise.
 
 -   This is not standard practice mostly due to the constrictions of the System of National Accounts (globally agreed so extremely slow to change) [@coyle2014]. But it is not an either/or situation. Accounts' single point data and error-bar approaches can both be used.
 
@@ -119,17 +119,21 @@ The ABS is also the most important input into regional GVA numbers. As the ONS [
 
 > "Of all the data sources used in regional GVA, the ABS has the greatest overall impact, representing around 71% of GVA(P) and 22% of GVA(I)... It includes elements corresponding to all three of the categories of data we wish to analyse: directly collected from businesses operating in a single region; weighted to represent non-sampled businesses; and apportioned to regions from UK-wide company information."
 
-Using the ABS means there is much less reliance on some of the more [heroic assumptions](https://exobrain.coveredinbees.org/attachments/heroic-assumptions/) that go into other aspects of regional GVA, making it a perfect source for this section's question: if the regional GVA data had the same error rates as the ABS, what would it look like and what would the implications for analysis and policy be?
+Using the ABS means there is much less reliance on some of the more [heroic assumptions](https://exobrain.coveredinbees.org/attachments/heroic-assumptions/) that go into other aspects of regional GVA - though it isn't without its own assumptions, a key one being that, for firms with multiple sites across regions, GVA is allocated in proportion to site employment count geographically. But it is still survey-based, making it a perfect source for this section's question: if the regional GVA data had the same error rates as the ABS, what would it look like and what would the implications for analysis and policy be?
 
-It is important to note, though, that single-point GVA values in the ABS versus the region-by-industry GVA can be quite different. @fig-gva_2sources did that work?
+It is important to note, though, that single-point GVA values in the ABS versus the region-by-industry GVA can be quite different. @fig-gva_2sources summarises the average percent difference per sector between these two data sources (where single-sector matches exist). This figure is a visual reflection of the differences arising from the top-down national accounts balancing process, compared to survey data, and the complexity the ONS cite as the barrier to ever including error rates.
+
+(Some sectors are more easily explainable than others, especially mostly public ones; for example, health is 92% lower in the ABS, as the region-by-industry data includes a proxy for public sector output, where GVA is assumed to be just regional job count multiplied by average wage, balanced against national totals).
+
+Why graft the uncertainty from the ABS onto the region-by-industry data, then, rather than just examine ABS GVA? In order to carry out an 'if/then' exercise that lets us compare to the GVA numbers we already use for policy analysis, and ask how uncertainty could change their meaning.
 
 Is this a valid exercise? I"m arguing yes, on the basis of two things. First, there is definitely uncertainty in the GVA data. An educated guess at error rates may be smaller or larger than the true uncertainty, but including it is very likely more accurate than the alternative - working with the point data as if it was the single true value.
 
-Second, seeing what difference error makes - even if there's error in our error - leads to quite different ways of thinking about regional economies and policy. This goes back to the 'chasing vampires off cliffs' point. Introducing uncertainty provides a chance to explore it implications. Incredible certitude cuts off that chance, and as mentioned lends itself to horse-race / rank style thinking that may be - and I think probably is - serving us less well.
+Second, seeing what difference error makes - even if there's error in our error - leads to quite different ways of thinking about regional economies and policy. This goes back to the 'chasing vampires off cliffs' point. Introducing uncertainty provides a chance to explore its implications. Incredible certitude cuts off that chance, and as mentioned lends itself to horse-race / rank style thinking that may be - and I think probably is - serving us poorly.
 
-It helps in this case that the ABS is a good survey, with included error rates, that can easily match against the accounts data. For those sectors that match, it's a fair assumption that the ABS reasonably captures its uncertainty.
+Another argument against doing this would be straightforwardly methodological, and that has two parts. First, the statistical approach used here is too basic. I'd argue that's fine for this stage, where the goal is to explore what uncertainty might mean for regional policy. If the principle stands, the statistics can always be improved. As already mentioned, the ONS itself has a wealth of expertise that could achieve this, alongside partners testing the role of uncertainty in policy.
 
-Another argument against doing this would be straightforwardly methodological: the statistical approach is too basic. I'd argue that's fine for this stage, where the goal is to explore what uncertainty might mean for regional policy. If the principle stands, the statistics can always be improved. As already mentioned, the ONS itself has a wealth of expertise that could achieve this, alongside partners testing the role of uncertainty in policy.
+Second, this approach does nothing to draw on the complexity of national accounts production. That is part of the point, however. If including uncertainty is useful, it should be possible to refine our understanding of that uncertainty, including other sources used in national accounts balancing if useful. But the task is not to try and re-create national accounts approaches, which have very different purposes. If we want to know what the landscape of regional output really is, that may require its own approach.
 
 ### Using the Annual Business Survey
 
