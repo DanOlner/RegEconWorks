@@ -1,9 +1,5 @@
 # How to give feedback / input
 
-*This piece is a human/LLM smush. Initial draft by Claude Code, additions by me. See [diff here](https://github.com/DanOlner/RegEconWorks/commit/78a0b3c8999791d8382f75f70ac9d0abd0d842ca) for who did what.*
-
----
-
 The plan here is to produce modular chunks that are open to iterative feedback, whether that's from me directly pestering people or others actually cloning the repo and doing pull requests.
 
 The goal is to do open, test/learn-friendly research that can be useful/accessible/feedback-able across institutional boundaries.
@@ -46,3 +42,7 @@ I understand that commenting publicly may not always be straightforward. You can
 
 - **Email**: danolner at gmail dot com
 - **[LinkedIn](https://www.linkedin.com/in/danolner/)**
+
+---
+
+*This is a human/LLM smush. Initial draft by Claude Code, additions by me. See [blame here](https://github.com/DanOlner/RegEconWorks/blame/master/FEEDBACK.md) for who did what (Claude Code made the file, I edited).*

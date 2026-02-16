@@ -64,6 +64,9 @@ renv::restore()
 
 You may need to make sure you're running the approriate R version.
 
+## LLM
+
+*This is a human/LLM smush. Initial draft by Claude Code, additions by me. See [blame here](https://github.com/DanOlner/RegEconWorks/blame/master/README.md) for who did what (Claude Code made the file, I edited).*
 
 ## Contributors
 
