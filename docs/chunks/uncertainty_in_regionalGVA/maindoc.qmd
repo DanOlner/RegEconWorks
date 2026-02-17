@@ -251,6 +251,8 @@ There isn't a clean answer, only test and learn combined with considering existi
 
 Not to say theory doesn't matter, but theory disconnected from practice can drift into abstraction
 
+If we drop horse-race thinking, it points back towards what we *do* know, and that basket of knowledge is quite a different thing. Quantitative data is part of it, but not sufficient by itself.
+
 Implications will be best tested at the point decisions are being mulled, including current industrial strategy choices. It is less theoretical, but more iterative and test/learn-oriented. The three examples included above could be one way of exploring these implications. If these are the differences between single-point and uncertain estimates, what could that mean for thinking through where regional economies really are?
 
 Two: there is a vast body of theoretical work to consider with a "planning under conditions of deep uncertainty" @haasnoot2013 heading. Game-theoretic ideas, Manski's application of minimax regret @stoye2012, a full dive into cybernetic thinking, trying to comprehend decision-making as algedonic (pain/pleasure) signals in a viable system.
