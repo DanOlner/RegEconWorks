@@ -1927,6 +1927,137 @@ plot_focal_comparison(slopes_combined, "Yorkshire and The Humber")
 plot_focal_comparison(slopes_combined, "London")
 
 
+## Focal comparison grid with diagonal split: 90% and 95% CIs ----
+
+# Each cell is split diagonally: bottom-left triangle = 90% CI result,
+# top-right triangle = 95% CI result. Lets you see both CI levels at once.
+# Takes two combined_data frames (one run at each CI level) or a single one
+# and computes both internally.
+
+plot_focal_comparison_split <- function(combined_data, focal_region,
+                                        ci_levels = c(90, 95)) {
+
+  # Helper: compute significance for a given CI level and SE column
+  compute_sig <- function(cdata, focal_reg, ci_level, se_col) {
+    ci_z <- qnorm(1 - (1 - ci_level / 100) / 2)
+
+    ci_data <- cdata %>%
+      ungroup() %>%
+      mutate(
+        ci_lo = slope_ols - .data[[se_col]] * ci_z,
+        ci_hi = slope_ols + .data[[se_col]] * ci_z
+      )
+
+    focal <- ci_data %>% filter(Region_name == focal_reg)
+    others <- ci_data %>% filter(Region_name != focal_reg)
+
+    others %>%
+      inner_join(
+        focal %>% select(SIC07_description,
+                         focal_ci_lo = ci_lo, focal_ci_hi = ci_hi),
+        by = 'SIC07_description'
+      ) %>%
+      mutate(
+        sig = case_when(
+          focal_ci_lo > ci_hi ~  1L,
+          focal_ci_hi < ci_lo ~ -1L,
+          TRUE ~ 0L
+        )
+      ) %>%
+      select(SIC07_description, Region_name, sig)
+  }
+
+  # Compute significance for both methods at both CI levels
+  build_cell_data <- function(se_col) {
+    sig_lo <- compute_sig(combined_data, focal_region, ci_levels[1], se_col) %>%
+      rename(sig_lo = sig)
+    sig_hi <- compute_sig(combined_data, focal_region, ci_levels[2], se_col) %>%
+      rename(sig_hi = sig)
+    sig_lo %>%
+      inner_join(sig_hi, by = c('SIC07_description', 'Region_name'))
+  }
+
+  cell_ols <- build_cell_data("se_ols") %>% mutate(method = "OLS only")
+  cell_combined <- build_cell_data("se_combined") %>% mutate(method = "OLS + measurement uncertainty")
+
+  cell_data <- bind_rows(cell_ols, cell_combined) %>%
+    mutate(method = factor(method, levels = c("OLS only", "OLS + measurement uncertainty")))
+
+  # Convert axes to numeric positions for polygon coordinates
+  regions <- sort(unique(cell_data$Region_name))
+  sectors <- sort(unique(cell_data$SIC07_description))
+
+  cell_data <- cell_data %>%
+    mutate(
+      x = match(Region_name, regions),
+      y = match(SIC07_description, sectors)
+    )
+
+  # Build triangle polygons for each cell
+  # Bottom-left triangle: (x-0.5, y-0.5), (x+0.5, y-0.5), (x-0.5, y+0.5)
+  # Top-right triangle:   (x+0.5, y+0.5), (x-0.5, y+0.5), (x+0.5, y-0.5)
+  # Each triangle needs a unique group ID (method + cell + lo/hi)
+  tri_lo <- cell_data %>%
+    mutate(
+      tri_id = paste(method, SIC07_description, Region_name, "lo", sep = "::")
+    ) %>%
+    reframe(
+      tri_id = rep(tri_id, each = 3),
+      method = rep(method, each = 3),
+      sig = rep(sig_lo, each = 3),
+      px = c(rbind(x - 0.5, x + 0.5, x - 0.5)),
+      py = c(rbind(y - 0.5, y - 0.5, y + 0.5))
+    )
+
+  tri_hi <- cell_data %>%
+    mutate(
+      tri_id = paste(method, SIC07_description, Region_name, "hi", sep = "::")
+    ) %>%
+    reframe(
+      tri_id = rep(tri_id, each = 3),
+      method = rep(method, each = 3),
+      sig = rep(sig_hi, each = 3),
+      px = c(rbind(x + 0.5, x - 0.5, x + 0.5)),
+      py = c(rbind(y + 0.5, y + 0.5, y - 0.5))
+    )
+
+  plot_polys <- bind_rows(tri_lo, tri_hi) %>%
+    mutate(
+      sig_label = factor(sig, levels = c(-1, 0, 1),
+                         labels = c("Focal lower", "Not distinguishable", "Focal higher"))
+    )
+
+  ggplot(plot_polys, aes(x = px, y = py, group = tri_id, fill = sig_label)) +
+    geom_polygon(colour = "white", linewidth = 0.2) +
+    facet_wrap(~method) +
+    scale_fill_manual(
+      values = c("Focal lower" = "#d73027", "Not distinguishable" = "grey90", "Focal higher" = "#1a9850"),
+      name = ""
+    ) +
+    scale_x_continuous(breaks = seq_along(regions), labels = regions, expand = c(0, 0)) +
+    scale_y_continuous(breaks = seq_along(sectors), labels = sectors, expand = c(0, 0)) +
+    labs(
+      title = paste0("Growth slope comparisons from ", focal_region, "'s perspective"),
+      subtitle = paste0("Bottom-left triangle = ", ci_levels[1],
+                        "% CI, top-right triangle = ", ci_levels[2], "% CI"),
+      x = "", y = ""
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+      axis.text.y = element_text(size = 6),
+      plot.title = element_text(size = 11, face = "bold"),
+      plot.subtitle = element_text(size = 9, colour = "grey40"),
+      strip.text = element_text(size = 10, face = "bold"),
+      legend.position = "bottom"
+    ) +
+    coord_fixed()
+}
+
+# Example
+plot_focal_comparison_split(slopes_combined, "South West")
+
+
 
 
 
