@@ -3,6 +3,9 @@
 library(tidyverse)
 library(zoo)
 library(patchwork)
+library(furrr)
+
+plan(multisession, workers = availableCores() - 1)
 
 # Grab some functions from the regionalecontools repo
 source('https://raw.githubusercontent.com/DanOlner/RegionalEconomicTools/refs/heads/gh-pages/functions/misc_functions.R')
@@ -1521,7 +1524,263 @@ itl1.cp.centralestLQ %>%
 
 
 
+# INCLUDING THE EXTRA UNCERTAINTY IN LINEAR SLOPES----
 
+# Plan: test ways to add in the extra uncertainty to see how it changes 
+# Which sector/place combos still stand out
+# First easy option: using the new CIs as draws to simulate again
+# Get many slopes
+# Get range of new CIs from all those slopes
+
+## CLAUDE OUTPUT:
+
+## Monte Carlo simulation of slopes with measurement uncertainty ----
+
+# APPROACH:
+# For each MC iteration, draw plausible GVA values from log-normal distributions
+# parameterised by the observed value and SE (same approach as LQ simulation).
+# Then fit log(sim_value) ~ year for each sector/region group and collect slopes.
+# The distribution of slopes across iterations captures the additional uncertainty
+# from measurement error on top of the OLS trend-fitting uncertainty.
+#
+# Output: a summary dataframe with median slope and simulated CIs,
+# plus the raw draws for flexible quantile computation (adjustable CI levels).
+
+# Reload data (in case running from here)
+itl1.cv.linked = read_csv('data/itl1_cv_withestimatederrorratefromABS.csv')
+
+# Also get the vanilla OLS slopes for comparison
+slopes_ols <- get_slope_and_se_safely(
+  itl1.cv.linked,
+  Region_name, SIC07_description,
+  y = log(value),
+  x = year
+)
+
+# MC simulation function for slopes (parallelised via furrr)
+simulate_slopes <- function(data, n_sims = 500, seed = 42) {
+
+  # Pre-compute log-normal parameters (same as LQ simulation)
+  sim_params <- data %>%
+    mutate(
+      has_se = !is.na(SE) & SE > 0 & value > 0,
+      lnorm_sigma2 = ifelse(has_se, log(1 + (SE / value)^2), NA),
+      lnorm_sigma  = ifelse(has_se, sqrt(lnorm_sigma2), NA),
+      lnorm_mu     = ifelse(has_se, log(value) - lnorm_sigma2 / 2, NA)
+    )
+
+  # Run simulations in parallel — furrr handles reproducible RNG via L'Ecuyer-CMRG streams
+  future_map_dfr(1:n_sims, function(i) {
+    sim_data <- sim_params %>%
+      mutate(
+        sim_value = ifelse(
+          has_se,
+          rlnorm(n(), meanlog = lnorm_mu, sdlog = lnorm_sigma),
+          value
+        )
+      )
+
+    get_slope_and_se_safely(
+      sim_data,
+      Region_name, SIC07_description,
+      y = log(sim_value),
+      x = year
+    ) %>%
+      mutate(sim_id = i)
+  }, .options = furrr_options(seed = seed), .progress = TRUE)
+}
+
+# Run the simulation
+n_sims_slopes <- 500
+slopes_mc_raw <- simulate_slopes(itl1.cv.linked, n_sims = n_sims_slopes)
+
+# Summarise: median slope + simulated 95% CI
+# For each MC draw, compute the full CI (slope ± 1.96*se) for that draw,
+# then across all draws keep the min lower bound and max upper bound.
+# This captures the worst-case envelope combining both sources of uncertainty.
+slopes_mc_summary <- slopes_mc_raw %>%
+  mutate(
+    ci_lo = slope - 1.96 * se,
+    ci_hi = slope + 1.96 * se
+  ) %>%
+  group_by(Region_name, SIC07_description) %>%
+  summarise(
+    slope_median = median(slope, na.rm = TRUE),
+    slope_sd     = sd(slope, na.rm = TRUE),
+    # Envelope: min/max of per-draw CIs across all simulations
+    envelope_lo  = if(all(is.na(ci_lo))) NA_real_ else min(ci_lo, na.rm = TRUE),
+    envelope_hi  = if(all(is.na(ci_hi))) NA_real_ else max(ci_hi, na.rm = TRUE),
+    .groups = 'drop'
+  )
+
+# Merge OLS and MC results for comparison
+slopes_combined <- slopes_ols %>%
+  rename(slope_ols = slope, se_ols = se) %>%
+  left_join(slopes_mc_summary, by = c('Region_name', 'SIC07_description'))
+
+# Save raw draws for flexible quantile computation in viewers
+write_csv(slopes_mc_raw, 'data/slopes_mc_raw_draws.csv')
+write_csv(slopes_combined, 'data/slopes_ols_vs_mc_combined.csv')
+
+
+## Compare OLS vs MC slope CIs ----
+
+# Create a slope+se dataframe from the MC results that plugs into slopeDiffGrid.
+# Derive an effective SE from the envelope so that slope ± 1.96*se reproduces the
+# full envelope (combining OLS regression uncertainty + measurement uncertainty).
+slopes_mc_for_grid <- slopes_mc_summary %>%
+  transmute(
+    Region_name,
+    SIC07_description,
+    slope = slope_median,
+    se = (envelope_hi - envelope_lo) / (2 * 1.96)
+  )
+
+# Quick comparison: how much wider are MC CIs vs OLS CIs?
+ci_comparison <- slopes_combined %>%
+  mutate(
+    ols_ci_width = se_ols * 2 * 1.96,
+    mc_ci_width  = envelope_hi - envelope_lo,
+    ci_ratio = mc_ci_width / ols_ci_width
+  )
+
+cat("Median CI width ratio (MC / OLS):", median(ci_comparison$ci_ratio, na.rm = TRUE), "\n")
+cat("Mean CI width ratio (MC / OLS):", mean(ci_comparison$ci_ratio, na.rm = TRUE), "\n")
+
+
+## Forest plot: OLS vs MC CIs for a sector across regions ----
+
+plot_slope_forest <- function(combined_data, sector_pattern) {
+
+  plot_data <- combined_data %>%
+    filter(grepl(sector_pattern, SIC07_description, ignore.case = TRUE))
+
+  sector_name <- unique(plot_data$SIC07_description)[1]
+
+  # Convert everything to annualised % change: (exp(slope) - 1) * 100
+  to_pct <- function(x) (exp(x) - 1) * 100
+
+  plot_data <- plot_data %>%
+    mutate(
+      slope_pct    = to_pct(slope_ols),
+      ols_min95    = to_pct(slope_ols - se_ols * 1.96),
+      ols_max95    = to_pct(slope_ols + se_ols * 1.96),
+      mc_min95     = to_pct(envelope_lo),
+      mc_max95     = to_pct(envelope_hi)
+    )
+
+  ggplot(plot_data, aes(y = fct_reorder(Region_name, slope_pct))) +
+    geom_vline(xintercept = 0, linetype = 'dashed', colour = 'grey50') +
+    # MC CI (wider, lighter)
+    geom_errorbarh(aes(xmin = mc_min95, xmax = mc_max95),
+                   height = 0.3, colour = 'steelblue', alpha = 0.4, linewidth = 2) +
+    # OLS CI (narrower, darker)
+    geom_errorbarh(aes(xmin = ols_min95, xmax = ols_max95),
+                   height = 0.3, colour = 'steelblue', linewidth = 0.7) +
+    geom_point(aes(x = slope_pct), size = 2) +
+    labs(
+      title = paste0("Growth rate slopes: ", sector_name),
+      subtitle = "Thin bars = OLS 95% CI. Wide bars = envelope of per-draw 95% CIs across all MC simulations",
+      x = "Annualised growth rate (%)",
+      y = "",
+      caption = paste0(n_sims_slopes, " MC draws using log-normal on GVA with ABS standard errors")
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(size = 11, face = "bold"),
+      plot.subtitle = element_text(size = 9, colour = "grey40")
+    )
+}
+
+# Example plots
+plot_slope_forest(slopes_combined, "fabricated metal")
+plot_slope_forest(slopes_combined, "computer programming")
+plot_slope_forest(slopes_combined, "construction of buildings")
+plot_slope_forest(slopes_combined, "pharmaceutical")
+
+
+## Headline summary: % of significant pairwise differences, OLS vs MC ----
+
+# Count how many pairwise slope comparisons are "significant" (CIs don't overlap)
+# under OLS vs MC, for each sector (comparing across regions)
+count_sig_pairs <- function(slope_df, ci_level = 95) {
+
+  ci_z <- qnorm(1 - (1 - ci_level/100) / 2)
+
+  slope_df <- slope_df %>%
+    mutate(
+      min_ci = slope - se * ci_z,
+      max_ci = slope + se * ci_z
+    )
+
+  # All pairwise region comparisons per sector
+  sectors <- unique(slope_df$SIC07_description)
+
+  map_dfr(sectors, function(sec) {
+    sec_data <- slope_df %>% filter(SIC07_description == sec)
+
+    combos <- expand.grid(
+      r1 = seq_len(nrow(sec_data)),
+      r2 = seq_len(nrow(sec_data))
+    ) %>% filter(r1 < r2)
+
+    if(nrow(combos) == 0) return(tibble())
+
+    n_pairs <- nrow(combos)
+    n_sig <- sum(
+      sec_data$max_ci[combos$r1] < sec_data$min_ci[combos$r2] |
+      sec_data$max_ci[combos$r2] < sec_data$min_ci[combos$r1],
+      na.rm = TRUE
+    )
+
+    tibble(
+      SIC07_description = sec,
+      n_pairs = n_pairs,
+      n_sig = n_sig,
+      pct_sig = (n_sig / n_pairs) * 100
+    )
+  })
+}
+
+sig_counts_ols <- count_sig_pairs(slopes_ols %>% rename(SIC07_description = SIC07_description)) %>%
+  rename(n_sig_ols = n_sig, pct_sig_ols = pct_sig)
+
+sig_counts_mc <- count_sig_pairs(slopes_mc_for_grid) %>%
+  rename(n_sig_mc = n_sig, pct_sig_mc = pct_sig)
+
+sig_comparison <- sig_counts_ols %>%
+  left_join(sig_counts_mc %>% select(SIC07_description, n_sig_mc, pct_sig_mc),
+            by = 'SIC07_description') %>%
+  mutate(
+    pct_lost = pct_sig_ols - pct_sig_mc,
+    ratio = pct_sig_mc / pct_sig_ols
+  ) %>%
+  arrange(-pct_lost)
+
+cat("\nOverall: OLS sig pairs =", sum(sig_comparison$n_sig_ols, na.rm = TRUE),
+    "/ MC sig pairs =", sum(sig_comparison$n_sig_mc, na.rm = TRUE), "\n")
+cat("Reduction:", round((1 - sum(sig_comparison$n_sig_mc, na.rm = TRUE) /
+                           sum(sig_comparison$n_sig_ols, na.rm = TRUE)) * 100, 1), "%\n")
+
+# Plot: sectors ranked by how much significance they lose
+ggplot(
+  sig_comparison %>% filter(!is.na(pct_lost)),
+  aes(y = fct_reorder(SIC07_description, pct_lost), x = pct_lost)
+) +
+  geom_col(fill = 'steelblue', alpha = 0.7) +
+  geom_vline(xintercept = 0, linetype = 'dashed') +
+  labs(
+    title = "Loss of significant pairwise slope differences after adding measurement uncertainty",
+    subtitle = "Percentage point drop in 'significant at 95%' cross-region comparisons per sector",
+    x = "Percentage point reduction in significant comparisons",
+    y = ""
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 11, face = "bold"),
+    plot.subtitle = element_text(size = 9, colour = "grey40"),
+    axis.text.y = element_text(size = 6)
+  )
 
 
 
