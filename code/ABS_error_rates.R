@@ -1761,6 +1761,11 @@ plot_slope_forest(slopes_combined, "fabricated metal")
 plot_slope_forest(slopes_combined, "computer programming")
 plot_slope_forest(slopes_combined, "construction of buildings")
 plot_slope_forest(slopes_combined, "pharmaceutical")
+# Interesting one for how much difference it makes for London
+plot_slope_forest(slopes_combined, "scientific research")
+
+
+
 
 
 ## Headline summary: % of significant pairwise differences, OLS vs MC ----
@@ -1894,10 +1899,10 @@ plot_focal_comparison <- function(combined_data, focal_region, ci_level = 95) {
   # Reshape for faceted plot
   plot_data <- bind_rows(
     comparisons %>%
-      select(SIC07_description, Region_name, sig = ols_sig) %>%
+      select(SIC07_description, SIC07_description_shortened, Region_name, sig = ols_sig) %>%
       mutate(method = "OLS only"),
     comparisons %>%
-      select(SIC07_description, Region_name, sig = combined_sig) %>%
+      select(SIC07_description, SIC07_description_shortened, Region_name, sig = combined_sig) %>%
       mutate(method = "OLS + measurement uncertainty")
   ) %>%
     mutate(
@@ -1906,7 +1911,7 @@ plot_focal_comparison <- function(combined_data, focal_region, ci_level = 95) {
                          labels = c("Focal lower", "Not distinguishable", "Focal higher"))
     )
 
-  ggplot(plot_data, aes(x = Region_name, y = SIC07_description, fill = sig_label)) +
+  ggplot(plot_data, aes(x = Region_name, y = SIC07_description_shortened, fill = sig_label)) +
     geom_tile(colour = "white", linewidth = 0.3) +
     facet_wrap(~method) +
     scale_fill_manual(
@@ -1969,7 +1974,7 @@ plot_focal_comparison_split <- function(combined_data, focal_region,
           TRUE ~ 0L
         )
       ) %>%
-      select(SIC07_description, Region_name, sig)
+      select(SIC07_description, SIC07_description_shortened, Region_name, sig)
   }
 
   # Compute significance for both methods at both CI levels
@@ -1979,23 +1984,23 @@ plot_focal_comparison_split <- function(combined_data, focal_region,
     sig_hi <- compute_sig(combined_data, focal_region, ci_levels[2], se_col) %>%
       rename(sig_hi = sig)
     sig_lo %>%
-      inner_join(sig_hi, by = c('SIC07_description', 'Region_name'))
+      inner_join(sig_hi, by = c('SIC07_description', 'SIC07_description_shortened', 'Region_name'))
   }
 
   cell_ols <- build_cell_data("se_ols") %>% mutate(method = "OLS only")
-  cell_combined <- build_cell_data("se_combined") %>% mutate(method = "OLS + measurement uncertainty")
+  cell_combined <- build_cell_data("se_combined") %>% mutate(method = "OLS + extra")
 
   cell_data <- bind_rows(cell_ols, cell_combined) %>%
-    mutate(method = factor(method, levels = c("OLS only", "OLS + measurement uncertainty")))
+    mutate(method = factor(method, levels = c("OLS only", "OLS + extra")))
 
   # Convert axes to numeric positions for polygon coordinates
   regions <- sort(unique(cell_data$Region_name))
-  sectors <- sort(unique(cell_data$SIC07_description))
+  sectors <- sort(unique(cell_data$SIC07_description_shortened))
 
   cell_data <- cell_data %>%
     mutate(
       x = match(Region_name, regions),
-      y = match(SIC07_description, sectors)
+      y = match(SIC07_description_shortened, sectors)
     )
 
   # Build triangle polygons for each cell
@@ -2004,7 +2009,7 @@ plot_focal_comparison_split <- function(combined_data, focal_region,
   # Each triangle needs a unique group ID (method + cell + lo/hi)
   tri_lo <- cell_data %>%
     mutate(
-      tri_id = paste(method, SIC07_description, Region_name, "lo", sep = "::")
+      tri_id = paste(method, SIC07_description_shortened, Region_name, "lo", sep = "::")
     ) %>%
     reframe(
       tri_id = rep(tri_id, each = 3),
@@ -2016,7 +2021,7 @@ plot_focal_comparison_split <- function(combined_data, focal_region,
 
   tri_hi <- cell_data %>%
     mutate(
-      tri_id = paste(method, SIC07_description, Region_name, "hi", sep = "::")
+      tri_id = paste(method, SIC07_description_shortened, Region_name, "hi", sep = "::")
     ) %>%
     reframe(
       tri_id = rep(tri_id, each = 3),
@@ -2029,20 +2034,20 @@ plot_focal_comparison_split <- function(combined_data, focal_region,
   plot_polys <- bind_rows(tri_lo, tri_hi) %>%
     mutate(
       sig_label = factor(sig, levels = c(-1, 0, 1),
-                         labels = c("Focal lower", "Not distinguishable", "Focal higher"))
+                         labels = c("Lower", "Not separable", "Higher"))
     )
 
   ggplot(plot_polys, aes(x = px, y = py, group = tri_id, fill = sig_label)) +
     geom_polygon(colour = "white", linewidth = 0.2) +
     facet_wrap(~method) +
     scale_fill_manual(
-      values = c("Focal lower" = "#d73027", "Not distinguishable" = "grey90", "Focal higher" = "#1a9850"),
+      values = c("Lower" = "#d73027", "Not separable" = "grey90", "Higher" = "#1a9850"),
       name = ""
     ) +
     scale_x_continuous(breaks = seq_along(regions), labels = regions, expand = c(0, 0)) +
     scale_y_continuous(breaks = seq_along(sectors), labels = sectors, expand = c(0, 0)) +
     labs(
-      title = paste0("Growth slope comparisons from ", focal_region, "'s perspective"),
+      title = paste0("Growth slope comparisons:\n", focal_region),
       subtitle = paste0("Bottom-left triangle = ", ci_levels[1],
                         "% CI, top-right triangle = ", ci_levels[2], "% CI"),
       x = "", y = ""
@@ -2061,7 +2066,9 @@ plot_focal_comparison_split <- function(combined_data, focal_region,
 
 # Example
 plot_focal_comparison_split(slopes_combined, "South West")
-plot_focal_comparison_split(slopes_combined, "Yorkshire and The Humber")
+plot_focal_comparison_split(slopes_combined %>% filter(!qg('membership|other personal',SIC07_description)), "Yorkshire and The Humber")
+plot_focal_comparison_split(slopes_combined %>% filter(!qg('membership|other personal',SIC07_description)), "North West")
+plot_focal_comparison_split(slopes_combined %>% filter(!qg('membership|other personal',SIC07_description)), "London")
 
 
 ## Worked example: z-test on a pair of slopes ----
