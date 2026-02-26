@@ -1834,6 +1834,100 @@ ggplot(
   )
 
 
+## Focal ITL1 comparison grid: OLS vs combined CIs ----
+
+# For a focal ITL1, compare its growth slope to every other ITL1 for each sector.
+# Returns a heatmap: rows = sectors, columns = other ITL1s.
+# Cells show whether the focal place's slope is significantly higher (+1),
+# lower (-1), or not distinguishable (0) from each comparator.
+# Side-by-side panels: left = vanilla OLS, right = combined (OLS + measurement uncertainty).
+
+plot_focal_comparison <- function(combined_data, focal_region, ci_level = 95) {
+
+  ci_z <- qnorm(1 - (1 - ci_level / 100) / 2)
+
+  # Build CIs for both methods
+  ci_data <- combined_data %>%
+    ungroup() %>%
+    mutate(
+      ols_lo = slope_ols - se_ols * ci_z,
+      ols_hi = slope_ols + se_ols * ci_z,
+      combined_lo = slope_ols - se_combined * ci_z,
+      combined_hi = slope_ols + se_combined * ci_z
+    )
+
+  focal <- ci_data %>% filter(Region_name == focal_region)
+  others <- ci_data %>% filter(Region_name != focal_region)
+
+  # For each sector, compare focal to every other region
+  comparisons <- others %>%
+    inner_join(
+      focal %>% select(SIC07_description,
+                       focal_slope = slope_ols,
+                       focal_ols_lo = ols_lo, focal_ols_hi = ols_hi,
+                       focal_combined_lo = combined_lo, focal_combined_hi = combined_hi),
+      by = 'SIC07_description'
+    ) %>%
+    mutate(
+      # OLS: do CIs not overlap, and which direction?
+      ols_sig = case_when(
+        focal_ols_lo > ols_hi ~  1L,  # focal significantly higher
+        focal_ols_hi < ols_lo ~ -1L,  # focal significantly lower
+        TRUE ~ 0L
+      ),
+      # Combined: same test with wider CIs
+      combined_sig = case_when(
+        focal_combined_lo > combined_hi ~  1L,
+        focal_combined_hi < combined_lo ~ -1L,
+        TRUE ~ 0L
+      )
+    )
+
+  # Reshape for faceted plot
+  plot_data <- bind_rows(
+    comparisons %>%
+      select(SIC07_description, Region_name, sig = ols_sig) %>%
+      mutate(method = "OLS only"),
+    comparisons %>%
+      select(SIC07_description, Region_name, sig = combined_sig) %>%
+      mutate(method = "OLS + measurement uncertainty")
+  ) %>%
+    mutate(
+      method = factor(method, levels = c("OLS only", "OLS + measurement uncertainty")),
+      sig_label = factor(sig, levels = c(-1, 0, 1),
+                         labels = c("Focal lower", "Not distinguishable", "Focal higher"))
+    )
+
+  ggplot(plot_data, aes(x = Region_name, y = SIC07_description, fill = sig_label)) +
+    geom_tile(colour = "white", linewidth = 0.3) +
+    facet_wrap(~method) +
+    scale_fill_manual(
+      values = c("Focal lower" = "#d73027", "Not distinguishable" = "grey90", "Focal higher" = "#1a9850"),
+      name = ""
+    ) +
+    labs(
+      title = paste0("Growth slope comparisons from ", focal_region, "'s perspective"),
+      subtitle = paste0("Each cell: is ", focal_region, "'s sector slope significantly different from comparator? (", ci_level, "% CI)"),
+      x = "", y = ""
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+      axis.text.y = element_text(size = 6),
+      plot.title = element_text(size = 11, face = "bold"),
+      plot.subtitle = element_text(size = 9, colour = "grey40"),
+      strip.text = element_text(size = 10, face = "bold"),
+      legend.position = "bottom"
+    )
+}
+
+# Example: South West's perspective
+plot_focal_comparison(slopes_combined, "South West")
+plot_focal_comparison(slopes_combined, "Yorkshire and The Humber")
+plot_focal_comparison(slopes_combined, "London")
+
+
+
 
 
 
