@@ -1651,29 +1651,24 @@ slopes_mc_raw <- simulate_slopes(itl1.cv.linked, n_sims = n_sims_slopes)
 # AR(1) version correlating timepoints from the draws
 slopes_mc_raw <- simulate_slopes(itl1.cv.linked, n_sims = n_sims_slopes, rho = 0.7)
 
-# Summarise: median slope + simulated 95% CI
-# For each MC draw, compute the full CI (slope ± 1.96*se) for that draw,
-# then across all draws keep the min lower bound and max upper bound.
-# This captures the worst-case envelope combining both sources of uncertainty.
+# Summarise: SD of slopes across MC draws captures measurement uncertainty
 slopes_mc_summary <- slopes_mc_raw %>%
-  mutate(
-    ci_lo = slope - 1.96 * se,
-    ci_hi = slope + 1.96 * se
-  ) %>%
   group_by(Region_name, SIC07_description) %>%
   summarise(
     slope_median = median(slope, na.rm = TRUE),
     slope_sd     = sd(slope, na.rm = TRUE),
-    # Envelope: min/max of per-draw CIs across all simulations
-    envelope_lo  = if(all(is.na(ci_lo))) NA_real_ else min(ci_lo, na.rm = TRUE),
-    envelope_hi  = if(all(is.na(ci_hi))) NA_real_ else max(ci_hi, na.rm = TRUE),
     .groups = 'drop'
   )
 
-# Merge OLS and MC results for comparison
+# Merge OLS and MC results, then combine uncertainties in quadrature:
+# se_combined = sqrt(se_ols^2 + slope_sd^2)
+# OLS regression uncertainty + MC measurement uncertainty (independent sources)
 slopes_combined <- slopes_ols %>%
   rename(slope_ols = slope, se_ols = se) %>%
-  left_join(slopes_mc_summary, by = c('Region_name', 'SIC07_description'))
+  left_join(slopes_mc_summary, by = c('Region_name', 'SIC07_description')) %>%
+  mutate(
+    se_combined = sqrt(se_ols^2 + slope_sd^2)
+  )
 
 # Save raw draws for flexible quantile computation in viewers
 write_csv(slopes_mc_raw, 'data/slopes_mc_raw_draws.csv')
@@ -1683,21 +1678,20 @@ write_csv(slopes_combined, 'data/slopes_ols_vs_mc_combined.csv')
 ## Compare OLS vs MC slope CIs ----
 
 # Create a slope+se dataframe from the MC results that plugs into slopeDiffGrid.
-# Derive an effective SE from the envelope so that slope ± 1.96*se reproduces the
-# full envelope (combining OLS regression uncertainty + measurement uncertainty).
-slopes_mc_for_grid <- slopes_mc_summary %>%
+# Uses the combined SE (OLS + measurement uncertainty in quadrature).
+slopes_mc_for_grid <- slopes_combined %>%
   transmute(
     Region_name,
     SIC07_description,
-    slope = slope_median,
-    se = (envelope_hi - envelope_lo) / (2 * 1.96)
+    slope = slope_ols,
+    se = se_combined
   )
 
-# Quick comparison: how much wider are MC CIs vs OLS CIs?
+# Quick comparison: how much wider are combined CIs vs OLS-only CIs?
 ci_comparison <- slopes_combined %>%
   mutate(
     ols_ci_width = se_ols * 2 * 1.96,
-    mc_ci_width  = envelope_hi - envelope_lo,
+    mc_ci_width  = se_combined * 2 * 1.96,
     ci_ratio = mc_ci_width / ols_ci_width
   )
 
@@ -1719,17 +1713,17 @@ plot_slope_forest <- function(combined_data, sector_pattern) {
 
   plot_data <- plot_data %>%
     mutate(
-      slope_pct    = to_pct(slope_ols),
-      ols_min95    = to_pct(slope_ols - se_ols * 1.96),
-      ols_max95    = to_pct(slope_ols + se_ols * 1.96),
-      mc_min95     = to_pct(envelope_lo),
-      mc_max95     = to_pct(envelope_hi)
+      slope_pct      = to_pct(slope_ols),
+      ols_min95      = to_pct(slope_ols - se_ols * 1.96),
+      ols_max95      = to_pct(slope_ols + se_ols * 1.96),
+      combined_min95 = to_pct(slope_ols - se_combined * 1.96),
+      combined_max95 = to_pct(slope_ols + se_combined * 1.96)
     )
 
   ggplot(plot_data, aes(y = fct_reorder(Region_name, slope_pct))) +
     geom_vline(xintercept = 0, linetype = 'dashed', colour = 'grey50') +
-    # MC CI (wider, lighter)
-    geom_errorbarh(aes(xmin = mc_min95, xmax = mc_max95),
+    # Combined CI (wider, lighter)
+    geom_errorbarh(aes(xmin = combined_min95, xmax = combined_max95),
                    height = 0.3, colour = 'steelblue', alpha = 0.4, linewidth = 2) +
     # OLS CI (narrower, darker)
     geom_errorbarh(aes(xmin = ols_min95, xmax = ols_max95),
@@ -1737,7 +1731,7 @@ plot_slope_forest <- function(combined_data, sector_pattern) {
     geom_point(aes(x = slope_pct), size = 2) +
     labs(
       title = paste0("Growth rate slopes: ", sector_name),
-      subtitle = "Thin bars = OLS 95% CI. Wide bars = envelope of per-draw 95% CIs across all MC simulations",
+      subtitle = "Thin bars = OLS 95% CI. Wide bars = combined (OLS + measurement uncertainty in quadrature)",
       x = "Annualised growth rate (%)",
       y = "",
       caption = paste0(n_sims_slopes, " MC draws using log-normal on GVA with ABS standard errors")

@@ -1,6 +1,6 @@
 # Adding per-year GVA uncertainty to OLS growth rate slopes
 
-Claude-drafted doc based on prompts [here](https://github.com/DanOlner/RegEconWorks/blob/master/llm_convos/2026-02-26_1036_The_user_opened_the_file_UsersdanolnerCodeRegecon_.md), 26th Feb 2026.
+Claude-drafted doc based on prompt back and forth [here](https://github.com/DanOlner/RegEconWorks/blob/master/llm_convos/2026-02-26_1036_The_user_opened_the_file_UsersdanolnerCodeRegecon_.md), 26th Feb 2026.
 
 ## Context
 
@@ -342,11 +342,40 @@ If the same firms are sampled year after year (which they largely are in the ABS
 - It doesn't model autocorrelation in the *real* GVA process (that's what Newey-West or state space models would do).
 - It doesn't estimate `rho` from the data — it's a user-specified assumption. We don't know the true correlation of ABS measurement errors, so `rho` is a scenario parameter: "what if errors are this correlated?"
 
-### The envelope: combining both uncertainty sources
+### Combining both uncertainty sources: quadrature, not min/max envelope
 
-For each MC draw, we get both a slope and its OLS standard error. The per-draw CI is `slope ± 1.96 * se`. Across all draws, the envelope is `min(all lower bounds)` to `max(all upper bounds)`. This captures the worst case combining:
+#### The envelope approach (abandoned)
 
-- **OLS regression uncertainty** (few time points, scatter around the trend) — reflected in the per-draw SE.
-- **Measurement uncertainty** (ABS standard errors on each year's GVA) — reflected in the variation of slopes across draws.
+An earlier version took the min/max of per-draw CIs (`slope ± 1.96 * se`) across all MC draws. This was problematic: with 500 draws, even one outlier draw with an unusually large OLS SE pushes the envelope out. The result was dominated by tail behaviour rather than typical uncertainty, and it didn't respond properly to `rho` — even with correlated draws, 500 chances to hit an extreme produced wide envelopes regardless.
 
-The envelope is guaranteed to be at least as wide as the vanilla OLS CI, since at least one draw will produce data close to the original. Higher `rho` shrinks the measurement-uncertainty contribution (draws move together, slopes don't wobble much) while leaving the OLS contribution intact.
+#### The quadrature approach (current)
+
+We have two independent sources of uncertainty about the growth rate slope:
+
+1. **OLS regression uncertainty** (`se_ols`): with only ~12 time points, the scatter around the trend line means the slope isn't pinned down precisely. This is the standard OLS standard error from the original data.
+
+2. **Measurement uncertainty** (`slope_sd`): the SD of slopes across MC draws. This measures how much the slope wobbles when you perturb each year's GVA within its ABS-reported standard error.
+
+Because these two sources are independent (ABS sampling error has nothing to do with how well 12 points pin down a line), we combine them in quadrature:
+
+```
+se_combined = sqrt(se_ols^2 + slope_sd^2)
+```
+
+The 95% CI is then `slope ± 1.96 * se_combined`.
+
+**Why this works well:**
+
+- **Guaranteed to widen CIs**: `sqrt(a^2 + b^2) >= a`, so the combined CI is always at least as wide as vanilla OLS. Sectors with small ABS SEs (precise data) will have `slope_sd ≈ 0` and `se_combined ≈ se_ols` — measurement uncertainty barely registers. Sectors with large ABS SEs will show noticeably wider combined CIs.
+- **Responds properly to rho**: correlated draws → slopes wobble less → smaller `slope_sd` → smaller `se_combined`. This is exactly the behaviour we want.
+- **Stable**: uses the SD of the slope distribution (a central tendency measure) rather than extreme quantiles, so it's not dominated by outlier draws.
+
+**Sanity check**: Northern Ireland, which has good ABS coverage and small standard errors, shows vanilla OLS and combined CIs that are nearly identical — the measurement uncertainty contribution is negligible. This is exactly what we'd expect.
+
+#### Caveats
+
+- **Assumes normality**: the `± 1.96 * se_combined` CI assumes the total error is roughly normal. The OLS slope is approximately normal by CLT, and the MC slope distribution should be roughly symmetric. Could be checked by plotting MC slope distributions for sectors with large ABS SEs.
+
+- **Uses original se_ols, not per-draw SEs**: we keep only the slope from each MC draw and use the original `se_ols`. This assumes the OLS SE doesn't change much when you perturb the data — fine for small ABS SEs, and on average similar even for larger ones.
+
+- **Slight double-counting**: each MC draw fits OLS on perturbed data, so `slope_sd` captures measurement uncertainty *plus* some interaction with regression noise. Adding `se_ols` in quadrature on top could slightly double-count the regression noise component. In practice this is small — regression noise is mostly constant across draws (same number of points, similar scatter) so it averages out and `slope_sd` is dominated by the measurement perturbation effect.
