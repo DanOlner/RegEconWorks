@@ -1558,7 +1558,11 @@ slopes_ols <- get_slope_and_se_safely(
 )
 
 # MC simulation function for slopes (parallelised via furrr)
-simulate_slopes <- function(data, n_sims = 500, seed = 42) {
+# rho: AR(1) correlation for measurement errors across years (0 = independent draws, default)
+#   Higher rho means errors are more correlated year-to-year (e.g. same firms in ABS sample),
+#   which narrows the slope envelope because correlated errors shift the series up/down
+#   rather than tilting it. Uses Gaussian copula so marginals stay log-normal per year.
+simulate_slopes <- function(data, n_sims = 500, seed = 42, rho = 0) {
 
   # Pre-compute log-normal parameters (same as LQ simulation)
   sim_params <- data %>%
@@ -1569,30 +1573,83 @@ simulate_slopes <- function(data, n_sims = 500, seed = 42) {
       lnorm_mu     = ifelse(has_se, log(value) - lnorm_sigma2 / 2, NA)
     )
 
-  # Run simulations in parallel — furrr handles reproducible RNG via L'Ecuyer-CMRG streams
-  future_map_dfr(1:n_sims, function(i) {
-    sim_data <- sim_params %>%
-      mutate(
-        sim_value = ifelse(
-          has_se,
-          rlnorm(n(), meanlog = lnorm_mu, sdlog = lnorm_sigma),
-          value
-        )
-      )
+  # Pre-split by group so each worker can draw correlated sequences per group
+  # Must be sorted by year within each group for AR(1) to correlate consecutive years
+  groups <- sim_params %>%
+    arrange(Region_name, SIC07_description, year) %>%
+    group_by(Region_name, SIC07_description) %>%
+    group_split()
 
-    get_slope_and_se_safely(
-      sim_data,
-      Region_name, SIC07_description,
-      y = log(sim_value),
-      x = year
-    ) %>%
-      mutate(sim_id = i)
-  }, .options = furrr_options(seed = seed), .progress = TRUE)
+  group_keys <- sim_params %>%
+    group_by(Region_name, SIC07_description) %>%
+    group_keys()
+
+  # Run simulations in parallel — furrr handles reproducible RNG via L'Ecuyer-CMRG streams
+  if (rho == 0) {
+    # Fast vectorised path: independent draws across entire dataset
+    future_map_dfr(1:n_sims, function(i) {
+      sim_data <- sim_params %>%
+        mutate(
+          sim_value = ifelse(
+            has_se,
+            rlnorm(n(), meanlog = lnorm_mu, sdlog = lnorm_sigma),
+            value
+          )
+        )
+
+      get_slope_and_se_safely(
+        sim_data,
+        Region_name, SIC07_description,
+        y = log(sim_value),
+        x = year
+      ) %>%
+        mutate(sim_id = i)
+    }, .options = furrr_options(seed = seed), .progress = TRUE)
+
+  } else {
+    # Correlated draws: need per-group AR(1) sequences
+    future_map_dfr(1:n_sims, function(i) {
+
+      # Generate correlated z-values per group, then reassemble
+      sim_data <- map_dfr(groups, function(grp) {
+        n_years <- nrow(grp)
+
+        if (any(grp$has_se)) {
+          z <- numeric(n_years)
+          z[1] <- rnorm(1)
+          for (t in 2:n_years) {
+            z[t] <- rho * z[t - 1] + sqrt(1 - rho^2) * rnorm(1)
+          }
+          grp %>%
+            mutate(
+              sim_value = ifelse(
+                has_se,
+                qlnorm(pnorm(z), meanlog = lnorm_mu, sdlog = lnorm_sigma),
+                value
+              )
+            )
+        } else {
+          grp %>% mutate(sim_value = value)
+        }
+      })
+
+      get_slope_and_se_safely(
+        sim_data,
+        Region_name, SIC07_description,
+        y = log(sim_value),
+        x = year
+      ) %>%
+        mutate(sim_id = i)
+    }, .options = furrr_options(seed = seed), .progress = TRUE)
+  }
 }
 
 # Run the simulation
 n_sims_slopes <- 500
 slopes_mc_raw <- simulate_slopes(itl1.cv.linked, n_sims = n_sims_slopes)
+
+# AR(1) version correlating timepoints from the draws
+slopes_mc_raw <- simulate_slopes(itl1.cv.linked, n_sims = n_sims_slopes, rho = 0.7)
 
 # Summarise: median slope + simulated 95% CI
 # For each MC draw, compute the full CI (slope ± 1.96*se) for that draw,

@@ -301,3 +301,52 @@ This is probably the right starting point. The fancier visualisations (B1-B4) ar
 4. **Build the forest plot** (B2) for individual deep-dives.
 5. **Add the certainty-score heatmap** (B4) if an interactive viewer is built.
 6. **Wire up the CI-level sweep** (A4) and rho slider for the scenario tool.
+
+---
+
+## How the AR(1) correlated draws work (and what they don't do)
+
+### What the AR(1) controls — and what it doesn't
+
+The AR(1) correlation parameter `rho` in `simulate_slopes()` controls how the *simulated GVA values* are drawn. It has nothing to do with the slope estimation itself — that's still plain OLS (`log(sim_value) ~ year`) every time. The AR(1) sits upstream of the regression, shaping the input data.
+
+### The two stages
+
+1. **Draw perturbed GVA values** for each year (using ABS standard errors). This is where `rho` matters.
+2. **Fit OLS** on the perturbed values to get a slope. This is unchanged.
+
+### What `rho` does to the draws
+
+Each region x sector group has ~12 years of data. Each year has an observed GVA and an ABS standard error. In each MC iteration we need to pick a "what if" GVA for every year. The question is whether those 12 perturbations should be independent or connected.
+
+**Independent draws (rho = 0):** Year 2012 might be drawn high, 2013 low, 2014 high, 2015 low... The perturbations bounce around randomly. This can create artificial tilts — if by chance the early years are drawn low and the late years high, the slope steepens. Across many draws, these random tilts create a wide spread of slopes. This is why the initial MC envelope was so large.
+
+**Correlated draws (rho > 0):** The AR(1) process generates a sequence of standard normals where each one is pulled toward the previous one: `z[t] = rho * z[t-1] + sqrt(1 - rho^2) * noise`. If z[2012] happens to be +1.5 (drawing GVA high), then z[2013] will tend to be positive too — the whole series drifts together. High rho means the perturbations are nearly uniform across years (everything shifts up or down together), which barely changes the slope. Low rho means more independent wobble, which can tilt the series more.
+
+### The Gaussian copula step
+
+The correlated z-values are standard normals. We need each year's simulated GVA to come from the correct log-normal distribution (matching that year's observed value and SE). The Gaussian copula does this in two steps:
+
+1. `pnorm(z)` transforms the correlated normal to a uniform [0,1] — preserving the correlation structure.
+2. `qlnorm(uniform, meanlog, sdlog)` maps the uniform to the correct log-normal for that year.
+
+The result: each year's marginal distribution is exactly right (same mean and spread as the ABS uncertainty implies), but the draws are correlated across time.
+
+### Why this matters for the ABS context
+
+If the same firms are sampled year after year (which they largely are in the ABS), then if 2018's GVA estimate is biased high, 2019's probably is too — the measurement errors are positively correlated. Independent draws ignore this and allow unrealistically choppy perturbations that tilt the series. The `rho` parameter lets you ask "what if measurement errors are 50% correlated year-to-year?" and see how the envelope shrinks.
+
+### What rho does NOT do
+
+- It doesn't change the regression method (still OLS).
+- It doesn't model autocorrelation in the *real* GVA process (that's what Newey-West or state space models would do).
+- It doesn't estimate `rho` from the data — it's a user-specified assumption. We don't know the true correlation of ABS measurement errors, so `rho` is a scenario parameter: "what if errors are this correlated?"
+
+### The envelope: combining both uncertainty sources
+
+For each MC draw, we get both a slope and its OLS standard error. The per-draw CI is `slope ± 1.96 * se`. Across all draws, the envelope is `min(all lower bounds)` to `max(all upper bounds)`. This captures the worst case combining:
+
+- **OLS regression uncertainty** (few time points, scatter around the trend) — reflected in the per-draw SE.
+- **Measurement uncertainty** (ABS standard errors on each year's GVA) — reflected in the variation of slopes across draws.
+
+The envelope is guaranteed to be at least as wide as the vanilla OLS CI, since at least one draw will produce data close to the original. Higher `rho` shrinks the measurement-uncertainty contribution (draws move together, slopes don't wobble much) while leaving the OLS contribution intact.
