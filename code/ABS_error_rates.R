@@ -1532,6 +1532,19 @@ itl1.cp.centralestLQ %>%
 # Get many slopes
 # Get range of new CIs from all those slopes
 
+# Brief bit of dan code
+write_csv(
+  data.frame(
+    SIC07_description = unique(LQ_selected_years$SIC07_description),
+    SIC07_description_shortened = NA
+  ),
+  'data/regxind_siclookup.csv'
+  )
+
+# After CC has added some abbreviations:
+# read_csv('data/regxind_siclookup.csv') %>% View
+
+
 ## CLAUDE OUTPUT:
 
 ## Monte Carlo simulation of slopes with measurement uncertainty ----
@@ -1752,17 +1765,11 @@ plot_slope_forest(slopes_combined, "pharmaceutical")
 
 ## Headline summary: % of significant pairwise differences, OLS vs MC ----
 
-# Count how many pairwise slope comparisons are "significant" (CIs don't overlap)
+# Count how many pairwise slope comparisons are significant (z-test on slope difference)
 # under OLS vs MC, for each sector (comparing across regions)
 count_sig_pairs <- function(slope_df, ci_level = 95) {
 
   ci_z <- qnorm(1 - (1 - ci_level/100) / 2)
-
-  slope_df <- slope_df %>%
-    mutate(
-      min_ci = slope - se * ci_z,
-      max_ci = slope + se * ci_z
-    )
 
   # All pairwise region comparisons per sector
   sectors <- unique(slope_df$SIC07_description)
@@ -1778,11 +1785,11 @@ count_sig_pairs <- function(slope_df, ci_level = 95) {
     if(nrow(combos) == 0) return(tibble())
 
     n_pairs <- nrow(combos)
-    n_sig <- sum(
-      sec_data$max_ci[combos$r1] < sec_data$min_ci[combos$r2] |
-      sec_data$max_ci[combos$r2] < sec_data$min_ci[combos$r1],
-      na.rm = TRUE
+    z_scores <- abs(
+      (sec_data$slope[combos$r1] - sec_data$slope[combos$r2]) /
+      sqrt(sec_data$se[combos$r1]^2 + sec_data$se[combos$r2]^2)
     )
+    n_sig <- sum(z_scores > ci_z, na.rm = TRUE)
 
     tibble(
       SIC07_description = sec,
@@ -1842,43 +1849,44 @@ ggplot(
 # lower (-1), or not distinguishable (0) from each comparator.
 # Side-by-side panels: left = vanilla OLS, right = combined (OLS + measurement uncertainty).
 
+# Add in shortened sector names for slopes_combined
+slopes_combined = slopes_combined %>% 
+  left_join(
+    read_csv('data/regxind_siclookup.csv'),
+    by = 'SIC07_description'
+  )
+
+
 plot_focal_comparison <- function(combined_data, focal_region, ci_level = 95) {
 
   ci_z <- qnorm(1 - (1 - ci_level / 100) / 2)
 
-  # Build CIs for both methods
-  ci_data <- combined_data %>%
-    ungroup() %>%
-    mutate(
-      ols_lo = slope_ols - se_ols * ci_z,
-      ols_hi = slope_ols + se_ols * ci_z,
-      combined_lo = slope_ols - se_combined * ci_z,
-      combined_hi = slope_ols + se_combined * ci_z
-    )
+  ci_data <- combined_data %>% ungroup()
 
   focal <- ci_data %>% filter(Region_name == focal_region)
   others <- ci_data %>% filter(Region_name != focal_region)
 
-  # For each sector, compare focal to every other region
+  # For each sector, compare focal to every other region using z-test on slope difference
   comparisons <- others %>%
     inner_join(
       focal %>% select(SIC07_description,
                        focal_slope = slope_ols,
-                       focal_ols_lo = ols_lo, focal_ols_hi = ols_hi,
-                       focal_combined_lo = combined_lo, focal_combined_hi = combined_hi),
+                       focal_se_ols = se_ols,
+                       focal_se_combined = se_combined),
       by = 'SIC07_description'
     ) %>%
     mutate(
-      # OLS: do CIs not overlap, and which direction?
+      # Proper z-test: z = (slope_A - slope_B) / sqrt(se_A^2 + se_B^2)
+      z_ols = (focal_slope - slope_ols) / sqrt(focal_se_ols^2 + se_ols^2),
       ols_sig = case_when(
-        focal_ols_lo > ols_hi ~  1L,  # focal significantly higher
-        focal_ols_hi < ols_lo ~ -1L,  # focal significantly lower
+        z_ols >  ci_z ~  1L,
+        z_ols < -ci_z ~ -1L,
         TRUE ~ 0L
       ),
-      # Combined: same test with wider CIs
+      z_combined = (focal_slope - slope_ols) / sqrt(focal_se_combined^2 + se_combined^2),
       combined_sig = case_when(
-        focal_combined_lo > combined_hi ~  1L,
-        focal_combined_hi < combined_lo ~ -1L,
+        z_combined >  ci_z ~  1L,
+        z_combined < -ci_z ~ -1L,
         TRUE ~ 0L
       )
     )
@@ -1937,16 +1945,11 @@ plot_focal_comparison(slopes_combined, "London")
 plot_focal_comparison_split <- function(combined_data, focal_region,
                                         ci_levels = c(90, 95)) {
 
-  # Helper: compute significance for a given CI level and SE column
+  # Helper: compute significance for a given CI level and SE column using z-test
   compute_sig <- function(cdata, focal_reg, ci_level, se_col) {
     ci_z <- qnorm(1 - (1 - ci_level / 100) / 2)
 
-    ci_data <- cdata %>%
-      ungroup() %>%
-      mutate(
-        ci_lo = slope_ols - .data[[se_col]] * ci_z,
-        ci_hi = slope_ols + .data[[se_col]] * ci_z
-      )
+    ci_data <- cdata %>% ungroup()
 
     focal <- ci_data %>% filter(Region_name == focal_reg)
     others <- ci_data %>% filter(Region_name != focal_reg)
@@ -1954,13 +1957,15 @@ plot_focal_comparison_split <- function(combined_data, focal_region,
     others %>%
       inner_join(
         focal %>% select(SIC07_description,
-                         focal_ci_lo = ci_lo, focal_ci_hi = ci_hi),
+                         focal_slope = slope_ols,
+                         focal_se = !!sym(se_col)),
         by = 'SIC07_description'
       ) %>%
       mutate(
+        z = (focal_slope - slope_ols) / sqrt(focal_se^2 + .data[[se_col]]^2),
         sig = case_when(
-          focal_ci_lo > ci_hi ~  1L,
-          focal_ci_hi < ci_lo ~ -1L,
+          z >  ci_z ~  1L,
+          z < -ci_z ~ -1L,
           TRUE ~ 0L
         )
       ) %>%
@@ -2056,6 +2061,185 @@ plot_focal_comparison_split <- function(combined_data, focal_region,
 
 # Example
 plot_focal_comparison_split(slopes_combined, "South West")
+plot_focal_comparison_split(slopes_combined, "Yorkshire and The Humber")
+
+
+## Worked example: z-test on a pair of slopes ----
+# Yorkshire and The Humber vs East, Telecommunications sector
+# In the diagonal grid: vanilla OLS shows sig at both 90% and 95%,
+# but with AR(1) measurement uncertainty it's only sig at 90%.
+
+# Extract the two slopes
+example_sector <- "Telecommunications"
+region_a_name <- "Yorkshire and The Humber"
+region_b_name <- "East"
+
+region_a <- slopes_combined %>%
+  filter(Region_name == region_a_name,
+         grepl(example_sector, SIC07_description, ignore.case = TRUE))
+
+region_b <- slopes_combined %>%
+  filter(Region_name == region_b_name,
+         grepl(example_sector, SIC07_description, ignore.case = TRUE))
+
+sector_label <- region_a$SIC07_description[1]
+
+cat("\n=== Worked example: z-test on slope differences ===\n")
+cat("Sector:", sector_label, "\n\n")
+
+# Convert to annualised % for readability
+to_pct <- function(x) round((exp(x) - 1) * 100, 2)
+
+cat(region_a_name, ":\n")
+cat("  slope (log) =", round(region_a$slope_ols, 5), "\n")
+cat("  annualised  =", to_pct(region_a$slope_ols), "%\n")
+cat("  se_ols      =", round(region_a$se_ols, 5), "\n")
+cat("  slope_sd    =", round(region_a$slope_sd, 5), "(MC measurement uncertainty)\n")
+cat("  se_combined =", round(region_a$se_combined, 5), "\n\n")
+
+cat(region_b_name, ":\n")
+cat("  slope (log) =", round(region_b$slope_ols, 5), "\n")
+cat("  annualised  =", to_pct(region_b$slope_ols), "%\n")
+cat("  se_ols      =", round(region_b$se_ols, 5), "\n")
+cat("  slope_sd    =", round(region_b$slope_sd, 5), "(MC measurement uncertainty)\n")
+cat("  se_combined =", round(region_b$se_combined, 5), "\n\n")
+
+# The z-test
+slope_diff <- region_a$slope_ols - region_b$slope_ols
+se_diff_ols <- sqrt(region_a$se_ols^2 + region_b$se_ols^2)
+se_diff_combined <- sqrt(region_a$se_combined^2 + region_b$se_combined^2)
+
+z_ols <- slope_diff / se_diff_ols
+z_combined <- slope_diff / se_diff_combined
+
+cat("--- Z-test on slope difference ---\n")
+cat("Slope difference (A - B):", round(slope_diff, 5),
+    "(", to_pct(region_a$slope_ols), "% -", to_pct(region_b$slope_ols), "% )\n")
+cat("\nVanilla OLS:\n")
+cat("  SE of difference = sqrt(", round(region_a$se_ols, 5), "^2 +",
+    round(region_b$se_ols, 5), "^2 ) =", round(se_diff_ols, 5), "\n")
+cat("  z =", round(slope_diff, 5), "/", round(se_diff_ols, 5), "=", round(z_ols, 3), "\n")
+cat("  |z| > 1.645 (90%)?", abs(z_ols) > 1.645, "\n")
+cat("  |z| > 1.960 (95%)?", abs(z_ols) > 1.960, "\n")
+
+cat("\nWith measurement uncertainty (quadrature):\n")
+cat("  SE of difference = sqrt(", round(region_a$se_combined, 5), "^2 +",
+    round(region_b$se_combined, 5), "^2 ) =", round(se_diff_combined, 5), "\n")
+cat("  z =", round(slope_diff, 5), "/", round(se_diff_combined, 5), "=", round(z_combined, 3), "\n")
+cat("  |z| > 1.645 (90%)?", abs(z_combined) > 1.645, "\n")
+cat("  |z| > 1.960 (95%)?", abs(z_combined) > 1.960, "\n")
+
+cat("\nInterpretation: the slope difference stays the same, but the denominator grows.\n")
+cat("  OLS-only SE of difference:     ", round(se_diff_ols, 5), "\n")
+cat("  Combined SE of difference:     ", round(se_diff_combined, 5), "\n")
+cat("  Ratio (combined / OLS):        ", round(se_diff_combined / se_diff_ols, 3), "\n")
+cat("  The measurement uncertainty inflated the SE by",
+    round((se_diff_combined / se_diff_ols - 1) * 100, 1), "%\n")
+
+# Panel 1: Individual slopes with their CIs (for context)
+p1_data <- tibble(
+  region = factor(c(region_a_name, region_a_name, region_b_name, region_b_name),
+                  levels = c(region_a_name, region_b_name)),
+  method = factor(rep(c("OLS only", "OLS + measurement\nuncertainty"), 2),
+                  levels = c("OLS only", "OLS + measurement\nuncertainty")),
+  slope = c(region_a$slope_ols, region_a$slope_ols,
+            region_b$slope_ols, region_b$slope_ols),
+  se = c(region_a$se_ols, region_a$se_combined,
+         region_b$se_ols, region_b$se_combined)
+) %>%
+  mutate(
+    slope_pct = to_pct(slope),
+    lo_90_pct = to_pct(slope - 1.645 * se),
+    hi_90_pct = to_pct(slope + 1.645 * se),
+    lo_95_pct = to_pct(slope - 1.960 * se),
+    hi_95_pct = to_pct(slope + 1.960 * se)
+  )
+
+p1 <- ggplot(p1_data, aes(x = method, y = slope_pct, colour = region)) +
+  geom_errorbar(aes(ymin = lo_95_pct, ymax = hi_95_pct),
+                width = 0.2, linewidth = 1.5, alpha = 0.3,
+                position = position_dodge(width = 0.5)) +
+  geom_errorbar(aes(ymin = lo_90_pct, ymax = hi_90_pct),
+                width = 0.15, linewidth = 0.8,
+                position = position_dodge(width = 0.5)) +
+  geom_point(size = 3, position = position_dodge(width = 0.5)) +
+  scale_colour_manual(values = c("#e66101", "#5e3c99"), name = "Region") +
+  labs(
+    title = "Individual slopes",
+    subtitle = "Thin = 90% CI, wide = 95% CI",
+    x = "", y = "Annualised growth rate (%)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 11, face = "bold"),
+    plot.subtitle = element_text(size = 8, colour = "grey40"),
+    legend.position = "bottom"
+  )
+
+# Panel 2: The z-test visualised — slope DIFFERENCE with CI around it
+# Does the CI on the difference cross zero?
+diff_pct <- to_pct(slope_diff)
+
+p2_data <- tibble(
+  method = factor(c("OLS only", "OLS + measurement\nuncertainty"),
+                  levels = c("OLS only", "OLS + measurement\nuncertainty")),
+  diff = slope_diff,
+  se_diff = c(se_diff_ols, se_diff_combined),
+  z = c(z_ols, z_combined)
+) %>%
+  mutate(
+    diff_pct = to_pct(diff),
+    lo_90_pct = to_pct(diff - 1.645 * se_diff),
+    hi_90_pct = to_pct(diff + 1.645 * se_diff),
+    lo_95_pct = to_pct(diff - 1.960 * se_diff),
+    hi_95_pct = to_pct(diff + 1.960 * se_diff),
+    sig_95 = abs(z) > 1.960,
+    label = paste0("z = ", round(z, 2))
+  )
+
+p2 <- ggplot(p2_data, aes(x = method, y = diff_pct)) +
+  geom_hline(yintercept = 0, linetype = 'dashed', colour = 'red', linewidth = 0.8) +
+  # 95% CI (wider, lighter)
+  geom_errorbar(aes(ymin = lo_95_pct, ymax = hi_95_pct, colour = sig_95),
+                width = 0.2, linewidth = 1.5, alpha = 0.4) +
+  # 90% CI (narrower, darker)
+  geom_errorbar(aes(ymin = lo_90_pct, ymax = hi_90_pct, colour = sig_95),
+                width = 0.15, linewidth = 0.8) +
+  geom_point(size = 3) +
+  geom_text(aes(label = label), nudge_x = 0.3, size = 3.5, colour = "grey30") +
+  scale_colour_manual(
+    values = c("TRUE" = "#1a9850", "FALSE" = "#d73027"),
+    labels = c("TRUE" = "Sig. at 95%", "FALSE" = "Not sig. at 95%"),
+    name = ""
+  ) +
+  annotate("text", x = 0.6, y = 0, label = "zero\n(no difference)",
+           size = 2.8, colour = "red", hjust = 0) +
+  labs(
+    title = "Z-test: slope difference",
+    subtitle = paste0(region_a_name, " minus ", region_b_name,
+                      "\nDoes the CI on the difference cross zero?"),
+    x = "", y = "Difference in annualised growth rate (pp)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 11, face = "bold"),
+    plot.subtitle = element_text(size = 8, colour = "grey40"),
+    legend.position = "bottom"
+  )
+
+# Combine side by side
+library(patchwork)
+p1 + p2 +
+  plot_annotation(
+    title = paste0("Worked example: ", sector_label),
+    subtitle = paste0("Left: each region's slope and CIs. Right: the actual z-test — ",
+                      "is the difference significantly different from zero?"),
+    theme = theme(
+      plot.title = element_text(size = 13, face = "bold"),
+      plot.subtitle = element_text(size = 9, colour = "grey40")
+    )
+  )
+
 
 
 

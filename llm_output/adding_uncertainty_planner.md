@@ -379,3 +379,66 @@ The 95% CI is then `slope ± 1.96 * se_combined`.
 - **Uses original se_ols, not per-draw SEs**: we keep only the slope from each MC draw and use the original `se_ols`. This assumes the OLS SE doesn't change much when you perturb the data — fine for small ABS SEs, and on average similar even for larger ones.
 
 - **Slight double-counting**: each MC draw fits OLS on perturbed data, so `slope_sd` captures measurement uncertainty *plus* some interaction with regression noise. Adding `se_ols` in quadrature on top could slightly double-count the regression noise component. In practice this is small — regression noise is mostly constant across draws (same number of points, similar scatter) so it averages out and `slope_sd` is dominated by the measurement perturbation effect.
+
+---
+
+## Comparing slopes properly: z-test on the difference, not CI overlap
+
+### Why CI overlap is the wrong test
+
+The grid plots and significance counts compare growth rate slopes between regions. The original approach (inherited from `slopeDiffGrid`) checked whether the 95% CIs of two slopes physically overlapped. This is a common but flawed heuristic:
+
+- Two 95% CIs can overlap and the difference can still be statistically significant.
+- The overlap test is actually *more conservative* than a proper test — it's roughly equivalent to testing at the ~83% level, not 95%.
+- This means the grids were systematically under-reporting real differences.
+
+The reason: CI overlap asks whether each estimate's interval reaches the other's territory. But neither interval is centred on the *difference* — they're centred on their own point estimates. The proper question is whether the difference itself is distinguishable from zero.
+
+### The z-test on the slope difference
+
+For two slopes with their standard errors, the correct test is:
+
+```
+z = (slope_A - slope_B) / SE_diff
+
+where SE_diff = sqrt(SE_A^2 + SE_B^2)
+```
+
+If `|z| > 1.645` the difference is significant at 90%. If `|z| > 1.960`, significant at 95%. The denominator `SE_diff` is the standard error of the *difference*, computed from the two individual SEs under independence (which holds — the slopes are estimated from different regions' data).
+
+This is more powerful than the overlap test because `sqrt(a^2 + b^2) < a + b` — the SE of the difference is smaller than the sum of the two SEs, so the test can detect smaller differences as significant.
+
+### How this works in the grid plots
+
+The grid plots (`plot_focal_comparison`, `plot_focal_comparison_split`) and the significance counter (`count_sig_pairs`) all now use the z-test. For each pair of regions within a sector:
+
+1. Compute the slope difference: `focal_slope - comparator_slope`
+2. Compute the SE of the difference: `sqrt(focal_se^2 + comparator_se^2)`
+3. Compute z and compare to the critical value for the chosen CI level
+
+This is done twice — once with `se_ols` (vanilla OLS) and once with `se_combined` (OLS + measurement uncertainty in quadrature). The grid cells show:
+- **Green**: focal region's slope is significantly *higher* (z > critical value)
+- **Red**: focal region's slope is significantly *lower* (z < -critical value)
+- **Grey**: not distinguishable (|z| < critical value)
+
+### Visualising the z-test: the slope difference plot
+
+Individual CI plots can be misleading — two slopes' error bars might look separated, but the z-test says "not significant" (or vice versa). The proper visualisation shows the *difference* as a single point with its own CI:
+
+```
+difference ± 1.96 * SE_diff
+```
+
+If this CI crosses zero, the slopes are not significantly different. This is implemented in the worked example section of ABS_error_rates.R, which shows both panels side by side:
+- Left: the two individual slopes with their CIs (for context)
+- Right: the slope difference with its CI (the actual test — does it cross zero?)
+
+### Multiple comparisons caveat
+
+With ~70 sectors × ~11 comparator regions ≈ 770 tests per grid, at 95% confidence you'd expect ~38 false positives even if all slopes were identical. The grids are best read for *patterns* (whole rows or columns lighting up) rather than individual cells. The 90%/95% diagonal split helps: cells significant at both levels are much less likely to be false positives.
+
+A formal correction like Benjamini-Hochberg (BH) FDR could be applied to the z-scores. BH controls the *expected false discovery rate* — it guarantees that at most 5% of the coloured cells are false positives, rather than each individual cell having a 5% false positive rate. It works by ranking all p-values, applying progressively lenient thresholds, and keeping only those that survive. Implementation would be straightforward (`p.adjust(p_values, method = "BH")` in R).
+
+However, the BH cutoff is itself unstable for cells near the threshold — resampling the data and re-running would shuffle p-value rankings, flipping marginal cells in and out of significance across runs. The strong results survive every time; the marginal ones are genuinely ambiguous regardless of correction method.
+
+**Decision: leave BH for now.** The purpose of the grids is to contrast vanilla OLS with the uncertainty-augmented version — a relative comparison that is robust regardless of where the significance threshold falls, because the same multiple-comparison issue affects both panels equally. The 90%/95% diagonal split already provides a practical robustness check (cells significant at both levels are much more credible). BH would be a useful addition for any standalone claims about individual sector/region pairs, but that's not the current aim.
