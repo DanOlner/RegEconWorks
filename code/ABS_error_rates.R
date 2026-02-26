@@ -2071,6 +2071,178 @@ plot_focal_comparison_split(slopes_combined %>% filter(!qg('membership|other per
 plot_focal_comparison_split(slopes_combined %>% filter(!qg('membership|other personal',SIC07_description)), "London")
 
 
+## Focal comparison split with coloured y-axis (patchwork) ----
+# Like plot_focal_comparison_split but with y-axis labels showing the focal
+# region's annualised growth rate and CI, coloured by whether the CI crosses zero.
+# Uses patchwork instead of faceting so each panel can have its own axis colours.
+# Colours: dark green/red = CI doesn't cross zero, light green/red = CI crosses zero.
+
+plot_focal_split_coloured <- function(combined_data, focal_region,
+                                      ci_levels = c(90, 95)) {
+
+  to_pct <- function(x) round((exp(x) - 1) * 100, 1)
+
+  # Helper: compute significance for a given CI level and SE column using z-test
+  compute_sig <- function(cdata, focal_reg, ci_level, se_col) {
+    ci_z <- qnorm(1 - (1 - ci_level / 100) / 2)
+    ci_data <- cdata %>% ungroup()
+    focal <- ci_data %>% filter(Region_name == focal_reg)
+    others <- ci_data %>% filter(Region_name != focal_reg)
+
+    others %>%
+      inner_join(
+        focal %>% select(SIC07_description,
+                         focal_slope = slope_ols,
+                         focal_se = !!sym(se_col)),
+        by = 'SIC07_description'
+      ) %>%
+      mutate(
+        z = (focal_slope - slope_ols) / sqrt(focal_se^2 + .data[[se_col]]^2),
+        sig = case_when(
+          z >  ci_z ~  1L,
+          z < -ci_z ~ -1L,
+          TRUE ~ 0L
+        )
+      ) %>%
+      select(SIC07_description, SIC07_description_shortened, Region_name, sig)
+  }
+
+  # Build cell data for one method
+  build_cell_data <- function(se_col) {
+    sig_lo <- compute_sig(combined_data, focal_region, ci_levels[1], se_col) %>%
+      rename(sig_lo = sig)
+    sig_hi <- compute_sig(combined_data, focal_region, ci_levels[2], se_col) %>%
+      rename(sig_hi = sig)
+    sig_lo %>%
+      inner_join(sig_hi, by = c('SIC07_description', 'SIC07_description_shortened', 'Region_name'))
+  }
+
+  # Build the focal region's slope info for y-axis labels
+  build_y_labels <- function(se_col, ci_level = 95) {
+    ci_z <- qnorm(1 - (1 - ci_level / 100) / 2)
+    focal_data <- combined_data %>%
+      ungroup() %>%
+      filter(Region_name == focal_region) %>%
+      mutate(
+        slope_pct = to_pct(slope_ols),
+        ci_lo_pct = to_pct(slope_ols - .data[[se_col]] * ci_z),
+        ci_hi_pct = to_pct(slope_ols + .data[[se_col]] * ci_z),
+        crosses_zero = ci_lo_pct * ci_hi_pct < 0,
+        label = paste0(SIC07_description_shortened, " (",
+                       slope_pct, "% CI: ", ci_lo_pct, "%, ", ci_hi_pct, "%)"),
+        colour = case_when(
+          !crosses_zero & slope_ols > 0 ~ "#28da28",
+          crosses_zero  & slope_ols > 0 ~ "#96c493",
+          !crosses_zero & slope_ols < 0 ~ "red",
+          crosses_zero  & slope_ols < 0 ~ "#ffcccc"
+        )
+      ) %>%
+      arrange(SIC07_description_shortened) %>%
+      select(SIC07_description_shortened, label, colour)
+
+    focal_data
+  }
+
+  # Build one panel's triangle plot
+  build_panel <- function(cell_data, y_labels, regions, sectors,
+                          panel_title, show_y_axis = TRUE) {
+
+    cell_data <- cell_data %>%
+      mutate(
+        x = match(Region_name, regions),
+        y = match(SIC07_description_shortened, sectors)
+      )
+
+    tri_lo <- cell_data %>%
+      mutate(tri_id = paste(SIC07_description_shortened, Region_name, "lo", sep = "::")) %>%
+      reframe(
+        tri_id = rep(tri_id, each = 3),
+        sig = rep(sig_lo, each = 3),
+        px = c(rbind(x - 0.5, x + 0.5, x - 0.5)),
+        py = c(rbind(y - 0.5, y - 0.5, y + 0.5))
+      )
+
+    tri_hi <- cell_data %>%
+      mutate(tri_id = paste(SIC07_description_shortened, Region_name, "hi", sep = "::")) %>%
+      reframe(
+        tri_id = rep(tri_id, each = 3),
+        sig = rep(sig_hi, each = 3),
+        px = c(rbind(x + 0.5, x - 0.5, x + 0.5)),
+        py = c(rbind(y + 0.5, y + 0.5, y - 0.5))
+      )
+
+    plot_polys <- bind_rows(tri_lo, tri_hi) %>%
+      mutate(
+        sig_label = factor(sig, levels = c(-1, 0, 1),
+                           labels = c("Lower", "Not separable", "Higher"))
+      )
+
+    # Map sector positions to coloured labels
+    label_text <- y_labels$label
+    label_colours <- y_labels$colour
+
+    p <- ggplot(plot_polys, aes(x = px, y = py, group = tri_id, fill = sig_label)) +
+      geom_polygon(colour = "white", linewidth = 0.2) +
+      scale_fill_manual(
+        values = c("Lower" = "#d73027", "Not separable" = "grey90", "Higher" = "#1a9850"),
+        name = ""
+      ) +
+      scale_x_continuous(breaks = seq_along(regions), labels = regions, expand = c(0, 0)) +
+      scale_y_continuous(breaks = seq_along(sectors), labels = label_text, expand = c(0, 0)) +
+      labs(title = panel_title, x = "", y = "") +
+      theme_minimal() +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+        axis.text.y = element_text(size = 5.5, colour = label_colours),
+        plot.title = element_text(size = 10, face = "bold"),
+        legend.position = "bottom"
+      ) +
+      coord_fixed()
+
+    if (!show_y_axis) {
+      p <- p + theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+    }
+
+    p
+  }
+
+  # --- Assemble ---
+  regions <- sort(unique(combined_data %>% ungroup() %>%
+                           filter(Region_name != focal_region) %>%
+                           pull(Region_name)))
+  sectors <- sort(unique(combined_data$SIC07_description_shortened))
+
+  cell_ols      <- build_cell_data("se_ols")
+  cell_combined <- build_cell_data("se_combined")
+
+  y_labels_ols      <- build_y_labels("se_ols")
+  y_labels_combined <- build_y_labels("se_combined")
+
+  p1 <- build_panel(cell_ols, y_labels_ols, regions, sectors,
+                    "OLS only", show_y_axis = TRUE)
+  p2 <- build_panel(cell_combined, y_labels_combined, regions, sectors,
+                    "OLS + extra", show_y_axis = TRUE)
+
+  p1 + p2 +
+    plot_layout(guides = "collect") &
+    theme(legend.position = "bottom") &
+    plot_annotation(
+      title = paste0("Growth slope comparisons: ", focal_region),
+      subtitle = paste0("Bottom-left = ", ci_levels[1],
+                        "% CI, top-right = ", ci_levels[2],
+                        "% CI. Y-axis text: focal slope (annualised %) coloured by whether CI crosses zero."),
+      theme = theme(
+        plot.title = element_text(size = 12, face = "bold"),
+        plot.subtitle = element_text(size = 9, colour = "grey40")
+      )
+    )
+}
+
+# Example
+plot_focal_split_coloured(slopes_combined, "Yorkshire and The Humber")
+plot_focal_split_coloured(slopes_combined, "London")
+
+
 ## Worked example: z-test on a pair of slopes ----
 # Yorkshire and The Humber vs East, Telecommunications sector
 # In the diagonal grid: vanilla OLS shows sig at both 90% and 95%,
