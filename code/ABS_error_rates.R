@@ -2077,8 +2077,21 @@ plot_focal_comparison_split(slopes_combined %>% filter(!qg('membership|other per
 # Uses patchwork instead of faceting so each panel can have its own axis colours.
 # Colours: dark green/red = CI doesn't cross zero, light green/red = CI crosses zero.
 
+# Dan: This is below too, but we'll use here to get top bottom 10
+se_inflation <- slopes_combined %>%
+  filter(!qg('membership|other personal',SIC07_description)) %>% 
+  ungroup() %>%
+  filter(!is.na(se_ols) & se_ols > 0 & !is.na(se_combined)) %>%
+  mutate(
+    se_ratio = se_combined / se_ols,
+    slope_pct = round((exp(slope_ols) - 1) * 100, 1)
+  )
+
+
 plot_focal_split_coloured <- function(combined_data, focal_region,
-                                      ci_levels = c(90, 95)) {
+                                      ci_levels = c(90, 95),
+                                      top_bottom_n = NULL,
+                                      se_inflation_data = NULL) {
 
   to_pct <- function(x) round((exp(x) - 1) * 100, 1)
 
@@ -2144,8 +2157,11 @@ plot_focal_split_coloured <- function(combined_data, focal_region,
   }
 
   # Build one panel's triangle plot
+  # y_side: "left" or "right" controls which side the y-axis labels appear
+  # show_x_axis: FALSE to hide x-axis labels (for stacked panels)
   build_panel <- function(cell_data, y_labels, regions, sectors,
-                          panel_title, show_y_axis = TRUE) {
+                          panel_title, show_y_axis = TRUE, y_side = "left",
+                          show_x_axis = TRUE) {
 
     cell_data <- cell_data %>%
       mutate(
@@ -2188,12 +2204,14 @@ plot_focal_split_coloured <- function(combined_data, focal_region,
         name = ""
       ) +
       scale_x_continuous(breaks = seq_along(regions), labels = regions, expand = c(0, 0)) +
-      scale_y_continuous(breaks = seq_along(sectors), labels = label_text, expand = c(0, 0)) +
+      scale_y_continuous(breaks = seq_along(sectors), labels = label_text,
+                         expand = c(0, 0), position = y_side) +
       labs(title = panel_title, x = "", y = "") +
       theme_minimal() +
       theme(
         axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
-        axis.text.y = element_text(size = 5.5, colour = label_colours),
+        axis.text.y = element_text(size = 5.5, colour = label_colours,
+                                   hjust = if (y_side == "right") 0 else 1),
         plot.title = element_text(size = 10, face = "bold"),
         legend.position = "bottom"
       ) +
@@ -2202,45 +2220,174 @@ plot_focal_split_coloured <- function(combined_data, focal_region,
     if (!show_y_axis) {
       p <- p + theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
     }
+    if (!show_x_axis) {
+      p <- p + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+    }
 
     p
+  }
+
+  # --- Helper to build a pair of panels for a given sector subset ---
+  build_pair <- function(sector_subset, regions, panel_title_left, panel_title_right,
+                         show_x_axis = TRUE) {
+    # Filter combined_data to just these sectors
+    sub_data <- combined_data %>%
+      filter(SIC07_description_shortened %in% sector_subset)
+
+    # Temporarily override combined_data for nested helpers
+    sub_cell_ols      <- build_cell_data_from("se_ols", sub_data)
+    sub_cell_combined <- build_cell_data_from("se_combined", sub_data)
+
+    sub_y_ols      <- build_y_labels_from("se_ols", sub_data)
+    sub_y_combined <- build_y_labels_from("se_combined", sub_data)
+
+    p_left  <- build_panel(sub_cell_ols, sub_y_ols, regions, sector_subset,
+                           panel_title_left, show_y_axis = TRUE, y_side = "left",
+                           show_x_axis = show_x_axis)
+    p_right <- build_panel(sub_cell_combined, sub_y_combined, regions, sector_subset,
+                           panel_title_right, show_y_axis = TRUE, y_side = "right",
+                           show_x_axis = show_x_axis)
+    list(left = p_left, right = p_right)
+  }
+
+  # Variants of helpers that accept a data argument (for subsetting)
+  build_cell_data_from <- function(se_col, cdata) {
+    compute_sig_from <- function(cdata2, ci_level, se_col2) {
+      ci_z <- qnorm(1 - (1 - ci_level / 100) / 2)
+      ci_data2 <- cdata2 %>% ungroup()
+      focal2 <- ci_data2 %>% filter(Region_name == focal_region)
+      others2 <- ci_data2 %>% filter(Region_name != focal_region)
+      others2 %>%
+        inner_join(
+          focal2 %>% select(SIC07_description,
+                            focal_slope = slope_ols,
+                            focal_se = !!sym(se_col2)),
+          by = 'SIC07_description'
+        ) %>%
+        mutate(
+          z = (focal_slope - slope_ols) / sqrt(focal_se^2 + .data[[se_col2]]^2),
+          sig = case_when(z > qnorm(1 - (1 - ci_level / 100) / 2) ~ 1L,
+                          z < -qnorm(1 - (1 - ci_level / 100) / 2) ~ -1L,
+                          TRUE ~ 0L)
+        ) %>%
+        select(SIC07_description, SIC07_description_shortened, Region_name, sig)
+    }
+    sig_lo <- compute_sig_from(cdata, ci_levels[1], se_col) %>% rename(sig_lo = sig)
+    sig_hi <- compute_sig_from(cdata, ci_levels[2], se_col) %>% rename(sig_hi = sig)
+    sig_lo %>%
+      inner_join(sig_hi, by = c('SIC07_description', 'SIC07_description_shortened', 'Region_name'))
+  }
+
+  build_y_labels_from <- function(se_col, cdata) {
+    ci_z <- qnorm(1 - (1 - 95 / 100) / 2)
+    focal_data <- cdata %>%
+      ungroup() %>%
+      filter(Region_name == focal_region) %>%
+      mutate(
+        slope_pct = to_pct(slope_ols),
+        ci_lo_pct = to_pct(slope_ols - .data[[se_col]] * ci_z),
+        ci_hi_pct = to_pct(slope_ols + .data[[se_col]] * ci_z),
+        crosses_zero = ci_lo_pct * ci_hi_pct < 0,
+        label = paste0(SIC07_description_shortened, " (",
+                       slope_pct, "% CI: ", ci_lo_pct, "%, ", ci_hi_pct, "%)"),
+        colour = case_when(
+          !crosses_zero & slope_ols > 0 ~ "#28da28",
+          crosses_zero  & slope_ols > 0 ~ "#96c493",
+          !crosses_zero & slope_ols < 0 ~ "red",
+          crosses_zero  & slope_ols < 0 ~ "#ffcccc"
+        )
+      ) %>%
+      arrange(SIC07_description_shortened) %>%
+      select(SIC07_description_shortened, label, colour)
+    focal_data
   }
 
   # --- Assemble ---
   regions <- sort(unique(combined_data %>% ungroup() %>%
                            filter(Region_name != focal_region) %>%
                            pull(Region_name)))
-  sectors <- sort(unique(combined_data$SIC07_description_shortened))
 
-  cell_ols      <- build_cell_data("se_ols")
-  cell_combined <- build_cell_data("se_combined")
+  # If top_bottom_n is set, split into high/low SE ratio groups
+  if (!is.null(top_bottom_n) && !is.null(se_inflation_data)) {
 
-  y_labels_ols      <- build_y_labels("se_ols")
-  y_labels_combined <- build_y_labels("se_combined")
+    focal_se <- se_inflation_data %>%
+      filter(Region_name == focal_region) %>%
+      arrange(desc(se_ratio))
 
-  p1 <- build_panel(cell_ols, y_labels_ols, regions, sectors,
-                    "OLS only", show_y_axis = TRUE)
-  p2 <- build_panel(cell_combined, y_labels_combined, regions, sectors,
-                    "OLS + extra", show_y_axis = TRUE)
+    top_sectors <- focal_se %>%
+      slice_max(se_ratio, n = top_bottom_n) %>%
+      pull(SIC07_description_shortened) %>%
+      sort()
 
-  p1 + p2 +
-    plot_layout(guides = "collect") &
-    theme(legend.position = "bottom") &
-    plot_annotation(
-      title = paste0("Growth slope comparisons: ", focal_region),
-      subtitle = paste0("Bottom-left = ", ci_levels[1],
-                        "% CI, top-right = ", ci_levels[2],
-                        "% CI. Y-axis text: focal slope (annualised %) coloured by whether CI crosses zero."),
-      theme = theme(
-        plot.title = element_text(size = 12, face = "bold"),
-        plot.subtitle = element_text(size = 9, colour = "grey40")
+    bottom_sectors <- focal_se %>%
+      slice_min(se_ratio, n = top_bottom_n) %>%
+      pull(SIC07_description_shortened) %>%
+      sort()
+
+    top_pair <- build_pair(top_sectors, regions,
+                           "OLS only", "OLS + extra",
+                           show_x_axis = FALSE)
+    bot_pair <- build_pair(bottom_sectors, regions,
+                           "", "",
+                           show_x_axis = TRUE)
+
+    (top_pair$left + top_pair$right) / (bot_pair$left + bot_pair$right) +
+      plot_layout(guides = "collect", heights = c(1, 1)) &
+      theme(legend.position = "bottom") &
+      plot_annotation(
+        title = paste0("Growth slope comparisons: ", focal_region,
+                       " (top & bottom ", top_bottom_n, " by SE inflation)"),
+        subtitle = paste0("Top: highest SE ratio sectors (uncertainty matters most). ",
+                          "Bottom: lowest SE ratio sectors (barely changes).\n",
+                          "Bottom-left triangle = ", ci_levels[1],
+                          "% CI, top-right = ", ci_levels[2], "% CI."),
+        theme = theme(
+          plot.title = element_text(size = 12, face = "bold"),
+          plot.subtitle = element_text(size = 9, colour = "grey40")
+        )
       )
-    )
+
+  } else {
+    # Original behaviour: all sectors, single pair of panels
+    sectors <- sort(unique(combined_data$SIC07_description_shortened))
+
+    cell_ols      <- build_cell_data("se_ols")
+    cell_combined <- build_cell_data("se_combined")
+
+    y_labels_ols      <- build_y_labels("se_ols")
+    y_labels_combined <- build_y_labels("se_combined")
+
+    p1 <- build_panel(cell_ols, y_labels_ols, regions, sectors,
+                      "OLS only", show_y_axis = TRUE)
+    p2 <- build_panel(cell_combined, y_labels_combined, regions, sectors,
+                      "OLS + extra", show_y_axis = TRUE, y_side = "right")
+
+    p1 + p2 +
+      plot_layout(guides = "collect") &
+      theme(legend.position = "bottom") &
+      plot_annotation(
+        title = paste0("Growth slope comparisons: ", focal_region),
+        subtitle = paste0("Bottom-left = ", ci_levels[1],
+                          "% CI, top-right = ", ci_levels[2],
+                          "% CI. Y-axis text: focal slope (annualised %) coloured by whether CI crosses zero."),
+        theme = theme(
+          plot.title = element_text(size = 12, face = "bold"),
+          plot.subtitle = element_text(size = 9, colour = "grey40")
+        )
+      )
+  }
 }
 
 # Example
 plot_focal_split_coloured(slopes_combined, "Yorkshire and The Humber")
 plot_focal_split_coloured(slopes_combined, "London")
+plot_focal_split_coloured(slopes_combined, "South East")
+
+# Top/bottom SE ratio version
+plot_focal_split_coloured(slopes_combined, "London",
+                          top_bottom_n = 10, se_inflation_data = se_inflation)
+plot_focal_split_coloured(slopes_combined, "Yorkshire and The Humber",
+                          top_bottom_n = 10, se_inflation_data = se_inflation)
 
 
 ## Worked example: z-test on a pair of slopes ----
@@ -2418,6 +2565,362 @@ p1 + p2 +
       plot.subtitle = element_text(size = 9, colour = "grey40")
     )
   )
+
+
+## SE inflation ratio: where does measurement uncertainty matter most? ----
+# se_combined / se_ols tells us how much the total SE inflates when adding
+# ABS measurement uncertainty. Ratio of 1 = no change, >1 = measurement
+# uncertainty adds meaningful noise on top of regression uncertainty.
+
+se_inflation <- slopes_combined %>%
+  filter(!qg('membership|other personal',SIC07_description)) %>% 
+  ungroup() %>%
+  filter(!is.na(se_ols) & se_ols > 0 & !is.na(se_combined)) %>%
+  mutate(
+    se_ratio = se_combined / se_ols,
+    slope_pct = round((exp(slope_ols) - 1) * 100, 1)
+  )
+
+# Top 20 most inflated
+se_inflation %>%
+  arrange(desc(se_ratio)) %>%
+  select(Region_name, SIC07_description_shortened, slope_pct, se_ols, se_combined, se_ratio) %>%
+  head(20)
+
+# Summary by region: which places are most affected?
+se_inflation_by_region <- se_inflation %>%
+  group_by(Region_name) %>%
+  summarise(
+    median_ratio = median(se_ratio, na.rm = TRUE),
+    mean_ratio   = mean(se_ratio, na.rm = TRUE),
+    max_ratio    = max(se_ratio, na.rm = TRUE),
+    n_above_1.5  = sum(se_ratio > 1.5, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  arrange(desc(median_ratio))
+
+# Summary by sector: which sectors are most affected?
+se_inflation_by_sector <- se_inflation %>%
+  group_by(SIC07_description_shortened) %>%
+  summarise(
+    median_ratio = median(se_ratio, na.rm = TRUE),
+    mean_ratio   = mean(se_ratio, na.rm = TRUE),
+    max_ratio    = max(se_ratio, na.rm = TRUE),
+    n_above_1.5  = sum(se_ratio > 1.5, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  arrange(desc(median_ratio))
+
+
+# --- Visualisation: heatmap of SE inflation ratio by region x sector ---
+
+plot_se_inflation_heatmap <- function(data, cap_ratio = 3) {
+
+  plot_data <- data %>%
+    mutate(se_ratio_capped = pmin(se_ratio, cap_ratio))
+
+  ggplot(plot_data, aes(x = Region_name,
+                        y = fct_reorder(SIC07_description_shortened, se_ratio, .fun = median),
+                        fill = se_ratio_capped)) +
+    geom_tile(colour = "white", linewidth = 0.3) +
+    scale_fill_gradientn(
+      colours = c("grey95", "#fee08b", "#fdae61", "#d73027"),
+      values  = scales::rescale(c(1, 1.2, 1.5, cap_ratio)),
+      limits  = c(1, cap_ratio),
+      name = paste0("SE ratio\n(capped at ", cap_ratio, ")"),
+      breaks = c(1, 1.5, 2, 2.5, cap_ratio)
+    ) +
+    labs(
+      title = "SE inflation ratio: se_combined / se_ols",
+      subtitle = "How much does ABS measurement uncertainty inflate the total SE?\nSectors ordered by median ratio across regions.",
+      x = "", y = ""
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+      axis.text.y = element_text(size = 5.5),
+      plot.title = element_text(size = 12, face = "bold"),
+      plot.subtitle = element_text(size = 9, colour = "grey40"),
+      legend.position = "right"
+    )
+}
+
+plot_se_inflation_heatmap(se_inflation)
+
+
+# --- Visualisation: heatmap of SE inflation, region perspective ---
+# Regions on the y-axis ordered by mean ratio, sectors on x-axis.
+
+plot_se_inflation_heatmap_byregion <- function(data, cap_ratio = 3) {
+
+  plot_data <- data %>%
+    mutate(se_ratio_capped = pmin(se_ratio, cap_ratio))
+
+  ggplot(plot_data, aes(x = fct_reorder(SIC07_description_shortened, se_ratio, .fun = median),
+                        y = fct_reorder(Region_name, se_ratio, .fun = mean),
+                        fill = se_ratio_capped)) +
+    geom_tile(colour = "white", linewidth = 0.3) +
+    scale_fill_gradientn(
+      colours = c("grey95", "#fee08b", "#fdae61", "#d73027"),
+      values  = scales::rescale(c(1, 1.2, 1.5, cap_ratio)),
+      limits  = c(1, cap_ratio),
+      name = paste0("SE ratio\n(capped at ", cap_ratio, ")"),
+      breaks = c(1, 1.5, 2, 2.5, cap_ratio)
+    ) +
+    labs(
+      title = "SE inflation ratio by region",
+      subtitle = "Regions ordered by mean ratio across sectors.\nHigher = ABS measurement uncertainty inflates SE more.",
+      x = "", y = ""
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 5.5),
+      axis.text.y = element_text(size = 8),
+      plot.title = element_text(size = 12, face = "bold"),
+      plot.subtitle = element_text(size = 9, colour = "grey40"),
+      legend.position = "right"
+    )
+}
+
+plot_se_inflation_heatmap_byregion(se_inflation)
+
+
+
+# --- Visualisation: dot plot ranked by SE ratio, faceted by region ---
+
+plot_se_inflation_dotplot <- function(data, top_n = 15) {
+
+  # For each region, pick the top_n most inflated sectors
+  plot_data <- data %>%
+    group_by(Region_name) %>%
+    slice_max(se_ratio, n = top_n) %>%
+    ungroup()
+
+  ggplot(plot_data, aes(x = se_ratio,
+                        y = fct_reorder2(SIC07_description_shortened, Region_name, se_ratio))) +
+    geom_point(aes(colour = se_ratio), size = 2) +
+    geom_vline(xintercept = 1, linetype = "dashed", colour = "grey50") +
+    scale_colour_gradient2(
+      low = "grey70", mid = "#fdae61", high = "#d73027",
+      midpoint = 1.5, guide = "none"
+    ) +
+    facet_wrap(~Region_name, scales = "free_y", ncol = 3) +
+    labs(
+      title = "Top sectors by SE inflation ratio per region",
+      subtitle = paste0("Top ", top_n, " sectors shown. Dashed line = ratio of 1 (no inflation)."),
+      x = "SE ratio (se_combined / se_ols)", y = ""
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.y = element_text(size = 5),
+      strip.text = element_text(face = "bold", size = 9),
+      plot.title = element_text(size = 12, face = "bold"),
+      plot.subtitle = element_text(size = 9, colour = "grey40")
+    )
+}
+
+plot_se_inflation_dotplot(se_inflation)
+
+
+## Z-score erosion: which pairwise comparisons lose significance? ----
+# For every focal region × sector × comparator, compute z-scores under both
+# OLS-only and combined SEs. The drop (z_ols - z_combined) shows how much
+# "significance" is eroded by adding measurement uncertainty.
+# Large positive erosion = comparison that looked significant under OLS but
+# is weakened or lost when accounting for ABS uncertainty.
+
+compute_z_erosion <- function(combined_data, ci_level = 95) {
+
+  ci_z <- qnorm(1 - (1 - ci_level / 100) / 2)
+  cdata <- combined_data %>% ungroup()
+
+  # All pairwise comparisons: every region vs every other region, per sector
+  pairs <- cdata %>%
+    inner_join(cdata, by = "SIC07_description", suffix = c("_a", "_b"),
+               relationship = "many-to-many") %>%
+    filter(Region_name_a < Region_name_b)  # avoid duplicates and self-comparisons
+
+  pairs %>%
+    mutate(
+      z_ols = abs(slope_ols_a - slope_ols_b) / sqrt(se_ols_a^2 + se_ols_b^2),
+      z_combined = abs(slope_ols_a - slope_ols_b) / sqrt(se_combined_a^2 + se_combined_b^2),
+      z_erosion = z_ols - z_combined,
+      sig_ols      = z_ols > ci_z,
+      sig_combined = z_combined > ci_z,
+      flipped = sig_ols & !sig_combined
+    ) %>%
+    select(
+      Region_a = Region_name_a, Region_b = Region_name_b,
+      SIC07_description,
+      SIC07_short = SIC07_description_shortened_a,
+      slope_pct_a = slope_ols_a, slope_pct_b = slope_ols_b,
+      se_ols_a, se_ols_b, se_combined_a, se_combined_b,
+      z_ols, z_combined, z_erosion,
+      sig_ols, sig_combined, flipped
+    )
+}
+
+z_erosion <- compute_z_erosion(slopes_combined %>% filter(!qg('membership|other personal',SIC07_description)))
+
+# Top 30 biggest erosions (comparisons most weakened by measurement uncertainty)
+z_erosion %>%
+  filter(flipped) %>%
+  arrange(desc(z_erosion)) %>%
+  select(Region_a, Region_b, SIC07_short, z_ols, z_combined, z_erosion) %>%
+  head(30)
+
+# Summary: how many comparisons flip per sector?
+z_erosion_by_sector <- z_erosion %>%
+  group_by(SIC07_short) %>%
+  summarise(
+    n_pairs = n(),
+    n_sig_ols = sum(sig_ols, na.rm = TRUE),
+    n_sig_combined = sum(sig_combined, na.rm = TRUE),
+    n_flipped = sum(flipped, na.rm = TRUE),
+    median_erosion = median(z_erosion, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  arrange(desc(n_flipped))
+
+# Summary: how many comparisons flip per region (as either side of the pair)?
+z_erosion_by_region <- z_erosion %>%
+  pivot_longer(cols = c(Region_a, Region_b), values_to = "Region_name") %>%
+  group_by(Region_name) %>%
+  summarise(
+    n_pairs = n(),
+    n_sig_ols = sum(sig_ols, na.rm = TRUE),
+    n_sig_combined = sum(sig_combined, na.rm = TRUE),
+    n_flipped = sum(flipped, na.rm = TRUE),
+    median_erosion = median(z_erosion, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  arrange(desc(n_flipped))
+
+
+# --- Visualisation: heatmap of flipped comparisons by region x sector ---
+
+plot_z_erosion_heatmap <- function(erosion_data) {
+
+  # Count flips per region x sector (region appears on either side of pair)
+  flip_counts <- erosion_data %>%
+    filter(flipped) %>%
+    pivot_longer(cols = c(Region_a, Region_b), values_to = "Region_name") %>%
+    count(Region_name, SIC07_short, name = "n_flipped")
+
+  # Complete grid so all cells appear
+  all_regions <- sort(unique(erosion_data$Region_a, erosion_data$Region_b))
+  all_sectors <- sort(unique(erosion_data$SIC07_short))
+  full_grid <- expand.grid(Region_name = all_regions,
+                           SIC07_short = all_sectors,
+                           stringsAsFactors = FALSE) %>%
+    left_join(flip_counts, by = c("Region_name", "SIC07_short")) %>%
+    mutate(n_flipped = replace_na(n_flipped, 0))
+
+  ggplot(full_grid, aes(x = Region_name,
+                        y = fct_reorder(SIC07_short, n_flipped, .fun = sum),
+                        fill = n_flipped)) +
+    geom_tile(colour = "white", linewidth = 0.3) +
+    scale_fill_gradient(
+      low = "grey95", high = "#d73027",
+      name = "Flipped\ncomparisons"
+    ) +
+    labs(
+      title = "Z-score erosion: comparisons that lose significance",
+      subtitle = "Number of pairwise comparisons that flip from significant (OLS) to\nnot significant (OLS + measurement uncertainty). Sectors ordered by total flips.",
+      x = "", y = ""
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+      axis.text.y = element_text(size = 5.5),
+      plot.title = element_text(size = 12, face = "bold"),
+      plot.subtitle = element_text(size = 9, colour = "grey40"),
+      legend.position = "right"
+    )
+}
+
+plot_z_erosion_heatmap(z_erosion)
+
+
+# --- Visualisation: paired dot plot showing z_ols vs z_combined for flipped pairs ---
+# Shows the top N most eroded comparisons as connected dots
+
+plot_z_erosion_pairs <- function(erosion_data, top_n = 30) {
+
+  plot_data <- erosion_data %>%
+    filter(flipped) %>%
+    slice_max(z_erosion, n = top_n) %>%
+    mutate(
+      pair_label = paste0(Region_a, " vs ", Region_b, "\n", SIC07_short)
+    )
+
+  # Reshape for connected dot plot
+  plot_long <- plot_data %>%
+    select(pair_label, z_erosion, z_ols, z_combined) %>%
+    pivot_longer(cols = c(z_ols, z_combined),
+                 names_to = "method", values_to = "z_score") %>%
+    mutate(method = ifelse(method == "z_ols", "OLS only", "OLS + measurement uncertainty"))
+
+  ggplot(plot_long, aes(x = z_score, y = fct_reorder(pair_label, z_erosion))) +
+    geom_line(aes(group = pair_label), colour = "grey60", linewidth = 0.5) +
+    geom_point(aes(colour = method), size = 2.5) +
+    geom_vline(xintercept = qnorm(0.975), linetype = "dashed", colour = "grey40") +
+    scale_colour_manual(
+      values = c("OLS only" = "#1a9850", "OLS + measurement uncertainty" = "#d73027"),
+      name = ""
+    ) +
+    annotate("text", x = qnorm(0.975), y = 0.5, label = "z = 1.96",
+             hjust = -0.1, size = 3, colour = "grey40") +
+    labs(
+      title = paste0("Top ", top_n, " comparisons most eroded by measurement uncertainty"),
+      subtitle = "Green dot = OLS z-score, red dot = combined z-score.\nDashed line = 95% significance threshold. All shown pairs cross the threshold under OLS but not combined.",
+      x = "Absolute z-score", y = ""
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.y = element_text(size = 5.5),
+      plot.title = element_text(size = 12, face = "bold"),
+      plot.subtitle = element_text(size = 9, colour = "grey40"),
+      legend.position = "bottom"
+    )
+}
+
+plot_z_erosion_pairs(z_erosion)
+
+
+# --- Visualisation: diverging bar chart of significance counts lost per sector ---
+
+plot_z_erosion_bars <- function(erosion_by_sector) {
+
+  plot_data <- erosion_by_sector %>%
+    mutate(
+      n_retained = n_sig_combined,
+      n_lost = n_flipped,
+      pct_lost = round(n_lost / n_sig_ols * 100, 1)
+    ) %>%
+    filter(n_sig_ols > 0)
+
+  ggplot(plot_data, aes(x = fct_reorder(SIC07_short, pct_lost),
+                        y = pct_lost)) +
+    geom_col(fill = "#d73027", alpha = 0.8) +
+    geom_text(aes(label = paste0(n_lost, "/", n_sig_ols)),
+              hjust = -0.1, size = 2.5) +
+    coord_flip() +
+    labs(
+      title = "Percentage of significant comparisons lost per sector",
+      subtitle = "Labels: flipped / total significant under OLS.\nHigher = measurement uncertainty has more impact on this sector's comparisons.",
+      x = "", y = "% of OLS-significant comparisons lost"
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.y = element_text(size = 5.5),
+      plot.title = element_text(size = 12, face = "bold"),
+      plot.subtitle = element_text(size = 9, colour = "grey40")
+    )
+}
+
+plot_z_erosion_bars(z_erosion_by_sector)
+
 
 
 
