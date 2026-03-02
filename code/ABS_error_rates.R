@@ -1545,6 +1545,145 @@ write_csv(
 # read_csv('data/regxind_siclookup.csv') %>% View
 
 
+## Focal LQ comparison grid with diagonal split: 90% and 95% CIs ----
+# For a focal ITL1, compare its LQ to every other ITL1 for each sector in a
+# given year, using the z-test on the LQ difference with MC-derived SDs.
+# Diagonal split: bottom-left = 90%, top-right = 95%.
+# Y-axis coloured by whether focal region's LQ CI crosses 1 (national average).
+
+# Load sector name lookup
+sic_lookup <- read_csv('data/regxind_siclookup.csv')
+
+plot_focal_LQ_split <- function(lq_data, focal_region, plot_year = NULL,
+                                ci_levels = c(90, 95)) {
+
+  # Default to latest year
+  if (is.null(plot_year)) plot_year <- max(lq_data$year)
+
+  # Filter to chosen year and join shortened names
+  yr_data <- lq_data %>%
+    filter(year == plot_year) %>%
+    left_join(sic_lookup, by = 'SIC07_description')
+
+  # Compute significance for a given CI level
+  compute_sig <- function(data, focal_reg, ci_level) {
+    ci_z <- qnorm(1 - (1 - ci_level / 100) / 2)
+
+    focal <- data %>% filter(Region_name == focal_reg)
+    others <- data %>% filter(Region_name != focal_reg)
+
+    others %>%
+      inner_join(
+        focal %>% select(SIC07_description, SIC07_description_shortened,
+                         focal_LQ = LQ_central, focal_sd = LQ_sd),
+        by = c('SIC07_description', 'SIC07_description_shortened')
+      ) %>%
+      mutate(
+        z = (focal_LQ - LQ_central) / sqrt(focal_sd^2 + LQ_sd^2),
+        sig = case_when(
+          z >  ci_z ~  1L,
+          z < -ci_z ~ -1L,
+          TRUE ~ 0L
+        )
+      ) %>%
+      select(SIC07_description, SIC07_description_shortened, Region_name, sig)
+  }
+
+  sig_lo <- compute_sig(yr_data, focal_region, ci_levels[1]) %>% rename(sig_lo = sig)
+  sig_hi <- compute_sig(yr_data, focal_region, ci_levels[2]) %>% rename(sig_hi = sig)
+
+  cell_data <- sig_lo %>%
+    inner_join(sig_hi, by = c('SIC07_description', 'SIC07_description_shortened', 'Region_name'))
+
+  # Build y-axis labels: LQ value and CI, coloured by whether CI crosses 1
+  focal_info <- yr_data %>%
+    filter(Region_name == focal_region) %>%
+    mutate(
+      label = paste0(SIC07_description_shortened, " (LQ: ",
+                     round(LQ_central, 2), " [",
+                     round(LQ_p025, 2), ", ", round(LQ_p975, 2), "])"),
+      crosses_one = LQ_p025 <= 1 & LQ_p975 >= 1,
+      colour = case_when(
+        !crosses_one & LQ_central > 1 ~ "#28da28",
+        crosses_one  & LQ_central > 1 ~ "#96c493",
+        !crosses_one & LQ_central < 1 ~ "red",
+        crosses_one  & LQ_central < 1 ~ "#ffcccc"
+      )
+    ) %>%
+    arrange(SIC07_description_shortened) %>%
+    select(SIC07_description_shortened, label, colour)
+
+  # Convert to numeric positions for polygon coordinates
+  regions <- sort(unique(cell_data$Region_name))
+  sectors <- sort(unique(cell_data$SIC07_description_shortened))
+
+  cell_data <- cell_data %>%
+    mutate(
+      x = match(Region_name, regions),
+      y = match(SIC07_description_shortened, sectors)
+    )
+
+  # Build triangle polygons
+  tri_lo <- cell_data %>%
+    mutate(tri_id = paste(SIC07_description_shortened, Region_name, "lo", sep = "::")) %>%
+    reframe(
+      tri_id = rep(tri_id, each = 3),
+      sig = rep(sig_lo, each = 3),
+      px = c(rbind(x - 0.5, x + 0.5, x - 0.5)),
+      py = c(rbind(y - 0.5, y - 0.5, y + 0.5))
+    )
+
+  tri_hi <- cell_data %>%
+    mutate(tri_id = paste(SIC07_description_shortened, Region_name, "hi", sep = "::")) %>%
+    reframe(
+      tri_id = rep(tri_id, each = 3),
+      sig = rep(sig_hi, each = 3),
+      px = c(rbind(x + 0.5, x - 0.5, x + 0.5)),
+      py = c(rbind(y + 0.5, y + 0.5, y - 0.5))
+    )
+
+  plot_polys <- bind_rows(tri_lo, tri_hi) %>%
+    mutate(
+      sig_label = factor(sig, levels = c(-1, 0, 1),
+                         labels = c("Focal lower", "Not separable", "Focal higher"))
+    )
+
+  label_text <- focal_info$label
+  label_colours <- focal_info$colour
+
+  ggplot(plot_polys, aes(x = px, y = py, group = tri_id, fill = sig_label)) +
+    geom_polygon(colour = "white", linewidth = 0.2) +
+    scale_fill_manual(
+      values = c("Focal lower" = "#d73027", "Not separable" = "grey90", "Focal higher" = "#1a9850"),
+      name = "",
+      drop = FALSE
+    ) +
+    scale_x_continuous(breaks = seq_along(regions), labels = regions, expand = c(0, 0)) +
+    scale_y_continuous(breaks = seq_along(sectors), labels = label_text, expand = c(0, 0)) +
+    labs(
+      title = paste0("LQ comparisons: ", focal_region, " (", plot_year, ")"),
+      subtitle = paste0("Bottom-left = ", ci_levels[1], "% CI, top-right = ", ci_levels[2],
+                        "% CI. Z-test on LQ difference using MC-derived SDs.\n",
+                        "Y-axis: focal LQ [95% CI], coloured by whether CI crosses 1."),
+      x = "", y = ""
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+      axis.text.y = element_text(size = 5.5, colour = label_colours),
+      plot.title = element_text(size = 11, face = "bold"),
+      plot.subtitle = element_text(size = 9, colour = "grey40"),
+      legend.position = "bottom"
+    ) +
+    coord_fixed()
+}
+
+# Examples
+plot_focal_LQ_split(LQ_with_sim_CIs, "Yorkshire and The Humber")
+plot_focal_LQ_split(LQ_with_sim_CIs, "London")
+plot_focal_LQ_split(LQ_with_sim_CIs, "South West")
+
+
 ## CLAUDE OUTPUT:
 
 ## Monte Carlo simulation of slopes with measurement uncertainty ----
@@ -2211,7 +2350,7 @@ plot_focal_split_coloured <- function(combined_data, focal_region,
       theme_minimal() +
       theme(
         axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
-        axis.text.y = element_text(size = 5.5, colour = label_colours,
+        axis.text.y = element_text(size = 8.5, colour = label_colours,# Sector y axis text size
                                    hjust = if (y_side == "right") 0 else 1),
         plot.title = element_text(size = 10, face = "bold"),
         legend.position = "bottom"
