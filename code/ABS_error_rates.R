@@ -1555,7 +1555,8 @@ write_csv(
 sic_lookup <- read_csv('data/regxind_siclookup.csv')
 
 plot_focal_LQ_split <- function(lq_data, focal_region, plot_year = NULL,
-                                ci_levels = c(90, 95)) {
+                                ci_levels = c(90, 95),
+                                top_bottom_n = NULL) {
 
   # Default to latest year
   if (is.null(plot_year)) plot_year <- max(lq_data$year)
@@ -1589,99 +1590,185 @@ plot_focal_LQ_split <- function(lq_data, focal_region, plot_year = NULL,
       select(SIC07_description, SIC07_description_shortened, Region_name, sig)
   }
 
-  sig_lo <- compute_sig(yr_data, focal_region, ci_levels[1]) %>% rename(sig_lo = sig)
-  sig_hi <- compute_sig(yr_data, focal_region, ci_levels[2]) %>% rename(sig_hi = sig)
-
-  cell_data <- sig_lo %>%
-    inner_join(sig_hi, by = c('SIC07_description', 'SIC07_description_shortened', 'Region_name'))
+  # Build cell data for a given subset of the year data
+  build_cells <- function(data) {
+    sig_lo <- compute_sig(data, focal_region, ci_levels[1]) %>% rename(sig_lo = sig)
+    sig_hi <- compute_sig(data, focal_region, ci_levels[2]) %>% rename(sig_hi = sig)
+    sig_lo %>%
+      inner_join(sig_hi, by = c('SIC07_description', 'SIC07_description_shortened', 'Region_name'))
+  }
 
   # Build y-axis labels: LQ value and CI, coloured by whether CI crosses 1
-  focal_info <- yr_data %>%
-    filter(Region_name == focal_region) %>%
-    mutate(
-      label = paste0(SIC07_description_shortened, " (LQ: ",
-                     round(LQ_central, 2), " [",
-                     round(LQ_p025, 2), ", ", round(LQ_p975, 2), "])"),
-      crosses_one = LQ_p025 <= 1 & LQ_p975 >= 1,
-      colour = case_when(
-        !crosses_one & LQ_central > 1 ~ "#28da28",
-        crosses_one  & LQ_central > 1 ~ "#96c493",
-        !crosses_one & LQ_central < 1 ~ "red",
-        crosses_one  & LQ_central < 1 ~ "#ffcccc"
+  build_y_labels <- function(data) {
+    data %>%
+      filter(Region_name == focal_region) %>%
+      mutate(
+        label = paste0(SIC07_description_shortened, " (LQ: ",
+                       round(LQ_central, 2), " [",
+                       round(LQ_p025, 2), ", ", round(LQ_p975, 2), "])"),
+        crosses_one = LQ_p025 <= 1 & LQ_p975 >= 1,
+        colour = case_when(
+          !crosses_one & LQ_central > 1 ~ "#28da28",
+          crosses_one  & LQ_central > 1 ~ "#96c493",
+          !crosses_one & LQ_central < 1 ~ "red",
+          crosses_one  & LQ_central < 1 ~ "#ffcccc"
+        )
+      ) %>%
+      arrange(SIC07_description_shortened) %>%
+      select(SIC07_description_shortened, label, colour)
+  }
+
+  # Build one triangle panel
+  build_panel <- function(cell_data, y_labels, regions, sectors,
+                          panel_title = "", show_x_axis = TRUE) {
+
+    cell_data <- cell_data %>%
+      mutate(
+        x = match(Region_name, regions),
+        y = match(SIC07_description_shortened, sectors)
       )
-    ) %>%
-    arrange(SIC07_description_shortened) %>%
-    select(SIC07_description_shortened, label, colour)
 
-  # Convert to numeric positions for polygon coordinates
-  regions <- sort(unique(cell_data$Region_name))
-  sectors <- sort(unique(cell_data$SIC07_description_shortened))
+    tri_lo <- cell_data %>%
+      mutate(tri_id = paste(SIC07_description_shortened, Region_name, "lo", sep = "::")) %>%
+      reframe(
+        tri_id = rep(tri_id, each = 3),
+        sig = rep(sig_lo, each = 3),
+        px = c(rbind(x - 0.5, x + 0.5, x - 0.5)),
+        py = c(rbind(y - 0.5, y - 0.5, y + 0.5))
+      )
 
-  cell_data <- cell_data %>%
-    mutate(
-      x = match(Region_name, regions),
-      y = match(SIC07_description_shortened, sectors)
-    )
+    tri_hi <- cell_data %>%
+      mutate(tri_id = paste(SIC07_description_shortened, Region_name, "hi", sep = "::")) %>%
+      reframe(
+        tri_id = rep(tri_id, each = 3),
+        sig = rep(sig_hi, each = 3),
+        px = c(rbind(x + 0.5, x - 0.5, x + 0.5)),
+        py = c(rbind(y + 0.5, y + 0.5, y - 0.5))
+      )
 
-  # Build triangle polygons
-  tri_lo <- cell_data %>%
-    mutate(tri_id = paste(SIC07_description_shortened, Region_name, "lo", sep = "::")) %>%
-    reframe(
-      tri_id = rep(tri_id, each = 3),
-      sig = rep(sig_lo, each = 3),
-      px = c(rbind(x - 0.5, x + 0.5, x - 0.5)),
-      py = c(rbind(y - 0.5, y - 0.5, y + 0.5))
-    )
+    plot_polys <- bind_rows(tri_lo, tri_hi) %>%
+      mutate(
+        sig_label = factor(sig, levels = c(-1, 0, 1),
+                           labels = c("Focal lower", "Not separable", "Focal higher"))
+      )
 
-  tri_hi <- cell_data %>%
-    mutate(tri_id = paste(SIC07_description_shortened, Region_name, "hi", sep = "::")) %>%
-    reframe(
-      tri_id = rep(tri_id, each = 3),
-      sig = rep(sig_hi, each = 3),
-      px = c(rbind(x + 0.5, x - 0.5, x + 0.5)),
-      py = c(rbind(y + 0.5, y + 0.5, y - 0.5))
-    )
+    label_text <- y_labels$label
+    label_colours <- y_labels$colour
 
-  plot_polys <- bind_rows(tri_lo, tri_hi) %>%
-    mutate(
-      sig_label = factor(sig, levels = c(-1, 0, 1),
-                         labels = c("Focal lower", "Not separable", "Focal higher"))
-    )
+    p <- ggplot(plot_polys, aes(x = px, y = py, group = tri_id, fill = sig_label)) +
+      geom_polygon(colour = "white", linewidth = 0.2) +
+      scale_fill_manual(
+        values = c("Focal lower" = "#d73027", "Not separable" = "grey90", "Focal higher" = "#1a9850"),
+        name = "",
+        drop = FALSE
+      ) +
+      scale_x_continuous(breaks = seq_along(regions), labels = regions, expand = c(0, 0)) +
+      scale_y_continuous(breaks = seq_along(sectors), labels = label_text, expand = c(0, 0)) +
+      labs(title = panel_title, x = "", y = "") +
+      theme_minimal() +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+        axis.text.y = element_text(size = 5.5, colour = label_colours),
+        plot.title = element_text(size = 10, face = "bold"),
+        legend.position = "bottom"
+      ) +
+      coord_fixed()
 
-  label_text <- focal_info$label
-  label_colours <- focal_info$colour
+    if (!show_x_axis) {
+      p <- p + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+    }
 
-  ggplot(plot_polys, aes(x = px, y = py, group = tri_id, fill = sig_label)) +
-    geom_polygon(colour = "white", linewidth = 0.2) +
-    scale_fill_manual(
-      values = c("Focal lower" = "#d73027", "Not separable" = "grey90", "Focal higher" = "#1a9850"),
-      name = "",
-      drop = FALSE
-    ) +
-    scale_x_continuous(breaks = seq_along(regions), labels = regions, expand = c(0, 0)) +
-    scale_y_continuous(breaks = seq_along(sectors), labels = label_text, expand = c(0, 0)) +
-    labs(
-      title = paste0("LQ comparisons: ", focal_region, " (", plot_year, ")"),
-      subtitle = paste0("Bottom-left = ", ci_levels[1], "% CI, top-right = ", ci_levels[2],
-                        "% CI. Z-test on LQ difference using MC-derived SDs.\n",
-                        "Y-axis: focal LQ [95% CI], coloured by whether CI crosses 1."),
-      x = "", y = ""
-    ) +
-    theme_minimal() +
-    theme(
-      axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
-      axis.text.y = element_text(size = 5.5, colour = label_colours),
-      plot.title = element_text(size = 11, face = "bold"),
-      plot.subtitle = element_text(size = 9, colour = "grey40"),
-      legend.position = "bottom"
-    ) +
-    coord_fixed()
+    p
+  }
+
+  # --- Assemble ---
+  regions <- sort(unique(yr_data %>%
+                           filter(Region_name != focal_region) %>%
+                           pull(Region_name)))
+
+  if (!is.null(top_bottom_n)) {
+
+    # Rank sectors by count of 95% significant positive/negative differences
+    sig_95 <- compute_sig(yr_data, focal_region, 95)
+
+    sig_counts <- sig_95 %>%
+      group_by(SIC07_description_shortened) %>%
+      summarise(
+        n_higher = sum(sig == 1L, na.rm = TRUE),
+        n_lower  = sum(sig == -1L, na.rm = TRUE),
+        .groups = 'drop'
+      )
+
+    top_higher <- sig_counts %>%
+      slice_max(n_higher, n = top_bottom_n, with_ties = FALSE) %>%
+      pull(SIC07_description_shortened) %>%
+      sort()
+
+    top_lower <- sig_counts %>%
+      slice_max(n_lower, n = top_bottom_n, with_ties = FALSE) %>%
+      pull(SIC07_description_shortened) %>%
+      sort()
+
+    # Build each subset
+    data_higher <- yr_data %>% filter(SIC07_description_shortened %in% top_higher)
+    data_lower  <- yr_data %>% filter(SIC07_description_shortened %in% top_lower)
+
+    cells_higher <- build_cells(data_higher)
+    cells_lower  <- build_cells(data_lower)
+
+    y_higher <- build_y_labels(data_higher)
+    y_lower  <- build_y_labels(data_lower)
+
+    p_top <- build_panel(cells_higher, y_higher, regions, top_higher,
+                         paste0("Most often higher (top ", top_bottom_n, ")"),
+                         show_x_axis = FALSE)
+    p_bot <- build_panel(cells_lower, y_lower, regions, top_lower,
+                         paste0("Most often lower (top ", top_bottom_n, ")"),
+                         show_x_axis = TRUE) +
+      guides(fill = "none")
+
+    p_top / p_bot +
+      plot_layout(guides = "collect", heights = c(1, 1)) &
+      theme(legend.position = "bottom") &
+      plot_annotation(
+        title = paste0("LQ comparisons: ", focal_region, " (", plot_year, ")"),
+        subtitle = paste0("Sectors ranked by count of 95%-significant differences.\n",
+                          "Bottom-left = ", ci_levels[1], "% CI, top-right = ", ci_levels[2],
+                          "% CI. Y-axis coloured by whether LQ CI crosses 1."),
+        theme = theme(
+          plot.title = element_text(size = 12, face = "bold"),
+          plot.subtitle = element_text(size = 9, colour = "grey40")
+        )
+      )
+
+  } else {
+    # All sectors in one panel
+    cell_data <- build_cells(yr_data)
+    focal_info <- build_y_labels(yr_data)
+    sectors <- sort(unique(cell_data$SIC07_description_shortened))
+
+    build_panel(cell_data, focal_info, regions, sectors) +
+      labs(
+        title = paste0("LQ comparisons: ", focal_region, " (", plot_year, ")"),
+        subtitle = paste0("Bottom-left = ", ci_levels[1], "% CI, top-right = ", ci_levels[2],
+                          "% CI. Z-test on LQ difference using MC-derived SDs.\n",
+                          "Y-axis: focal LQ [95% CI], coloured by whether CI crosses 1.")
+      ) +
+      theme(
+        plot.title = element_text(size = 11, face = "bold"),
+        plot.subtitle = element_text(size = 9, colour = "grey40")
+      )
+  }
 }
 
-# Examples
+# Examples — all sectors
 plot_focal_LQ_split(LQ_with_sim_CIs, "Yorkshire and The Humber")
 plot_focal_LQ_split(LQ_with_sim_CIs, "London")
 plot_focal_LQ_split(LQ_with_sim_CIs, "South West")
+
+# Examples — top/bottom by significant difference count
+plot_focal_LQ_split(LQ_with_sim_CIs, "Yorkshire and The Humber", top_bottom_n = 10)
+plot_focal_LQ_split(LQ_with_sim_CIs, "London", top_bottom_n = 10)
 
 
 ## CLAUDE OUTPUT:
@@ -2455,12 +2542,12 @@ plot_focal_split_coloured <- function(combined_data, focal_region,
       arrange(desc(se_ratio))
 
     top_sectors <- focal_se %>%
-      slice_max(se_ratio, n = top_bottom_n) %>%
+      slice_max(se_ratio, n = top_bottom_n, with_ties = FALSE) %>%
       pull(SIC07_description_shortened) %>%
       sort()
 
     bottom_sectors <- focal_se %>%
-      slice_min(se_ratio, n = top_bottom_n) %>%
+      slice_min(se_ratio, n = top_bottom_n, with_ties = FALSE) %>%
       pull(SIC07_description_shortened) %>%
       sort()
 
