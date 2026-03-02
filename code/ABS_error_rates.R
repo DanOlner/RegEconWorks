@@ -1649,7 +1649,7 @@ plot_focal_LQ_split <- function(lq_data, focal_region, plot_year = NULL,
     plot_polys <- bind_rows(tri_lo, tri_hi) %>%
       mutate(
         sig_label = factor(sig, levels = c(-1, 0, 1),
-                           labels = c("Focal lower", "Not separable", "Focal higher"))
+                           labels = c("Lower", "Not separable", "Higher"))
       )
 
     label_text <- y_labels$label
@@ -1658,7 +1658,7 @@ plot_focal_LQ_split <- function(lq_data, focal_region, plot_year = NULL,
     p <- ggplot(plot_polys, aes(x = px, y = py, group = tri_id, fill = sig_label)) +
       geom_polygon(colour = "white", linewidth = 0.2) +
       scale_fill_manual(
-        values = c("Focal lower" = "#d73027", "Not separable" = "grey90", "Focal higher" = "#1a9850"),
+        values = c("Lower" = "#d73027", "Not separable" = "grey90", "Higher" = "#1a9850"),
         name = "",
         drop = FALSE
       ) +
@@ -1767,8 +1767,11 @@ plot_focal_LQ_split(LQ_with_sim_CIs, "London")
 plot_focal_LQ_split(LQ_with_sim_CIs, "South West")
 
 # Examples — top/bottom by significant difference count
-plot_focal_LQ_split(LQ_with_sim_CIs, "Yorkshire and The Humber", top_bottom_n = 10)
-plot_focal_LQ_split(LQ_with_sim_CIs, "London", top_bottom_n = 10)
+plot_focal_LQ_split(LQ_with_sim_CIs, "Yorkshire and The Humber", top_bottom_n = 15)
+plot_focal_LQ_split(LQ_with_sim_CIs, "Yorkshire and The Humber", top_bottom_n = 15, plot_year = 2023)
+plot_focal_LQ_split(LQ_with_sim_CIs, "London", top_bottom_n = 15)
+plot_focal_LQ_split(LQ_with_sim_CIs, "South East", top_bottom_n = 15)
+plot_focal_LQ_split(LQ_with_sim_CIs, "North West", top_bottom_n = 15)
 
 
 ## CLAUDE OUTPUT:
@@ -3153,6 +3156,46 @@ plot_z_erosion_bars <- function(erosion_by_sector) {
 plot_z_erosion_bars(z_erosion_by_sector)
 
 
+# PASTE FROM CLAUDE CODE: AVERAGES ON LQS VS ON UNDERLYING NUMBERS----
+
+# Method 1: Moving average of LQ directly
+# Method 2: Moving average of GVA, then compute LQ from that
+
+# Pick a 3-year window, e.g. 2019-2021
+window_years <- 2019:2021
+
+# Method 2: average GVA first, then compute LQ
+gva_averaged <- itl1.cp.linked %>%
+  filter(year %in% window_years) %>%
+  group_by(ITL_code, Region_name, SIC07_description) %>%
+  summarise(value = mean(value, na.rm = TRUE), .groups = 'drop')
+
+# Add LQ to the averaged GVA
+gva_averaged_lq <- gva_averaged %>%
+  add_location_quotient_and_proportions(
+    regionvar = Region_name,
+    lq_var = SIC07_description,
+    valuevar = value
+  ) %>%
+  select(Region_name, SIC07_description, LQ_from_avg_gva = LQ)
+
+# Method 1: average the LQs directly
+lq_averaged <- LQ_with_sim_CIs %>%
+  filter(year %in% window_years) %>%
+  group_by(Region_name, SIC07_description) %>%
+  summarise(LQ_avg_direct = mean(LQ_central, na.rm = TRUE), .groups = 'drop')
+
+# Compare
+comparison <- lq_averaged %>%
+  inner_join(gva_averaged_lq, by = c('Region_name', 'SIC07_description')) %>%
+  mutate(
+    diff = LQ_avg_direct - LQ_from_avg_gva,
+    pct_diff = diff / LQ_from_avg_gva * 100
+  )
+
+summary(comparison$pct_diff)
+# Also check the worst cases
+comparison %>% arrange(desc(abs(pct_diff))) %>% head(20)
 
 
 

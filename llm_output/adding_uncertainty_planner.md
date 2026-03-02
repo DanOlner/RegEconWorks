@@ -442,3 +442,60 @@ A formal correction like Benjamini-Hochberg (BH) FDR could be applied to the z-s
 However, the BH cutoff is itself unstable for cells near the threshold — resampling the data and re-running would shuffle p-value rankings, flipping marginal cells in and out of significance across runs. The strong results survive every time; the marginal ones are genuinely ambiguous regardless of correction method.
 
 **Decision: leave BH for now.** The purpose of the grids is to contrast vanilla OLS with the uncertainty-augmented version — a relative comparison that is robust regardless of where the significance threshold falls, because the same multiple-comparison issue affects both panels equally. The 90%/95% diagonal split already provides a practical robustness check (cells significant at both levels are much more credible). BH would be a useful addition for any standalone claims about individual sector/region pairs, but that's not the current aim.
+
+---
+
+## Future work: LQ slopes with propagated measurement uncertainty
+
+### The question
+
+We have per-year LQ uncertainty from the MC simulation (each draw produces a full set of LQs). Can we fit `log(LQ) ~ year` slopes to examine LQ change over time, and propagate the measurement uncertainty into those slopes — analogous to what we did for GVA growth rate slopes?
+
+### Why not smooth LQs first?
+
+An initial idea was to take moving averages of LQ and LQ_sd, then work from those. Testing showed the differences between "average LQ directly" vs "average underlying GVA then compute LQ" can be very large — LQ is a ratio of shares, so small denominator shifts swing things substantially. Stacking smoothing on top of the MC simulation would be two layers of approximation away from the actual data. Better to work with single-year LQs where the MC uncertainty is directly tied to the underlying GVA draws.
+
+### Proposed approach
+
+1. **For each MC draw**, we already compute a full set of LQ values across all regions/sectors/years (inside `simulate_LQ_with_CIs`). Currently only the summary quantiles are returned; the raw per-draw LQs are discarded.
+
+2. **Keep the raw per-draw LQs** and fit `log(LQ) ~ year` per region × sector × draw to get a slope for each draw.
+
+3. **Summarise across draws**: take the SD of slopes (`slope_sd`) as the measurement uncertainty contribution.
+
+4. **Combine with OLS SE via quadrature**: `se_combined = sqrt(se_ols^2 + slope_sd^2)`, exactly as for GVA slopes. This gives `lq_slopes_combined` analogous to `slopes_combined`.
+
+5. **Plug into existing visualisations**: the focal comparison grids, forest plots, SE inflation heatmaps etc. all work on `slope + se` data, so the LQ slope version would slot straight in.
+
+### AR(1) correlated draws
+
+The correlation structure in LQ draws is more complex than for raw GVA because LQ is a ratio — even if you apply AR(1) to the underlying GVA draws, the resulting LQ correlation structure won't be a simple AR(1). But it will be *induced correctly* if you apply the correlated draws at the GVA level and then compute LQs from those.
+
+So the cleanest path: apply the existing AR(1) Gaussian copula correlated draws at the GVA level (as `simulate_slopes` already does with the `rho` parameter), then compute LQs from those correlated GVA draws, then fit slopes to the LQ series. This means modifying `simulate_LQ_with_CIs` to accept `rho` and use the same correlated draw machinery.
+
+### Implementation sketch
+
+```r
+simulate_LQ_slopes <- function(data, n_sims = 500, seed = 42, rho = 0) {
+  # 1. Pre-compute log-normal params (same as existing)
+  # 2. For each sim:
+  #    a. Draw GVA values (with AR(1) if rho > 0)
+  #    b. Compute LQs from drawn GVAs (per year)
+  #    c. Fit log(LQ) ~ year per region x sector
+  #    d. Store slope + se per draw
+  # 3. Return raw slopes for summarisation
+}
+
+# Then:
+lq_slopes_mc_summary <- lq_slopes_raw %>%
+  group_by(Region_name, SIC07_description) %>%
+  summarise(slope_sd = sd(slope, na.rm = TRUE))
+
+lq_slopes_combined <- lq_slopes_ols %>%
+  left_join(lq_slopes_mc_summary) %>%
+  mutate(se_combined = sqrt(se_ols^2 + slope_sd^2))
+```
+
+### Status: parked
+
+This is a natural next step but a meaningful chunk of work. The per-year LQ comparison grids (`plot_focal_LQ_split`) are already working and useful. The LQ slope version would add the time-trend dimension. Return to this when the current GVA slope analysis is fully written up.
