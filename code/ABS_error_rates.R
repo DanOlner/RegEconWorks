@@ -2201,7 +2201,8 @@ plot_focal_split_coloured <- function(combined_data, focal_region,
       geom_polygon(colour = "white", linewidth = 0.2) +
       scale_fill_manual(
         values = c("Lower" = "#d73027", "Not separable" = "grey90", "Higher" = "#1a9850"),
-        name = ""
+        name = "",
+        drop = FALSE
       ) +
       scale_x_continuous(breaks = seq_along(regions), labels = regions, expand = c(0, 0)) +
       scale_y_continuous(breaks = seq_along(sectors), labels = label_text,
@@ -2247,7 +2248,7 @@ plot_focal_split_coloured <- function(combined_data, focal_region,
     p_right <- build_panel(sub_cell_combined, sub_y_combined, regions, sector_subset,
                            panel_title_right, show_y_axis = TRUE, y_side = "right",
                            show_x_axis = show_x_axis)
-    list(left = p_left, right = p_right)
+    list(left = p_left, right = p_right + guides(fill = "none"))
   }
 
   # Variants of helpers that accept a data argument (for subsetting)
@@ -2330,6 +2331,10 @@ plot_focal_split_coloured <- function(combined_data, focal_region,
     bot_pair <- build_pair(bottom_sectors, regions,
                            "", "",
                            show_x_axis = TRUE)
+
+    # Suppress legend on bottom row panels too — only top-left keeps it
+    bot_pair$left  <- bot_pair$left  + guides(fill = "none")
+    bot_pair$right <- bot_pair$right + guides(fill = "none")
 
     (top_pair$left + top_pair$right) / (bot_pair$left + bot_pair$right) +
       plot_layout(guides = "collect", heights = c(1, 1)) &

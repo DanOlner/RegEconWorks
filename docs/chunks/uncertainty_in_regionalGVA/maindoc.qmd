@@ -362,7 +362,7 @@ Possible extensions to adding uncertainty to GVA and other economic data could i
 
 ::: {#tablelostboys .callout-note appearance="minimal"}
 | Reality | Michael believes / acts as if | Error type | The scene |
-|------------------|------------------|------------------|------------------|
+|----|----|----|----|
 | **Cliff is NOT near** | "Cliff IS near" (brakes hard, swerves) | **Type I (false positive / false alarm)** | Over-cautious braking when it was actually safe. Embarrassing, slower, but not deadly. |
 | **Cliff IS near** | "Cliff is NOT near" (keeps speeding) | **Type II (false negative / missed warning)** | The catastrophic one: he trusts David's "definitely miles away" and goes over the edge. |
 | Cliff NOT near | "Cliff NOT near" | Correct | Keeps up, no harm. |
