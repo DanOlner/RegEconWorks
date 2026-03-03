@@ -2661,7 +2661,8 @@ se_inflation <- slopes_combined %>%
 plot_focal_split_coloured <- function(combined_data, focal_region,
                                       ci_levels = c(90, 95),
                                       top_bottom_n = NULL,
-                                      se_inflation_data = NULL) {
+                                      se_inflation_data = NULL,
+                                      rank_by_sig = FALSE) {
 
   to_pct <- function(x) round((exp(x) - 1) * 100, 1)
 
@@ -2878,8 +2879,69 @@ plot_focal_split_coloured <- function(combined_data, focal_region,
                            filter(Region_name != focal_region) %>%
                            pull(Region_name)))
 
-  # If top_bottom_n is set, split into high/low SE ratio groups
-  if (!is.null(top_bottom_n) && !is.null(se_inflation_data)) {
+  # If top_bottom_n + rank_by_sig, rank sectors by sig count independently per SE method
+  if (!is.null(top_bottom_n) && rank_by_sig) {
+
+    # Helper: build one panel for a given SE method and sector subset
+    build_sig_panel <- function(se_col, sector_subset, title, y_side = "left",
+                                show_x_axis = TRUE) {
+      sub_data <- combined_data %>%
+        filter(SIC07_description_shortened %in% sector_subset)
+      cell <- build_cell_data_from(se_col, sub_data)
+      y_lab <- build_y_labels_from(se_col, sub_data)
+      build_panel(cell, y_lab, regions, sector_subset,
+                  title, show_y_axis = TRUE, y_side = y_side,
+                  show_x_axis = show_x_axis)
+    }
+
+    # Count sig higher/lower per sector for each SE method (using 95% CI)
+    get_sig_counts <- function(se_col) {
+      cell <- build_cell_data_from(se_col, combined_data)
+      cell %>%
+        group_by(SIC07_description_shortened) %>%
+        summarise(
+          n_higher = sum(sig_hi == 1L, na.rm = TRUE),
+          n_lower  = sum(sig_hi == -1L, na.rm = TRUE),
+          .groups = 'drop'
+        )
+    }
+
+    counts_ols  <- get_sig_counts("se_ols")
+    counts_comb <- get_sig_counts("se_combined")
+
+    hi_ols  <- sort(counts_ols  %>% slice_max(n_higher, n = top_bottom_n, with_ties = FALSE) %>% pull(SIC07_description_shortened))
+    hi_comb <- sort(counts_comb %>% slice_max(n_higher, n = top_bottom_n, with_ties = FALSE) %>% pull(SIC07_description_shortened))
+    lo_ols  <- sort(counts_ols  %>% slice_max(n_lower,  n = top_bottom_n, with_ties = FALSE) %>% pull(SIC07_description_shortened))
+    lo_comb <- sort(counts_comb %>% slice_max(n_lower,  n = top_bottom_n, with_ties = FALSE) %>% pull(SIC07_description_shortened))
+
+    p_hi_ols  <- build_sig_panel("se_ols",      hi_ols,  "Most higher — OLS only", "left",  FALSE)
+    p_hi_comb <- build_sig_panel("se_combined", hi_comb, "Most higher — OLS + extra", "right", FALSE)
+    p_lo_ols  <- build_sig_panel("se_ols",      lo_ols,  "Most lower — OLS only",  "left",  TRUE)
+    p_lo_comb <- build_sig_panel("se_combined", lo_comb, "Most lower — OLS + extra",  "right", TRUE)
+
+    # Suppress legends on all but top-left
+    p_hi_comb <- p_hi_comb + guides(fill = "none")
+    p_lo_ols  <- p_lo_ols  + guides(fill = "none")
+    p_lo_comb <- p_lo_comb + guides(fill = "none")
+
+    (p_hi_ols + p_hi_comb) / (p_lo_ols + p_lo_comb) +
+      plot_layout(guides = "collect", heights = c(1, 1)) &
+      theme(legend.position = "bottom") &
+      plot_annotation(
+        title = paste0("Growth slope comparisons: ", focal_region,
+                       " (top & bottom ", top_bottom_n, " by sig count)"),
+        subtitle = paste0("Top row: sectors where focal region is higher than most comparators. ",
+                          "Bottom row: lower than most.\n",
+                          "Left = OLS only, Right = OLS + extra. ",
+                          "Bottom-left triangle = ", ci_levels[1],
+                          "% CI, top-right = ", ci_levels[2], "% CI."),
+        theme = theme(
+          plot.title = element_text(size = 12, face = "bold"),
+          plot.subtitle = element_text(size = 9, colour = "grey40")
+        )
+      )
+
+  } else if (!is.null(top_bottom_n) && !is.null(se_inflation_data)) {
 
     focal_se <- se_inflation_data %>%
       filter(Region_name == focal_region) %>%
@@ -2963,6 +3025,11 @@ plot_focal_split_coloured(slopes_combined, "London",
                           top_bottom_n = 10, se_inflation_data = se_inflation)
 plot_focal_split_coloured(slopes_combined, "Yorkshire and The Humber",
                           top_bottom_n = 15, se_inflation_data = se_inflation)
+
+# Rank by sig (separate answers left and right for this one)
+plot_focal_split_coloured(slopes_combined, "London",
+                          top_bottom_n = 15, rank_by_sig = TRUE)
+
 
 
 
@@ -3608,6 +3675,18 @@ for (reg in regions_slopes) {
          width = 11, height = 10, dpi = 150, bg = "white")
 }
 
+# ranked by sig (top/bottom 15, different left and right)
+dir_slopes_tb <- file.path("docs/miscimages", "slope_split_coloured_top_bottom_15_sigs")
+dir.create(dir_slopes_tb, recursive = TRUE, showWarnings = FALSE)
+
+for (reg in regions_slopes) {
+  p <- plot_focal_split_coloured(slopes_combined, reg,
+                                  top_bottom_n = 15,rank_by_sig = T
+                                 )
+  fname <- gsub(" ", "_", reg)
+  ggsave(file.path(dir_slopes_tb, paste0(fname, ".png")), p,
+         width = 11, height = 10, dpi = 150, bg = "white")
+}
 
 
 

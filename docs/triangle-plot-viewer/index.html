@@ -66,6 +66,12 @@
       <label><input type="radio" name="plot-type" value="lq"> LQ year comparison</label>
     </fieldset>
 
+    <fieldset id="slopes-ranking-fieldset" style="display:none;">
+      <legend>Slopes ranking</legend>
+      <label><input type="radio" name="slopes-ranking" value="se_inflation" checked> By SE inflation</label>
+      <label><input type="radio" name="slopes-ranking" value="sig_count"> By sig count <b>(left/right will not match)</b></label>
+    </fieldset>
+
     <fieldset id="lq-years-fieldset" style="display:none;">
       <legend>Year pair</legend>
       <label><input type="radio" name="lq-years" value="2012_vs_2023" checked> 2012 vs 2023</label>
@@ -110,18 +116,20 @@
     ];
 
     const folderMap = {
-      slopes:                          "../miscimages/slope_split_coloured_top_bottom_15/",
+      slopes_se_inflation:             "../miscimages/slope_split_coloured_top_bottom_15/",
+      slopes_sig_count:                "../miscimages/slope_split_coloured_top_bottom_15_sigs/",
       lq_sigcount_2012_vs_2023:        "../miscimages/LQ_year_comparison_sigcount_2012_vs_2023/",
       lq_sigcount_2019_vs_2023:        "../miscimages/LQ_year_comparison_sigcount_2019_vs_2023/",
       lq_shifts_2012_vs_2023:          "../miscimages/LQ_year_comparison_shifts_2012_vs_2023/",
       lq_shifts_2019_vs_2023:          "../miscimages/LQ_year_comparison_shifts_2019_vs_2023/"
     };
 
-    const select         = document.getElementById("region-select");
-    const img            = document.getElementById("plot-img");
-    const lqYearsFs      = document.getElementById("lq-years-fieldset");
-    const lqRankingFs    = document.getElementById("lq-ranking-fieldset");
-    const permalinkEl    = document.getElementById("permalink");
+    const select           = document.getElementById("region-select");
+    const img              = document.getElementById("plot-img");
+    const slopesRankingFs  = document.getElementById("slopes-ranking-fieldset");
+    const lqYearsFs        = document.getElementById("lq-years-fieldset");
+    const lqRankingFs      = document.getElementById("lq-ranking-fieldset");
+    const permalinkEl      = document.getElementById("permalink");
 
     // Populate dropdown
     regions.forEach(([label, file]) => {
@@ -146,9 +154,12 @@
     function getLqRanking() {
       return document.querySelector('input[name="lq-ranking"]:checked').value;
     }
+    function getSlopesRanking() {
+      return document.querySelector('input[name="slopes-ranking"]:checked').value;
+    }
 
     function getFolderKey() {
-      if (getPlotType() === "slopes") return "slopes";
+      if (getPlotType() === "slopes") return "slopes_" + getSlopesRanking();
       return "lq_" + getLqRanking() + "_" + getLqYears();
     }
 
@@ -157,8 +168,10 @@
       if (!regionFile) return;
 
       const isLq = getPlotType() === "lq";
-      lqYearsFs.style.display   = isLq ? "" : "none";
-      lqRankingFs.style.display  = isLq ? "" : "none";
+      const isSlopes = !isLq;
+      slopesRankingFs.style.display = isSlopes ? "" : "none";
+      lqYearsFs.style.display      = isLq ? "" : "none";
+      lqRankingFs.style.display    = isLq ? "" : "none";
 
       const folder = folderMap[getFolderKey()];
       img.src = folder + regionFile + ".png";
@@ -173,7 +186,9 @@
       if (getPlotType() === "lq") {
         url.searchParams.set("years", getLqYears());
         url.searchParams.set("ranking", getLqRanking());
+        url.searchParams.delete("slopes_ranking");
       } else {
+        url.searchParams.set("slopes_ranking", getSlopesRanking());
         url.searchParams.delete("years");
         url.searchParams.delete("ranking");
       }
@@ -181,14 +196,19 @@
     }
 
     // Read query params on load
-    const urlParams  = new URLSearchParams(window.location.search);
-    const urlRegion  = urlParams.get("region");
-    const urlType    = urlParams.get("type");
-    const urlYears   = urlParams.get("years");
-    const urlRanking = urlParams.get("ranking");
+    const urlParams        = new URLSearchParams(window.location.search);
+    const urlRegion        = urlParams.get("region");
+    const urlType          = urlParams.get("type");
+    const urlYears         = urlParams.get("years");
+    const urlRanking       = urlParams.get("ranking");
+    const urlSlopesRanking = urlParams.get("slopes_ranking");
 
     if (urlType === "lq") {
       document.querySelector('input[name="plot-type"][value="lq"]').checked = true;
+    }
+    if (urlSlopesRanking) {
+      const el = document.querySelector('input[name="slopes-ranking"][value="' + urlSlopesRanking + '"]');
+      if (el) el.checked = true;
     }
     if (urlYears) {
       const el = document.querySelector('input[name="lq-years"][value="' + urlYears + '"]');
@@ -205,7 +225,7 @@
     regionPicker.setValue(defaultRegion, true);
 
     // Listen to all radio changes
-    document.querySelectorAll('input[name="plot-type"], input[name="lq-years"], input[name="lq-ranking"]')
+    document.querySelectorAll('input[name="plot-type"], input[name="slopes-ranking"], input[name="lq-years"], input[name="lq-ranking"]')
       .forEach(r => r.addEventListener("change", updatePlot));
 
     updatePlot();
