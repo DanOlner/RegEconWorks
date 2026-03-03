@@ -34,11 +34,13 @@ Explain about the tone - half way between formal academic and own voice more blo
 
 ## Resources/links
 
-There are two interactive web pages for each of the GVA sources discussed below. I'll refer back to these with links.
+There are three interactive web pages for each of the GVA sources discussed below. I'll refer back to these with links.
 
 1.  [Chained volume GVA](https://danolner.github.io/RegEconWorks/growth_errorgrids_viewer/): What is the growth signal if error rates are included in regional data?
 
 2.  [Current prices GVA](https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/): What happens to location quotients if error rates are included?
+
+3.  [Triangle plot viewer](https://danolner.github.io/RegEconWorks/triangle-plot-viewer/) for both growth slopes of chained volume GVA and LQ differences.
 
 The repository for this project is [here](https://github.com/DanOlner/RegEconWorks). This includes all code (which mostly downloads data directly to be processed) and writing, as well as a record of any Claude-Code conversations used in development. See [this draft set of guidelines](https://exobrain.coveredinbees.org/llm-use-in-work-experimenting-with-short-guidelines/) on how to clearly keep one's own work separable from LLM use, treating it no differently to any other source (with some complications). A section at the end explains how LLMs were (minimally) used in this article and points to other sources outlining how they were (more extensively) used in code production.
 
@@ -223,7 +225,13 @@ Considering overlapping error rates, the North East, East Midlands and Yorkshire
 
 The plot also [has an option](https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/?sector=Manufactureoffabricatedmetalproducts&view=twoyear) to compare LQs across five years, between 2017 and 2023. Overlapping error bars suggest the LQ for fabricated metals may not have significantly changed between those years in many places. The East Midlands (real LQ increase), Scotland and the South East (a plausible decrease in both) do suggest genuine structural change over time.
 
-### Highlighting some differences between single point estimates and with uncertainty
+### Triangle plots for both chained volume and LQ data
+
+Starting with LQs
+
+@fig-lqfabs
+
+### Old: Highlighting some differences between single point estimates and with uncertainty
 
 This is a brief section that picks three example sectors and looks at their LQs. It compares the single-point values (the centre dots in the visualisations, which is the data we would have without any uncertainty) to how introducing error bars may change the findings.
 
