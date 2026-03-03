@@ -28,7 +28,7 @@ But the OLS residuals only capture year-to-year noise *around the trend*. They d
 **Cons / things to think about:**
 - Each MC draw fits OLS independently, so it captures measurement uncertainty but the OLS SE *within* each draw still exists. The MC distribution of slopes will typically be **wider** than vanilla OLS SE but **narrower** than if you also bootstrapped residuals. That's probably fine — we're interested in the *additional* uncertainty from measurement, not replacing the residual uncertainty.
 - Actually: the MC slope distribution will reflect both sources. If measurement error is small relative to year-to-year variation, the MC CIs will be similar to the original OLS CIs. If measurement error is large (small sectors), the MC CIs will be noticeably wider. This is exactly the behaviour we want.
-- Correlation across years: the simulation treats each year's draw as independent. In reality, measurement errors might be correlated across years (same firms in sample, similar methodology). If errors are positively correlated, the simulation may *overstate* slope uncertainty (because correlated errors shift the whole series up or down rather than tilting it). This is probably conservative, which is OK for a "what if" scenario tool.
+- Correlation across years: the simulation treats each year's draw as independent. In reality, measurement errors might be correlated across years (same firms in sample, similar methodology). If errors are positively correlated at moderate levels (e.g. rho = 0.7), the simulation actually *understates* slope uncertainty — correlated errors create smooth pseudo-trends that widen the slope distribution (see "Correction" section below). Only very high correlation (rho near 1) narrows slopes by acting as a pure level shift.
 - Could optionally add within-draw Newey-West SEs too, giving a "double robust" version — but probably overkill for the scenario-exploration purpose.
 
 **Implementation sketch (R pseudocode):**
@@ -170,13 +170,13 @@ This is probably the highest-value output: it lets users build intuition about w
 
 **Recommended first step:** Implement the MC simulation approach (1). It's a natural extension of the existing LQ simulation code, directly answers the motivating question, and provides the raw material for an interactive viewer with adjustable confidence levels.
 
-**Key question to resolve:** Whether to treat year-to-year measurement errors as independent (current assumption) or introduce some correlation structure. Independent is simpler and probably conservative (wider CIs on slopes). If the ABS samples are largely the same firms year to year, positive correlation would *narrow* the slope CIs (because correlated errors shift the series up/down uniformly rather than tilting it). Starting with independent draws and noting this caveat seems reasonable.
+**Key question to resolve:** Whether to treat year-to-year measurement errors as independent (current assumption) or introduce some correlation structure. Independent is simpler but — counter-intuitively — produces *narrower* slope CIs than moderate AR(1) correlation. This is because moderate positive correlation (e.g. rho = 0.7) creates smooth persistent drifts that masquerade as trends, widening the slope distribution. Only very high correlation (rho near 1) narrows slopes by acting as a near-uniform level shift. See the "Correction" section below for the full analysis.
 
 ---
 
 ## Addendum: handling autocorrelation in the MC draws
 
-The caveat above is about whether measurement errors are correlated across years. If the ABS samples overlap year-to-year, then the "noise" in 2018's GVA estimate is not independent of 2019's — both are partly driven by the same firms being over/under-represented. Drawing independently from each year's uncertainty distribution ignores this and probably *overstates* how much the slope can wobble (because independent draws can tilt the series unrealistically).
+The caveat above is about whether measurement errors are correlated across years. If the ABS samples overlap year-to-year, then the "noise" in 2018's GVA estimate is not independent of 2019's — both are partly driven by the same firms being over/under-represented. The effect of this correlation on slope uncertainty is non-monotonic and counter-intuitive — see the "Correction" section below for the full analysis. In short: moderate correlation *widens* slope uncertainty (not narrows it), so independent draws are actually the *conservative lower bound* on measurement-driven slope noise.
 
 Several lightweight options that work with what we already have:
 
@@ -188,7 +188,7 @@ Instead of drawing each year's perturbation independently, draw a correlated seq
 2. For each sector/region, generate a correlated standard-normal sequence `z[1], ..., z[T]` where `z[t] = rho * z[t-1] + sqrt(1 - rho^2) * eps[t]`, with `eps[t] ~ N(0,1)`.
 3. Transform: `sim_value[t] = qlnorm(pnorm(z[t]), meanlog = lnorm_mu[t], sdlog = lnorm_sigma[t])`.
 
-This uses the Gaussian copula trick: the marginal distribution for each year is still the correct log-normal (matching the observed value and SE), but the draws are correlated across time. High `rho` means the whole series shifts up or down together (narrower slope CIs); low `rho` recovers the independent case (wider slope CIs).
+This uses the Gaussian copula trick: the marginal distribution for each year is still the correct log-normal (matching the observed value and SE), but the draws are correlated across time. The relationship between rho and slope uncertainty is non-monotonic: moderate rho (0.3-0.9) *widens* slope CIs (smooth drifts create pseudo-trends); only very high rho (near 1) narrows them (near-uniform level shift). See the "Correction" section below.
 
 ```r
 # Pseudocode for correlated draws
@@ -321,7 +321,7 @@ Each region x sector group has ~12 years of data. Each year has an observed GVA 
 
 **Independent draws (rho = 0):** Year 2012 might be drawn high, 2013 low, 2014 high, 2015 low... The perturbations bounce around randomly. This can create artificial tilts — if by chance the early years are drawn low and the late years high, the slope steepens. Across many draws, these random tilts create a wide spread of slopes. This is why the initial MC envelope was so large.
 
-**Correlated draws (rho > 0):** The AR(1) process generates a sequence of standard normals where each one is pulled toward the previous one: `z[t] = rho * z[t-1] + sqrt(1 - rho^2) * noise`. If z[2012] happens to be +1.5 (drawing GVA high), then z[2013] will tend to be positive too — the whole series drifts together. High rho means the perturbations are nearly uniform across years (everything shifts up or down together), which barely changes the slope. Low rho means more independent wobble, which can tilt the series more.
+**Correlated draws (rho > 0):** The AR(1) process generates a sequence of standard normals where each one is pulled toward the previous one: `z[t] = rho * z[t-1] + sqrt(1 - rho^2) * noise`. If z[2012] happens to be +1.5 (drawing GVA high), then z[2013] will tend to be positive too — the series drifts smoothly. But this drift is not uniform: it creates smooth waves that look like real economic trends over 11 years. The regression picks these pseudo-trends up, *widening* the slope distribution compared to independent draws. Only very high rho (near 1) produces near-uniform level shifts that don't affect the slope. See the "Correction" section below for the analytic proof.
 
 ### The Gaussian copula step
 
@@ -334,7 +334,7 @@ The result: each year's marginal distribution is exactly right (same mean and sp
 
 ### Why this matters for the ABS context
 
-If the same firms are sampled year after year (which they largely are in the ABS), then if 2018's GVA estimate is biased high, 2019's probably is too — the measurement errors are positively correlated. Independent draws ignore this and allow unrealistically choppy perturbations that tilt the series. The `rho` parameter lets you ask "what if measurement errors are 50% correlated year-to-year?" and see how the envelope shrinks.
+If the same firms are sampled year after year (which they largely are in the ABS), then if 2018's GVA estimate is biased high, 2019's probably is too — the measurement errors are positively correlated. Independent draws ignore this and produce choppy perturbations. However, contrary to initial intuition, the correlated case doesn't shrink the envelope — it *widens* it for moderate rho values, because the smooth persistent drifts create pseudo-trends that the slope regression picks up. The `rho` parameter lets you ask "what if measurement errors are 50% correlated year-to-year?" and see how the envelope changes.
 
 ### What rho does NOT do
 
@@ -367,7 +367,7 @@ The 95% CI is then `slope ± 1.96 * se_combined`.
 **Why this works well:**
 
 - **Guaranteed to widen CIs**: `sqrt(a^2 + b^2) >= a`, so the combined CI is always at least as wide as vanilla OLS. Sectors with small ABS SEs (precise data) will have `slope_sd ≈ 0` and `se_combined ≈ se_ols` — measurement uncertainty barely registers. Sectors with large ABS SEs will show noticeably wider combined CIs.
-- **Responds properly to rho**: correlated draws → slopes wobble less → smaller `slope_sd` → smaller `se_combined`. This is exactly the behaviour we want.
+- **Responds properly to rho**: the relationship is non-monotonic. Moderate rho (e.g. 0.7) → slopes wobble *more* → larger `slope_sd` → larger `se_combined`. Very high rho (near 1) → slopes wobble less → smaller `slope_sd`. This correctly captures the autocorrelation effect on trend estimation.
 - **Stable**: uses the SD of the slope distribution (a central tendency measure) rather than extreme quantiles, so it's not dominated by outlier draws.
 
 **Sanity check**: Northern Ireland, which has good ABS coverage and small standard errors, shows vanilla OLS and combined CIs that are nearly identical — the measurement uncertainty contribution is negligible. This is exactly what we'd expect.
@@ -499,3 +499,68 @@ lq_slopes_combined <- lq_slopes_ols %>%
 ### Status: parked
 
 This is a natural next step but a meaningful chunk of work. The per-year LQ comparison grids (`plot_focal_LQ_split`) are already working and useful. The LQ slope version would add the time-trend dimension. Return to this when the current GVA slope analysis is fully written up.
+
+---
+
+## Correction: AR(1) correlation widens slope uncertainty, not narrows it
+
+*Added March 2026. This corrects the intuition stated in several places above (now updated inline).*
+
+### The original (wrong) intuition
+
+The original reasoning was: "if measurement errors are positively correlated, the whole GVA series shifts up or down together, which barely changes the slope. So correlated draws should *narrow* the slope distribution compared to independent draws."
+
+This is only true for very high rho (near 1). For moderate rho values like 0.7 — which is the plausible range for ABS measurement error correlation — the effect is the **opposite**: AR(1) correlation *widens* the slope distribution.
+
+### Why moderate AR(1) widens slopes: the pseudo-trend effect
+
+Think about a specific example: Yorkshire & Humber, fabricated metals, 11 years of GVA data.
+
+**Independent errors (rho = 0):** The ABS over-estimates GVA in 2014, but in 2015 it draws a fresh sample and might under-estimate. In 2016 it over-estimates again, 2017 under, etc. The errors jump around randomly. When you fit a slope through this noisy series, the random ups and downs roughly cancel — some push the slope up, others push it down. The slope is noisy but not systematically biased in any direction.
+
+**AR(1) errors (rho = 0.7):** Now the ABS over-estimates in 2014, and because the sample overlaps heavily, it *keeps* over-estimating in 2015, 2016, 2017... then gradually drifts back toward truth, and maybe undershoots for a few years from 2019-2022. You get a smooth hump: too high in the middle, about right at the edges (or vice versa — too low in the middle, about right at the edges, or high early and low late).
+
+That smooth hump *looks like a real economic signal* to the regression. A run of positive errors in the first half followed by a drift to negative errors in the second half is indistinguishable from a genuine decline. The slope picks it up as if it were real.
+
+The key intuition: **independent noise averages out across the time series, but correlated noise organises itself into smooth waves that mimic trends.** Those waves are long enough (relative to 11 years) to project strongly onto the slope direction. It's the same reason you can see "patterns" in a random walk that aren't really there — the persistence creates structure at the timescale that matters for trend estimation.
+
+The only escape is rho very close to 1, where the error is essentially the same every year — a pure level shift. That shifts the whole series up or down uniformly, which doesn't change the slope at all. But rho = 0.7 is in the worst zone: correlated enough to create smooth drifts, but not correlated enough for those drifts to be flat.
+
+### Analytic proof
+
+For OLS slope estimation with AR(1) errors over T evenly-spaced years:
+
+```
+Var(slope) = sigma^2 * c' R c / (c' c)^2
+```
+
+where `c_t = (t - t_bar)` are the OLS contrast weights and `R` is the AR(1) correlation matrix with `R_{ij} = rho^|i-j|`.
+
+Computing this for T=11:
+
+| rho | Var(slope) / Var(slope, rho=0) |
+|-----|-------------------------------|
+| 0.0 | 1.00 |
+| 0.3 | 1.45 |
+| 0.5 | 1.98 |
+| 0.7 | 2.33 |
+| 0.85| ~2.4 (peak) |
+| 0.9 | 1.64 |
+| 0.95| ~1.0 (crossover) |
+| 0.99| ~0.3 |
+
+The relationship is non-monotonic: variance rises from rho=0, peaks around rho=0.85, then drops sharply toward 0 as rho approaches 1. The crossover point (where AR(1) slope SD equals the independent baseline) is around rho ≈ 0.95 for T=11.
+
+This is the classic result in time series econometrics: positive autocorrelation in regression errors inflates the variance of slope estimates. OLS with independent errors gives the *minimum* slope variance; any positive autocorrelation makes it worse.
+
+### Implications for the analysis
+
+1. **Independent draws (rho = 0) are the conservative lower bound** on measurement-driven slope noise, not the upper bound as originally assumed. If ABS errors are actually correlated, the true measurement uncertainty is *larger* than what independent draws produce.
+
+2. **The comparison between OLS-only and MC-augmented CIs is robust**: regardless of rho, the MC simulation adds measurement uncertainty on top of OLS. With rho > 0, it adds *more*. So the qualitative finding — "adding measurement uncertainty widens CIs and erases some significant differences" — holds and is strengthened by correlation.
+
+3. **Rho remains a scenario parameter**: we still don't know the true ABS measurement error correlation. But now we know the direction of the effect: any plausible positive rho makes the measurement uncertainty contribution larger, not smaller.
+
+### Code implementing this analysis
+
+See `code/explainers.R`, Section 7 ("Slope SD vs rho — the full curve"), which computes the analytic curve and validates it against MC simulation. Also see the comparison plots added to `code/ABS_error_rates.R` after `simulate_slopes`, which run the full simulation at both rho=0 and rho=0.7 and compare slope SDs across all region × sector pairs.

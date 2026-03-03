@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Triangle Plot Viewer — Slopes &amp; LQ Comparisons</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.4.6/dist/css/tom-select.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #fafafa;
+      color: #333;
+    }
+    h1 { font-size: 1.3rem; margin-bottom: 0.2rem; }
+    .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 1rem; }
+    .ts-wrapper { max-width: 600px; margin-bottom: 1rem; }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    fieldset {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 6px 12px;
+    }
+    fieldset legend {
+      font-size: 0.9rem;
+      font-weight: bold;
+      padding: 0 4px;
+    }
+    fieldset label {
+      margin-right: 1rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .plot-container {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px;
+      text-align: center;
+    }
+    .plot-container img {
+      max-width: 100%;
+      height: auto;
+    }
+    .note { font-size: 0.85rem; color: #888; margin-top: 0.8rem; }
+  </style>
+</head>
+<body>
+  <h1>Triangle Plot Viewer</h1>
+  <p class="subtitle">Pairwise significance comparisons — top/bottom 15 sectors per region.</p>
+
+  <label for="region-select"><strong>Select or type/search region:</strong></label>
+  <select id="region-select"></select>
+
+  <div class="controls">
+    <fieldset>
+      <legend>Plot type</legend>
+      <label><input type="radio" name="plot-type" value="slopes" checked> Growth slopes</label>
+      <label><input type="radio" name="plot-type" value="lq"> LQ year comparison</label>
+    </fieldset>
+
+    <fieldset id="lq-years-fieldset" style="display:none;">
+      <legend>Year pair</legend>
+      <label><input type="radio" name="lq-years" value="2012_vs_2023" checked> 2012 vs 2023</label>
+      <label><input type="radio" name="lq-years" value="2019_vs_2023"> 2019 vs 2023</label>
+    </fieldset>
+
+    <fieldset id="lq-ranking-fieldset" style="display:none;">
+      <legend>Ranking</legend>
+      <label><input type="radio" name="lq-ranking" value="sigcount" checked> By significance count</label>
+      <label><input type="radio" name="lq-ranking" value="shifts"> By position shifts</label>
+    </fieldset>
+  </div>
+
+  <div class="plot-container">
+    <img id="plot-img" src="" alt="Triangle plot">
+  </div>
+
+  <p class="note">
+    Blue = focal region's LQ/slope significantly lower than comparator.
+    Orange = significantly higher. Grey = not separable at chosen CI level.
+  </p>
+
+  <p id="permalink-container" style="font-size:0.85rem; margin-top:0.5rem;">
+    <a id="permalink" href="#">Link to this view</a>
+  </p>
+
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.6/dist/js/tom-select.complete.min.js"></script>
+  <script>
+    const regions = [
+      ["East", "East"],
+      ["East Midlands", "East_Midlands"],
+      ["London", "London"],
+      ["North East", "North_East"],
+      ["North West", "North_West"],
+      ["Northern Ireland", "Northern_Ireland"],
+      ["Scotland", "Scotland"],
+      ["South East", "South_East"],
+      ["South West", "South_West"],
+      ["Wales", "Wales"],
+      ["West Midlands", "West_Midlands"],
+      ["Yorkshire and The Humber", "Yorkshire_and_The_Humber"]
+    ];
+
+    const folderMap = {
+      slopes:                          "../miscimages/slope_split_coloured_top_bottom_15/",
+      lq_sigcount_2012_vs_2023:        "../miscimages/LQ_year_comparison_sigcount_2012_vs_2023/",
+      lq_sigcount_2019_vs_2023:        "../miscimages/LQ_year_comparison_sigcount_2019_vs_2023/",
+      lq_shifts_2012_vs_2023:          "../miscimages/LQ_year_comparison_shifts_2012_vs_2023/",
+      lq_shifts_2019_vs_2023:          "../miscimages/LQ_year_comparison_shifts_2019_vs_2023/"
+    };
+
+    const select         = document.getElementById("region-select");
+    const img            = document.getElementById("plot-img");
+    const lqYearsFs      = document.getElementById("lq-years-fieldset");
+    const lqRankingFs    = document.getElementById("lq-ranking-fieldset");
+    const permalinkEl    = document.getElementById("permalink");
+
+    // Populate dropdown
+    regions.forEach(([label, file]) => {
+      const opt = document.createElement("option");
+      opt.value = file;
+      opt.textContent = label;
+      select.appendChild(opt);
+    });
+
+    const regionPicker = new TomSelect("#region-select", {
+      create: false,
+      sortField: { field: "text", direction: "asc" },
+      onChange: function() { updatePlot(); }
+    });
+
+    function getPlotType() {
+      return document.querySelector('input[name="plot-type"]:checked').value;
+    }
+    function getLqYears() {
+      return document.querySelector('input[name="lq-years"]:checked').value;
+    }
+    function getLqRanking() {
+      return document.querySelector('input[name="lq-ranking"]:checked').value;
+    }
+
+    function getFolderKey() {
+      if (getPlotType() === "slopes") return "slopes";
+      return "lq_" + getLqRanking() + "_" + getLqYears();
+    }
+
+    function updatePlot() {
+      const regionFile = regionPicker.getValue();
+      if (!regionFile) return;
+
+      const isLq = getPlotType() === "lq";
+      lqYearsFs.style.display   = isLq ? "" : "none";
+      lqRankingFs.style.display  = isLq ? "" : "none";
+
+      const folder = folderMap[getFolderKey()];
+      img.src = folder + regionFile + ".png";
+
+      updatePermalink(regionFile);
+    }
+
+    function updatePermalink(regionFile) {
+      const url = new URL(window.location);
+      url.searchParams.set("region", regionFile);
+      url.searchParams.set("type", getPlotType());
+      if (getPlotType() === "lq") {
+        url.searchParams.set("years", getLqYears());
+        url.searchParams.set("ranking", getLqRanking());
+      } else {
+        url.searchParams.delete("years");
+        url.searchParams.delete("ranking");
+      }
+      permalinkEl.href = url.toString();
+    }
+
+    // Read query params on load
+    const urlParams  = new URLSearchParams(window.location.search);
+    const urlRegion  = urlParams.get("region");
+    const urlType    = urlParams.get("type");
+    const urlYears   = urlParams.get("years");
+    const urlRanking = urlParams.get("ranking");
+
+    if (urlType === "lq") {
+      document.querySelector('input[name="plot-type"][value="lq"]').checked = true;
+    }
+    if (urlYears) {
+      const el = document.querySelector('input[name="lq-years"][value="' + urlYears + '"]');
+      if (el) el.checked = true;
+    }
+    if (urlRanking) {
+      const el = document.querySelector('input[name="lq-ranking"][value="' + urlRanking + '"]');
+      if (el) el.checked = true;
+    }
+
+    const defaultRegion = (urlRegion && regionPicker.options[urlRegion])
+      ? urlRegion
+      : "Yorkshire_and_The_Humber";
+    regionPicker.setValue(defaultRegion, true);
+
+    // Listen to all radio changes
+    document.querySelectorAll('input[name="plot-type"], input[name="lq-years"], input[name="lq-ranking"]')
+      .forEach(r => r.addEventListener("change", updatePlot));
+
+    updatePlot();
+  </script>
+</body>
+</html>

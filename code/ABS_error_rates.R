@@ -1774,6 +1774,280 @@ plot_focal_LQ_split(LQ_with_sim_CIs, "South East", top_bottom_n = 15)
 plot_focal_LQ_split(LQ_with_sim_CIs, "North West", top_bottom_n = 15)
 
 
+## Focal LQ comparison: two years side by side ----
+# Diagonal split repurposed: bottom-left = year A, top-right = year B.
+# Each triangle: is the focal region's LQ significantly different from the
+# comparator's LQ (z-test) in that year?
+# Y-axis label shows both years' LQ values and is coloured by direction of
+# change (green = LQ increased, red = decreased, bold = change is large).
+
+plot_focal_LQ_year_comparison <- function(lq_data, focal_region,
+                                          years = c(2012, 2022),
+                                          ci_level = 95,
+                                          top_bottom_n = NULL,
+                                          rank_by_change = FALSE) {
+
+  stopifnot(length(years) == 2)
+  ci_z <- qnorm(1 - (1 - ci_level / 100) / 2)
+
+  # Filter to the two years and join shortened names
+  yr_data <- lq_data %>%
+    filter(year %in% years) %>%
+    left_join(sic_lookup, by = 'SIC07_description')
+
+  # Compute significance for one year's data
+  compute_sig_year <- function(data, focal_reg) {
+    focal <- data %>% filter(Region_name == focal_reg)
+    others <- data %>% filter(Region_name != focal_reg)
+
+    others %>%
+      inner_join(
+        focal %>% select(SIC07_description, SIC07_description_shortened,
+                         focal_LQ = LQ_central, focal_sd = LQ_sd),
+        by = c('SIC07_description', 'SIC07_description_shortened')
+      ) %>%
+      mutate(
+        z = (focal_LQ - LQ_central) / sqrt(focal_sd^2 + LQ_sd^2),
+        sig = case_when(
+          z >  ci_z ~  1L,
+          z < -ci_z ~ -1L,
+          TRUE ~ 0L
+        )
+      ) %>%
+      select(SIC07_description, SIC07_description_shortened, Region_name, sig)
+  }
+
+  data_yr1 <- yr_data %>% filter(year == years[1])
+  data_yr2 <- yr_data %>% filter(year == years[2])
+
+  sig_yr1 <- compute_sig_year(data_yr1, focal_region) %>% rename(sig_lo = sig)
+  sig_yr2 <- compute_sig_year(data_yr2, focal_region) %>% rename(sig_hi = sig)
+
+  cell_data <- sig_yr1 %>%
+    inner_join(sig_yr2, by = c('SIC07_description', 'SIC07_description_shortened', 'Region_name'))
+
+  # Build y-axis labels: show both years' LQs, colour by direction of change
+  focal_yr1 <- data_yr1 %>%
+    filter(Region_name == focal_region) %>%
+    select(SIC07_description_shortened, LQ_1 = LQ_central)
+  focal_yr2 <- data_yr2 %>%
+    filter(Region_name == focal_region) %>%
+    select(SIC07_description_shortened, LQ_2 = LQ_central)
+
+  focal_info <- focal_yr1 %>%
+    inner_join(focal_yr2, by = 'SIC07_description_shortened') %>%
+    mutate(
+      lq_change = LQ_2 - LQ_1,
+      label = paste0(SIC07_description_shortened, " (",
+                     round(LQ_1, 2), " -> ", round(LQ_2, 2), ")"),
+      colour = case_when(
+        lq_change >  0.1 ~ "#E69F00",
+        lq_change >  0   ~ "#F5C766",
+        lq_change < -0.1 ~ "#0072B2",
+        lq_change <= 0   ~ "#7AB8D8"
+      )
+    ) %>%
+    arrange(SIC07_description_shortened) %>%
+    select(SIC07_description_shortened, label, colour)
+
+  # Build one triangle panel
+  build_panel <- function(cell_data, y_labels, regions, sectors,
+                          panel_title = "", show_x_axis = TRUE) {
+
+    cell_data <- cell_data %>%
+      mutate(
+        x = match(Region_name, regions),
+        y = match(SIC07_description_shortened, sectors)
+      )
+
+    tri_lo <- cell_data %>%
+      mutate(tri_id = paste(SIC07_description_shortened, Region_name, "lo", sep = "::")) %>%
+      reframe(
+        tri_id = rep(tri_id, each = 3),
+        sig = rep(sig_lo, each = 3),
+        px = c(rbind(x - 0.5, x + 0.5, x - 0.5)),
+        py = c(rbind(y - 0.5, y - 0.5, y + 0.5))
+      )
+
+    tri_hi <- cell_data %>%
+      mutate(tri_id = paste(SIC07_description_shortened, Region_name, "hi", sep = "::")) %>%
+      reframe(
+        tri_id = rep(tri_id, each = 3),
+        sig = rep(sig_hi, each = 3),
+        px = c(rbind(x + 0.5, x - 0.5, x + 0.5)),
+        py = c(rbind(y + 0.5, y + 0.5, y - 0.5))
+      )
+
+    plot_polys <- bind_rows(tri_lo, tri_hi) %>%
+      mutate(
+        sig_label = factor(sig, levels = c(-1, 0, 1),
+                           labels = c("Lower", "Not separable", "Higher"))
+      )
+
+    label_text <- y_labels$label
+    label_colours <- y_labels$colour
+
+    p <- ggplot(plot_polys, aes(x = px, y = py, group = tri_id, fill = sig_label)) +
+      geom_polygon(colour = "white", linewidth = 0.2) +
+      scale_fill_manual(
+        values = c("Lower" = "#0072B2", "Not separable" = "grey90", "Higher" = "#E69F00"),
+        name = "",
+        drop = FALSE
+      ) +
+      scale_x_continuous(breaks = seq_along(regions), labels = regions, expand = c(0, 0)) +
+      scale_y_continuous(breaks = seq_along(sectors), labels = label_text, expand = c(0, 0)) +
+      labs(title = panel_title, x = "", y = "") +
+      theme_minimal() +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+        axis.text.y = element_text(size = 8.5, colour = label_colours),
+        plot.title = element_text(size = 10, face = "bold"),
+        legend.position = "bottom"
+      ) +
+      coord_fixed()
+
+    if (!show_x_axis) {
+      p <- p + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+    }
+
+    p
+  }
+
+  # --- Assemble ---
+  regions <- sort(unique(cell_data$Region_name))
+
+  if (!is.null(top_bottom_n)) {
+
+    if (rank_by_change) {
+      # Rank by number of comparators where significance status CHANGED
+      # between year 1 and year 2 (flipped in either direction)
+      flips <- sig_yr1 %>%
+        rename(sig_1 = sig_lo) %>%
+        inner_join(sig_yr2 %>% rename(sig_2 = sig_hi),
+                   by = c('SIC07_description', 'SIC07_description_shortened', 'Region_name')) %>%
+        mutate(changed = sig_1 != sig_2) %>%
+        group_by(SIC07_description_shortened) %>%
+        summarise(n_changed = sum(changed, na.rm = TRUE), .groups = 'drop')
+
+      top_changed <- flips %>%
+        slice_max(n_changed, n = top_bottom_n, with_ties = FALSE) %>%
+        pull(SIC07_description_shortened) %>%
+        sort()
+
+      bottom_changed <- flips %>%
+        slice_min(n_changed, n = top_bottom_n, with_ties = FALSE) %>%
+        pull(SIC07_description_shortened) %>%
+        sort()
+
+      cells_top <- cell_data %>% filter(SIC07_description_shortened %in% top_changed)
+      cells_bot <- cell_data %>% filter(SIC07_description_shortened %in% bottom_changed)
+
+      y_top <- focal_info %>% filter(SIC07_description_shortened %in% top_changed)
+      y_bot <- focal_info %>% filter(SIC07_description_shortened %in% bottom_changed)
+
+      p_top <- build_panel(cells_top, y_top, regions, top_changed,
+                           paste0("Most relative position shifts"),
+                           show_x_axis = FALSE)
+      p_bot <- build_panel(cells_bot, y_bot, regions, bottom_changed,
+                           paste0("Fewest relative position shifts"),
+                           show_x_axis = TRUE) +
+        guides(fill = "none")
+
+      title_detail <- "ranked by relative position shifts"
+
+    } else {
+      # Default: rank by count of sig positive/negative in year 2
+      sig_counts <- sig_yr2 %>%
+        rename(sig = sig_hi) %>%
+        group_by(SIC07_description_shortened) %>%
+        summarise(
+          n_higher = sum(sig == 1L, na.rm = TRUE),
+          n_lower  = sum(sig == -1L, na.rm = TRUE),
+          .groups = 'drop'
+        )
+
+      top_higher <- sig_counts %>%
+        slice_max(n_higher, n = top_bottom_n, with_ties = FALSE) %>%
+        pull(SIC07_description_shortened) %>%
+        sort()
+
+      top_lower <- sig_counts %>%
+        slice_max(n_lower, n = top_bottom_n, with_ties = FALSE) %>%
+        pull(SIC07_description_shortened) %>%
+        sort()
+
+      cells_top <- cell_data %>% filter(SIC07_description_shortened %in% top_higher)
+      cells_bot <- cell_data %>% filter(SIC07_description_shortened %in% top_lower)
+
+      y_top <- focal_info %>% filter(SIC07_description_shortened %in% top_higher)
+      y_bot <- focal_info %>% filter(SIC07_description_shortened %in% top_lower)
+
+      p_top <- build_panel(cells_top, y_top, regions, top_higher,
+                           paste0("Most often higher (", years[2], ")"),
+                           show_x_axis = FALSE)
+      p_bot <- build_panel(cells_bot, y_bot, regions, top_lower,
+                           paste0("Most often lower (", years[2], ")"),
+                           show_x_axis = TRUE) +
+        guides(fill = "none")
+
+      title_detail <- paste0("top/bottom ", top_bottom_n, " by sig count")
+    }
+
+    p_top / p_bot +
+      plot_layout(guides = "collect", heights = c(1, 1)) &
+      theme(legend.position = "bottom") &
+      plot_annotation(
+        title = paste0("LQ comparisons: ", focal_region,
+                       " (", years[1], " vs ", years[2], ", ",
+                       ci_level, "% CI, ", title_detail, ")"),
+        subtitle = paste0("Bottom-left triangle = ", years[1],
+                          ", top-right triangle = ", years[2],
+                          ". Y-axis: LQ change (coloured orange = increase, blue = decrease)."),
+        theme = theme(
+          plot.title = element_text(size = 12, face = "bold"),
+          plot.subtitle = element_text(size = 9, colour = "grey40")
+        )
+      )
+
+  } else {
+    # All sectors, single panel
+    sectors <- sort(unique(cell_data$SIC07_description_shortened))
+
+    build_panel(cell_data, focal_info, regions, sectors) +
+      labs(
+        title = paste0("LQ comparisons: ", focal_region,
+                       " (", years[1], " vs ", years[2], ", ", ci_level, "% CI)"),
+        subtitle = paste0("Bottom-left triangle = ", years[1],
+                          ", top-right triangle = ", years[2],
+                          ".\nY-axis: LQ change (coloured orange = increase, blue = decrease).")
+      ) +
+      theme(
+        plot.title = element_text(size = 11, face = "bold"),
+        plot.subtitle = element_text(size = 9, colour = "grey40")
+      )
+  }
+}
+
+# Examples
+plot_focal_LQ_year_comparison(LQ_with_sim_CIs, "Yorkshire and The Humber",
+                              years = c(2012, 2022))
+plot_focal_LQ_year_comparison(LQ_with_sim_CIs, "London",
+                              years = c(2012, 2022), top_bottom_n = 10)
+
+# Ranked by relative position shifts between years
+plot_focal_LQ_year_comparison(LQ_with_sim_CIs, "London",
+                              years = c(2012, 2023), top_bottom_n = 15,
+                              rank_by_change = TRUE)
+
+plot_focal_LQ_year_comparison(LQ_with_sim_CIs, "Yorkshire and The Humber",
+                              years = c(2019, 2023), top_bottom_n = 20,
+                              rank_by_change = TRUE)
+
+plot_focal_LQ_year_comparison(LQ_with_sim_CIs, "South East",
+                              years = c(2012, 2023), top_bottom_n = 15,
+                              rank_by_change = TRUE)
+
+
 ## CLAUDE OUTPUT:
 
 ## Monte Carlo simulation of slopes with measurement uncertainty ----
@@ -1801,9 +2075,11 @@ slopes_ols <- get_slope_and_se_safely(
 
 # MC simulation function for slopes (parallelised via furrr)
 # rho: AR(1) correlation for measurement errors across years (0 = independent draws, default)
-#   Higher rho means errors are more correlated year-to-year (e.g. same firms in ABS sample),
-#   which narrows the slope envelope because correlated errors shift the series up/down
-#   rather than tilting it. Uses Gaussian copula so marginals stay log-normal per year.
+#   Higher rho means errors are more correlated year-to-year (e.g. same firms in ABS sample).
+#   The effect on slope uncertainty is non-monotonic:
+#   - Moderate rho (e.g. 0.7) WIDENS slope spread: smooth persistent drifts create pseudo-trends.
+#   - Only very high rho (near 1) narrows slopes: near-uniform level shifts don't affect slope.
+#   Uses Gaussian copula so marginals stay log-normal per year.
 simulate_slopes <- function(data, n_sims = 500, seed = 42, rho = 0) {
 
   # Pre-compute log-normal parameters (same as LQ simulation)
@@ -1886,12 +2162,75 @@ simulate_slopes <- function(data, n_sims = 500, seed = 42, rho = 0) {
   }
 }
 
-# Run the simulation
+
+
+
+# Run the simulation twice to test rho/AR(1) difference
 n_sims_slopes <- 500
-slopes_mc_raw <- simulate_slopes(itl1.cv.linked, n_sims = n_sims_slopes)
+slopes_mc_raw_indep <- simulate_slopes(itl1.cv.linked, n_sims = n_sims_slopes)
 
 # AR(1) version correlating timepoints from the draws
-slopes_mc_raw <- simulate_slopes(itl1.cv.linked, n_sims = n_sims_slopes, rho = 0.7)
+slopes_mc_raw_ar1 <- simulate_slopes(itl1.cv.linked, n_sims = n_sims_slopes, rho = 0.7)
+
+
+## Compare slope SD: independent vs AR(1) ----
+# Summarise both runs
+slopes_mc_summary_indep <- slopes_mc_raw_indep %>%
+  group_by(Region_name, SIC07_description) %>%
+  summarise(slope_sd_indep = sd(slope, na.rm = TRUE), .groups = 'drop')
+
+slopes_mc_summary_ar1 <- slopes_mc_raw_ar1 %>%
+  group_by(Region_name, SIC07_description) %>%
+  summarise(slope_sd_ar1 = sd(slope, na.rm = TRUE), .groups = 'drop')
+
+slope_sd_compare <- slopes_mc_summary_indep %>%
+  inner_join(slopes_mc_summary_ar1, by = c('Region_name', 'SIC07_description')) %>%
+  mutate(ratio = slope_sd_ar1 / slope_sd_indep)
+
+# Scatter: AR(1) SD vs independent SD for every region x sector
+p_sd_scatter <- ggplot(slope_sd_compare, aes(x = slope_sd_indep, y = slope_sd_ar1)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", alpha = 0.5) +
+  geom_point(alpha = 0.3, size = 1.5) +
+  labs(title = "MC slope SD: AR(1) rho=0.7 vs independent (rho=0)",
+       subtitle = paste0("Points above diagonal = AR(1) widens uncertainty. ",
+                         "Median ratio = ", round(median(slope_sd_compare$ratio, na.rm = TRUE), 2)),
+       x = "Slope SD (independent, rho = 0)",
+       y = "Slope SD (AR(1), rho = 0.7)") +
+  coord_fixed() +
+  theme_minimal()
+
+print(p_sd_scatter)
+
+# Distribution of the ratio
+p_sd_ratio <- ggplot(slope_sd_compare, aes(x = ratio)) +
+  geom_histogram(bins = 40, fill = "steelblue", alpha = 0.7, colour = "white") +
+  geom_vline(xintercept = 1, linetype = "dashed", colour = "red") +
+  geom_vline(xintercept = median(slope_sd_compare$ratio, na.rm = TRUE),
+             linetype = "solid", colour = "black", linewidth = 0.8) +
+  annotate("text", x = 1, y = Inf, label = "Equal", vjust = 2, hjust = 1.1,
+           colour = "red", size = 3) +
+  annotate("text", x = median(slope_sd_compare$ratio, na.rm = TRUE), y = Inf,
+           label = paste0("Median = ", round(median(slope_sd_compare$ratio, na.rm = TRUE), 2)),
+           vjust = 2, hjust = -0.1, size = 3) +
+  labs(title = "Ratio of slope SD: AR(1) / independent, all region x sector pairs",
+       subtitle = "Values > 1 mean AR(1) correlation widens measurement uncertainty",
+       x = "slope_sd(rho=0.7) / slope_sd(rho=0)", y = "Count") +
+  theme_minimal()
+
+print(p_sd_ratio)
+
+cat("Slope SD comparison across all region x sector pairs:\n")
+cat("  Median ratio (AR1 / indep):", round(median(slope_sd_compare$ratio, na.rm = TRUE), 3), "\n")
+cat("  Mean ratio:                ", round(mean(slope_sd_compare$ratio, na.rm = TRUE), 3), "\n")
+cat("  % where AR(1) is wider:   ", round(mean(slope_sd_compare$ratio > 1, na.rm = TRUE) * 100, 1), "%\n\n")
+
+
+# Use the AR(1) version going forward (more realistic if errors are correlated)
+# slopes_mc_raw <- slopes_mc_raw_ar1
+slopes_mc_raw <- slopes_mc_raw_indep
+
+# Or not, because it's increasing errors - let's see how it looks with just OLS
+
 
 # Summarise: SD of slopes across MC draws captures measurement uncertainty
 slopes_mc_summary <- slopes_mc_raw %>%
@@ -1901,6 +2240,8 @@ slopes_mc_summary <- slopes_mc_raw %>%
     slope_sd     = sd(slope, na.rm = TRUE),
     .groups = 'drop'
   )
+
+
 
 # Merge OLS and MC results, then combine uncertainties in quadrature:
 # se_combined = sqrt(se_ols^2 + slope_sd^2)
@@ -2373,10 +2714,10 @@ plot_focal_split_coloured <- function(combined_data, focal_region,
         label = paste0(SIC07_description_shortened, " (",
                        slope_pct, "% CI: ", ci_lo_pct, "%, ", ci_hi_pct, "%)"),
         colour = case_when(
-          !crosses_zero & slope_ols > 0 ~ "#28da28",
-          crosses_zero  & slope_ols > 0 ~ "#96c493",
-          !crosses_zero & slope_ols < 0 ~ "red",
-          crosses_zero  & slope_ols < 0 ~ "#ffcccc"
+          !crosses_zero & slope_ols > 0 ~ "#E69F00",
+          crosses_zero  & slope_ols > 0 ~ "#F5C766",
+          !crosses_zero & slope_ols < 0 ~ "#0072B2",
+          crosses_zero  & slope_ols < 0 ~ "#7AB8D8"
         )
       ) %>%
       arrange(SIC07_description_shortened) %>%
@@ -2429,7 +2770,7 @@ plot_focal_split_coloured <- function(combined_data, focal_region,
     p <- ggplot(plot_polys, aes(x = px, y = py, group = tri_id, fill = sig_label)) +
       geom_polygon(colour = "white", linewidth = 0.2) +
       scale_fill_manual(
-        values = c("Lower" = "#d73027", "Not separable" = "grey90", "Higher" = "#1a9850"),
+        values = c("Lower" = "#0072B2", "Not separable" = "grey90", "Higher" = "#E69F00"),
         name = "",
         drop = FALSE
       ) +
@@ -2521,10 +2862,10 @@ plot_focal_split_coloured <- function(combined_data, focal_region,
         label = paste0(SIC07_description_shortened, " (",
                        slope_pct, "% CI: ", ci_lo_pct, "%, ", ci_hi_pct, "%)"),
         colour = case_when(
-          !crosses_zero & slope_ols > 0 ~ "#28da28",
-          crosses_zero  & slope_ols > 0 ~ "#96c493",
-          !crosses_zero & slope_ols < 0 ~ "red",
-          crosses_zero  & slope_ols < 0 ~ "#ffcccc"
+          !crosses_zero & slope_ols > 0 ~ "#E69F00",
+          crosses_zero  & slope_ols > 0 ~ "#F5C766",
+          !crosses_zero & slope_ols < 0 ~ "#0072B2",
+          crosses_zero  & slope_ols < 0 ~ "#7AB8D8"
         )
       ) %>%
       arrange(SIC07_description_shortened) %>%
@@ -2621,7 +2962,8 @@ plot_focal_split_coloured(slopes_combined, "South East")
 plot_focal_split_coloured(slopes_combined, "London",
                           top_bottom_n = 10, se_inflation_data = se_inflation)
 plot_focal_split_coloured(slopes_combined, "Yorkshire and The Humber",
-                          top_bottom_n = 10, se_inflation_data = se_inflation)
+                          top_bottom_n = 15, se_inflation_data = se_inflation)
+
 
 
 ## Worked example: z-test on a pair of slopes ----
@@ -3196,6 +3538,76 @@ comparison <- lq_averaged %>%
 summary(comparison$pct_diff)
 # Also check the worst cases
 comparison %>% arrange(desc(abs(pct_diff))) %>% head(20)
+
+
+# ============================================================================
+# Save all triangle plots as PNGs
+# ============================================================================
+
+# --- LQ year comparison plots ---
+lq_year_pairs <- list(c(2012, 2023), c(2019, 2023))
+regions_all <- sort(unique(LQ_with_sim_CIs$Region_name))
+
+for (yr_pair in lq_year_pairs) {
+
+  yr_tag <- paste0(yr_pair[1], "_vs_", yr_pair[2])
+
+  # rank_by_change = FALSE (top/bottom by sig count)
+  dir_sigcount <- file.path("docs/miscimages", paste0("LQ_year_comparison_sigcount_", yr_tag))
+  dir.create(dir_sigcount, recursive = TRUE, showWarnings = FALSE)
+
+  for (reg in regions_all) {
+    p <- plot_focal_LQ_year_comparison(LQ_with_sim_CIs, reg,
+                                       years = yr_pair,
+                                       top_bottom_n = 15,
+                                       rank_by_change = FALSE)
+    fname <- gsub(" ", "_", reg)
+    ggsave(file.path(dir_sigcount, paste0(fname, ".png")), p,
+           width = 10, height = 14, dpi = 150, bg = "white")
+  }
+
+  # rank_by_change = TRUE (top/bottom by position shifts)
+  dir_shifts <- file.path("docs/miscimages", paste0("LQ_year_comparison_shifts_", yr_tag))
+  dir.create(dir_shifts, recursive = TRUE, showWarnings = FALSE)
+
+  for (reg in regions_all) {
+    p <- plot_focal_LQ_year_comparison(LQ_with_sim_CIs, reg,
+                                       years = yr_pair,
+                                       top_bottom_n = 15,
+                                       rank_by_change = TRUE)
+    fname <- gsub(" ", "_", reg)
+    ggsave(file.path(dir_shifts, paste0(fname, ".png")), p,
+           width = 10, height = 14, dpi = 150, bg = "white")
+  }
+}
+
+# --- Slope split coloured plots ---
+regions_slopes <- sort(unique(slopes_combined$Region_name))
+
+# Without SE inflation (all sectors)
+dir_slopes_all <- file.path("docs/miscimages", "slope_split_coloured_all")
+dir.create(dir_slopes_all, recursive = TRUE, showWarnings = FALSE)
+
+for (reg in regions_slopes) {
+  p <- plot_focal_split_coloured(slopes_combined, reg)
+  fname <- gsub(" ", "_", reg)
+  ggsave(file.path(dir_slopes_all, paste0(fname, ".png")), p,
+         width = 11, height = 10, dpi = 150, bg = "white")
+}
+
+# With SE inflation (top/bottom 15)
+dir_slopes_tb <- file.path("docs/miscimages", "slope_split_coloured_top_bottom_15")
+dir.create(dir_slopes_tb, recursive = TRUE, showWarnings = FALSE)
+
+for (reg in regions_slopes) {
+  p <- plot_focal_split_coloured(slopes_combined, reg,
+                                  top_bottom_n = 15,
+                                  se_inflation_data = se_inflation)
+  fname <- gsub(" ", "_", reg)
+  ggsave(file.path(dir_slopes_tb, paste0(fname, ".png")), p,
+         width = 11, height = 10, dpi = 150, bg = "white")
+}
+
 
 
 
