@@ -227,9 +227,33 @@ The plot also [has an option](https://danolner.github.io/RegEconWorks/lq-errorba
 
 ### Triangle plots for both chained volume and LQ data
 
-Starting with LQs
+This section runs through a way to quickly look at comparisons of LQs and real growth to see which look more reliable, and in the case of the 'real growth' chained volume data, easily compare 'vanilla' growth slopes with and without the extra error.
 
-@fig-lqfabs
+Let's start with location quotients and [this triangle plot for London's ITL1 zone](https://danolner.github.io/RegEconWorks/triangle-plot-viewer/?region=London&type=lq&years=2019_vs_2023&ranking=shifts) (see also @fig-londonLQs below) comparing LQs between 2019 and 2023. What we have here:
+
+-   Each grid square compares LQs and their uncertainty, for each sector in London with that sector in every other ITL zone (x axis).
+
+-   The bottom-left triangles in each square show if London's LQ in 2019 was lower (blue) or higher (orange)[^4] than that sector in the other ITL1s, or not separable (using a z test to compare the difference between the two LQ values). The top-right triangles show the same for 2023.
+
+-   The 'most relative position shifts' plot in the top half shows the top 15 sectors that saw LQs change between low/high/not separable most often. For example, gambling and betting in London has gone from an LQ of 0.65 to 1.23 (LQ values are on the y axis) between 2019 and 2023, and this shows up in the triangles: many have moved from blue (lower concentration than the other ITL1) to orange (higher). Only the North East continues to have a higher concentration than London.
+
+-   The 'fewest relative position shifts' plot in the lower half shows where LQs remained the most unchanged between 2019 and 2023. The solid blocks of blue and orange are sectors in London that have been consistently either higher or lower concentration there. No other ITL1 has this level of fixed structure over the whole dataset (the [South East](https://danolner.github.io/RegEconWorks/triangle-plot-viewer/?region=London&type=lq&years=2012_vs_2023&ranking=shifts) is closest, though that line of higher LQs to London mostly in manufacturing is telling; [West Midlands](https://danolner.github.io/RegEconWorks/triangle-plot-viewer/?region=London&type=lq&years=2012_vs_2023&ranking=shifts) is third). See also [the 2012 to 2023 comparison](https://danolner.github.io/RegEconWorks/triangle-plot-viewer/?region=London&type=lq&years=2012_vs_2023&ranking=shifts) for London - mostly the same sectors have remained unchanged.
+
+[^4]: These are the two colours most likely to be clearly distinguishable for colour-blind people.
+
+There is also the option to order LQ differences by how many are significantly higher or lower overall. [Here is an example](https://danolner.github.io/RegEconWorks/triangle-plot-viewer/?region=Yorkshire_and_The_Humber&type=lq&years=2012_vs_2023&ranking=sigcount) for Yorkshire and The Humber, comparing LQs between 2012 and 2023, where it's possible to confirm what @fig-lqfabs shows above for fabricated metals. Seventh from the bottom of the top plot, fabricated metal concentration in Yorkshire and The Humber has been consistently more concentrated than most places - except the East Midlands, where the LQs aren't separable (at 95% confidence), and the West Midlands, which - as @fig-lqfabs also confirms - has a definite higher LQ, and did in 2012 too.
+
+![](images/clipboard-3853503719.png){#fig-londonLQs}
+
+Next, we use the triangle plot approach to look at 'real' (inflation/quality adjusted) growth over time (using chained volume data). [This](https://danolner.github.io/RegEconWorks/triangle-plot-viewer/?region=London&type=lq&years=2012_vs_2023&ranking=shifts) is the plot for London; @fig-london-cv-triangleplot shows the output here. Let's talk through this one.
+
+-   This time, the top and bottom triangles in each grid are 'slopes differ at 90% and 95% confidence levels'. 90% is a lower bar - those are the bottom left triangles in each grid square. The stricter 95% level is top right. So for example: looking near the top of the bottom half, warehousing and transport support has each triangle full, across all ITL1 comparators - and they are blue, so slopes are separably lower than those places, at both 90 and 95% levels. This sector does look to have shrunk, and clearly more so than anywhere else. Note in the y axis label, the sector's average yearly change was -4.6%.
+
+-   The top and bottom groups of 15 sectors are ordered by **uncertainty inflation** - that is, how much adding extra uncertainty from ABS could impact confidence in slope differences. The top 15 have the widest uncertainty difference; the bottom 15 have the smallest (so warehousing and transport support looks solidly correct, for example, across both approaches).
+
+-   The top 15 are showing which sectors are most affected by the added uncertainty. To pick a striking sector, where scientific R&D looks to have separably higher growth in London than many other ITL1s (third from top), with added uncertainty, only one slope remains separable (at 90%, from the North West). On the right hand side, showing results with added uncertainty, the y axis label also shows this sector's growth bounds (at 95%) cross zero. Unlike the 'OLS only' result, it's not separable from zero linear growth over the whole dataset.
+
+![](images/clipboard-2302802112.png){#fig-london-cv-triangleplot}
 
 ### Old: Highlighting some differences between single point estimates and with uncertainty
 
@@ -256,9 +280,9 @@ Here's a quick run-through comparing findings if considering just single point d
 
 ## Discussion and next steps
 
-> **"We demand rigidly defined areas of doubt and uncertainty."** Vroomfondel, Amalgamated Union of Philosophers, Sages, Luminaries and Other Thinking Persons. (Hitchhiker's Guide to the Galaxy)[^4]
+> **"We demand rigidly defined areas of doubt and uncertainty."** Vroomfondel, Amalgamated Union of Philosophers, Sages, Luminaries and Other Thinking Persons. (Hitchhiker's Guide to the Galaxy)[^5]
 
-[^4]: The stats / greek crossover being what it is, this quote has been used for the same purpose in [this](https://www.nature.com/articles/s41592-020-01036-9) Nature Methods article, [this PhD thesis](https://wrap.warwick.ac.uk/id/eprint/146107/1/WRAP_Theses_Cockayne_2019.pdf) (p.31), [this](https://medium.com/comet-ml/estimating-uncertainty-in-machine-learning-models-part-1-2bd1209c347c) Medium article, [this](https://labs.mcdb.ucsb.edu/smith/william/sites/labs.mcdb.ucsb.edu.smith.william/files/members/files/biome_-_hhg_to_scientific_literature.pdf) teaching handout and probably many other places. I see no reason not to continue this time-honoured tradition.
+[^5]: The stats / greek crossover being what it is, this quote has been used for the same purpose in [this](https://www.nature.com/articles/s41592-020-01036-9) Nature Methods article, [this PhD thesis](https://wrap.warwick.ac.uk/id/eprint/146107/1/WRAP_Theses_Cockayne_2019.pdf) (p.31), [this](https://medium.com/comet-ml/estimating-uncertainty-in-machine-learning-models-part-1-2bd1209c347c) Medium article, [this](https://labs.mcdb.ucsb.edu/smith/william/sites/labs.mcdb.ucsb.edu.smith.william/files/members/files/biome_-_hhg_to_scientific_literature.pdf) teaching handout and probably many other places. I see no reason not to continue this time-honoured tradition.
 
 This end discussion covers two things:
 
