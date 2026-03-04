@@ -231,7 +231,7 @@ Error bars for sectors like [arts/entertainment](https://danolner.github.io/RegE
 
 ### Triangle plots for both chained volume and LQ data
 
-This section runs through a way to quickly look at comparisons of LQs and real growth to see which look more reliable, and in the case of the 'real growth' chained volume data, easily compare 'vanilla' growth slopes with and without the extra error[^4].
+This section runs through a way to quickly look at comparisons of LQs (from current prices data) and real growth (from chained volume) to see which look more reliable, and in the case of the 'real growth' chained volume data, easily compare 'vanilla' growth slopes with and without the extra error[^4].
 
 [^4]: These plots do not, at the moment, provide options to adjust for the fact that we're examining many separate '1 in 20' or '1 in 10' threshold pairs, where each could through pure chance change from positive to negative. Adjustments like Benjamini-Hochberg are imperfect but could make a bit more robust, potentially.
 
@@ -262,25 +262,6 @@ Next, we use the triangle plot approach to look at 'real' (inflation/quality adj
 -   The top 15 are showing which sectors are most affected by the added uncertainty. To pick a striking sector, where scientific R&D looks to have separably higher growth in London than many other ITL1s (third from top), with added uncertainty, only one slope remains separable (at 90%, from the North West). On the right hand side, showing results with added uncertainty, the y axis label also shows this sector's growth bounds (at 95%) cross zero. Unlike the 'OLS only' result, it's not separable from zero linear growth over the whole dataset.
 
 ![](images/clipboard-2302802112.png){#fig-london-cv-triangleplot}
-
-### Old: Highlighting some differences between single point estimates and with uncertainty
-
-This is a brief section that picks three example sectors and looks at their LQs. It compares the single-point values (the centre dots in the visualisations, which is the data we would have without any uncertainty) to how introducing error bars may change the findings.
-
-The choice of sectors is a little arbitrary - picked just to highlight what difference it can make if thinking in single point or error-bar terms. I don't attempt any policy implication statements based on that. See the final section - that is left open for the follow up report, after an attempt to get feedback on this piece.
-
-Here's a quick run-through comparing findings if considering just single point data versus with uncertainty.
-
--   [Architecture and engineering activities](https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/?sector=Manufactureoffabricatedmetalproducts&view=twoyear):
-    -   **Single points:** East Midlands, the North East and Scotland seem to have lost a lot of concentration over time, while West Midlands, Wales and South West appear to have seen relative growth.
-    -   **With uncertainty:** East Midlands' earlier error range makes recent changes difficult to separate; nothing may have changed. Wales' uncertainty is strong in both time periods. The drop in the North East seems large but can't be separated clearly. The only clear stand-out is still Scotland, with what looks like definite concentration growth.
--   [Computer programming/consultancy](https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/?sector=Computerprogrammingandconsultancy&view=twoyear):
-    -   **Single points:** there is a split between places where the sector has relatively grown - North East, Yorkshire/Humber, Northern Ireland and London - with shrinkage in the South West, North West, Scotland, West Midlands, the East of England and the South East.
-    -   **With uncertainty:** the only clear signals are a definite concentration drop in the South West and strong growth in London. Uncertainty is especially strong in the East Midlands and East of England.
--   [Telecommunications](https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/?sector=Telecommunications&view=twoyear):
-    -   A sector, similar to [Information service activities](https://danolner.github.io/RegEconWorks/lq-errorbars-viewer/?sector=Informationserviceactivities&view=twoyear), that has benefited from some more direct firm data, and this shows in the smaller error bars. It is still a different set of stories for single point data versus with uncertainty.
-    -   **Single points:** London, Northern Ireland, East England, East Midlands and the North East have relatively shrunk; many other places have grown.
-    -   **With uncertainty:** only Northern Ireland's shrinkage has a clear signal. Growth signal is also clear only in Scotland, the South West and the West Midlands.
 
 ## Discussion and next steps
 

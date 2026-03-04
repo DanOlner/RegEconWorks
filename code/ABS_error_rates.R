@@ -2657,12 +2657,28 @@ se_inflation <- slopes_combined %>%
     slope_pct = round((exp(slope_ols) - 1) * 100, 1)
   )
 
-
+# Triangle heatmap comparing a focal region's growth slopes against all others.
+# Left panel uses OLS-only SEs, right panel uses OLS + extra uncertainty (combined SEs).
+# Lower-left triangle = looser CI (ci_levels[1]), upper-right = stricter CI (ci_levels[2]).
+#
+# Modes (controlled by top_bottom_n + flags):
+#   1. top_bottom_n = NULL: show all sectors in a single pair of panels.
+#   2. top_bottom_n + se_inflation_data: rank sectors by SE inflation ratio
+#      (se_combined / se_ols). Same sector list for both OLS and combined panels.
+#      Top row = highest SE inflation, bottom row = lowest.
+#   3. top_bottom_n + rank_by_sig = TRUE: rank sectors by how many comparator
+#      regions the focal region is significantly higher/lower than (sig count).
+#      Produces 4 independent panels: top-higher and top-lower for each SE method.
+#      - sig_rank_by = NULL (default): each panel ranks independently using its
+#        own SE method, so left and right panels may show different sectors.
+#      - sig_rank_by = "se_ols" or "se_combined": both panels use the specified
+#        method's sig counts for ranking, so left and right show the same sectors.
 plot_focal_split_coloured <- function(combined_data, focal_region,
                                       ci_levels = c(90, 95),
                                       top_bottom_n = NULL,
                                       se_inflation_data = NULL,
-                                      rank_by_sig = FALSE) {
+                                      rank_by_sig = FALSE,
+                                      sig_rank_by = "se_ols") {
 
   to_pct <- function(x) round((exp(x) - 1) * 100, 1)
 
@@ -2909,15 +2925,20 @@ plot_focal_split_coloured <- function(combined_data, focal_region,
     counts_ols  <- get_sig_counts("se_ols")
     counts_comb <- get_sig_counts("se_combined")
 
-    hi_ols  <- sort(counts_ols  %>% slice_max(n_higher, n = top_bottom_n, with_ties = FALSE) %>% pull(SIC07_description_shortened))
-    hi_comb <- sort(counts_comb %>% slice_max(n_higher, n = top_bottom_n, with_ties = FALSE) %>% pull(SIC07_description_shortened))
-    lo_ols  <- sort(counts_ols  %>% slice_max(n_lower,  n = top_bottom_n, with_ties = FALSE) %>% pull(SIC07_description_shortened))
-    lo_comb <- sort(counts_comb %>% slice_max(n_lower,  n = top_bottom_n, with_ties = FALSE) %>% pull(SIC07_description_shortened))
+    # If sig_rank_by is set, use that method's counts for both panels
+    rank_counts_ols  <- if (!is.null(sig_rank_by)) get_sig_counts(sig_rank_by) else counts_ols
+    rank_counts_comb <- if (!is.null(sig_rank_by)) get_sig_counts(sig_rank_by) else counts_comb
 
-    p_hi_ols  <- build_sig_panel("se_ols",      hi_ols,  "Most higher — OLS only", "left",  FALSE)
-    p_hi_comb <- build_sig_panel("se_combined", hi_comb, "Most higher — OLS + extra", "right", FALSE)
-    p_lo_ols  <- build_sig_panel("se_ols",      lo_ols,  "Most lower — OLS only",  "left",  TRUE)
-    p_lo_comb <- build_sig_panel("se_combined", lo_comb, "Most lower — OLS + extra",  "right", TRUE)
+    hi_ols  <- sort(rank_counts_ols  %>% slice_max(n_higher, n = top_bottom_n, with_ties = FALSE) %>% pull(SIC07_description_shortened))
+    hi_comb <- sort(rank_counts_comb %>% slice_max(n_higher, n = top_bottom_n, with_ties = FALSE) %>% pull(SIC07_description_shortened))
+    lo_ols  <- sort(rank_counts_ols  %>% slice_max(n_lower,  n = top_bottom_n, with_ties = FALSE) %>% pull(SIC07_description_shortened))
+    lo_comb <- sort(rank_counts_comb %>% slice_max(n_lower,  n = top_bottom_n, with_ties = FALSE) %>% pull(SIC07_description_shortened))
+
+    rank_label <- if (!is.null(sig_rank_by)) paste0(" (ranked by ", sig_rank_by, ")") else ""
+    p_hi_ols  <- build_sig_panel("se_ols",      hi_ols,  paste0("Most higher — OLS only", rank_label), "left",  FALSE)
+    p_hi_comb <- build_sig_panel("se_combined", hi_comb, paste0("Most higher — OLS + extra", rank_label), "right", FALSE)
+    p_lo_ols  <- build_sig_panel("se_ols",      lo_ols,  paste0("Most lower — OLS only", rank_label),  "left",  TRUE)
+    p_lo_comb <- build_sig_panel("se_combined", lo_comb, paste0("Most lower — OLS + extra", rank_label),  "right", TRUE)
 
     # Suppress legends on all but top-left
     p_hi_comb <- p_hi_comb + guides(fill = "none")
