@@ -1,29 +1,30 @@
 {
-    "creators": [
-        {
-            "name": "Olner, Dan",
-            "orcid": "0000-0001-7584-6033",
-            "affiliation": "Sheffield University"
-        }
-    ],
-    "title": "RegEconWorks",
-    "version": "0.1.0",
-    "access_right": "open",
-    "license": "mit",
-    "upload_type": "software",
-    "language": "eng",
-    "keywords": [
-        "regional economics",
-        "subnational statistics",
-        "uncertainty",
-        "R"
-    ],
-    "related_identifiers": [
-        {
-            "identifier": "https://coveredinbees.org/",
-            "relation": "isDocumentedBy",
-            "resource_type": "publication-other"
-        }
-    ],
-    "communities": []
+  "creators": [
+    {
+      "name": "Olner, Dan",
+      "orcid": "0000-0001-7584-6033",
+      "affiliation": "Sheffield University"
+    }
+  ],
+  "title": "RegEconWorks",
+  "version": "0.1.1",
+  "access_right": "open",
+  "license": "mit",
+  "upload_type": "software",
+  "language": "eng",
+  "keywords": [
+    "regional economics",
+    "subnational statistics",
+    "uncertainty",
+    "R"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://coveredinbees.org/",
+      "relation": "isDocumentedBy",
+      "resource_type": "publication-other"
+    }
+  ],
+  "communities": [],
+  "doi": "10.5281/zenodo.18876673"
 }
