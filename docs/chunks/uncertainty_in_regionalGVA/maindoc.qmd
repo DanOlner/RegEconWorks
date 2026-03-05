@@ -16,21 +16,25 @@ execute:
 bibliography: references.bib
 ---
 
-## What's this?
+## What's this doc?
 
-Explain about the tone - half way between formal academic and own voice more blog like, fitting its 'chunk' status. Be brief! Link to blog post.
+This is a 'chunk' analysing what difference the inclusion of uncertainty could make to UK regional GVA analysis, by taking error rates from the Annual Business Survey and applying them to regional output.
+
+[Here's a blog post](https://exobrain.coveredinbees.org/regecons-reflections-1/) \[update when final\] on the rationale for chunks. Briefly: less finished than working papers, more solid than a blog post, meant to be good for test / learn / iterate / imperfection / open feedback.
+
+[See here](https://github.com/DanOlner/RegEconWorks/blob/master/FEEDBACK.md) on how to comment / feed back - any input gets an acknowledgement on the github site.
 
 ## Headlines
 
 -   Including uncertainty in UK regional GVA data leads to quite different, useful ways of thinking that aren't possible with point estimates. It allows filtering signal from noise.
 
--   The ONS [rules out](https://www.ons.gov.uk/economy/grossvalueaddedgva/methodologies/regionalgrossvalueaddedbalancedqmi) error rates for regional GVA as 'too complex' - which it is, within the restrictions of a national accounts framework (globally agreed so extremely slow to change) [@coyle2014]. But it's quite possible to test methods outside those restrictions. Accounts' single point data and error-bar approaches can both be used.
+-   The ONS [rules out](https://www.ons.gov.uk/economy/grossvalueaddedgva/methodologies/regionalgrossvalueaddedbalancedqmi) error rates for regional GVA as 'too complex' - which it is, within the restrictions of a national accounts framework (globally agreed so extremely slow to change) [@coyle2014]. But it's quite possible to test methods outside those restrictions.
 
 -   This report applies UK Annual Business Survey uncertainty rates to region-by-industry GVA data to explore what the impact of uncertainty could be.
 
--   It argues uncertainty is powerful because it short-circuits many unhelpful ways of thinking about growth and industrial strategy, including spurious rank-building.
+-   It argues uncertainty is powerful because it short-circuits many unhelpful ways of thinking about growth and industrial strategy, including spurious rank-building. Error bars direct us back towards our regions, what we concretely know about them, and how that knowledge is built into the choices we make.
 
--   This first piece asks questions about what this might mean for regional economic thinking, with the aim of seeking feedback for a follow up article asking: "If we accept uncertainty into regional growth data, what are the decision-making implications?"
+-   This first piece provides tools for showing what difference uncertainty can make, and asks what this might mean for regional economic thinking, with the aim of seeking feedback for a follow up article asking: "If we accept uncertainty into regional growth data, what are the decision-making implications?"
 
 ## Resources/links
 
@@ -42,7 +46,9 @@ There are three interactive web pages for each of the GVA sources discussed belo
 
 3.  [Triangle plot viewer](https://danolner.github.io/RegEconWorks/triangle-plot-viewer/) for both growth slopes of chained volume GVA and LQ differences.
 
-The repository for this project is [here](https://github.com/DanOlner/RegEconWorks). This includes all code (which mostly downloads data directly to be processed) and writing, as well as a record of any Claude-Code conversations used in development. See [this draft set of guidelines](https://exobrain.coveredinbees.org/llm-use-in-work-experimenting-with-short-guidelines/) on how to clearly keep one's own work separable from LLM use, treating it no differently to any other source (with some complications). A section at the end explains how LLMs were (minimally) used in this article and points to other sources outlining how they were (more extensively) used in code production.
+The repository for this project is [here](https://github.com/DanOlner/RegEconWorks). This includes all code (which mostly downloads data directly to be processed) and writing, as well as a record of any Claude-Code conversations used in development. See [this draft set of guidelines](https://exobrain.coveredinbees.org/llm-use-in-work-experimenting-with-short-guidelines/) on how to clearly keep one's own work separable from LLM use, treating it no differently to any other source (with some complications).
+
+A section at the end explains how LLMs were (minimally) used in this article and points to other sources outlining how they were (more extensively) used in code production.
 
 ------------------------------------------------------------------------
 
@@ -117,6 +123,8 @@ Adding error rates helps because it short-circuits those inaccurate ways of thin
 This competitive view has deep roots in national accounts approaches, originating as they do in managing wartime economies. This can be seen, for example, in [how national accounts methods were used by the CIA](https://www.cia.gov/readingroom/docs/DOC_0000498181.pdf) to model the U.S/ Soviet economies as part of Cold War strategy. The stakes might not be quite so high in competition between Yorkshire and Lancashire, but point estimates make this kind of thinking difficult to avoid.
 
 There are counter-arguments that point estimates are the only plausible tool in many policy areas such as funding allocation (see the final section below). I am not trying to suggest uncertainty is the only valid tool. But it should be one valid tool, and currently it is one we rarely use in this setting. Including uncertainty points policy toward iterative, slow-test improvements - careful steering in the fog.
+
+To end this section on an obvious point, uncertainty doesn't have to be limited to GVA data, or to ITL1 scale. Smaller geographies with added uncertainty could actually produce more accurate insight, rather than building on average values spread over entire regions (that is clear, for example, from the [subregional LQ numbers](https://danolner.github.io/RegionalEconomicTools/quarto_docs/Yorkshire_n_Humber_sector_catalogue_November2025.html#manufacture-of-basic-and-fabricated-metal-products) in Yorkshire and Humber, even without error). Error from the annual population survey, BRES data or Companies House could help understand jobs and productivity.
 
 ## Making a data-driven guess about the level of regional GVA uncertainty
 
@@ -241,6 +249,8 @@ Let's start with location quotients and [this triangle plot for London's ITL1 zo
 
 -   The bottom-left triangles in each square show if London's LQ in 2019 was lower (blue) or higher (orange)[^5] than that sector in the other ITL1s, or not separable (using a z test to compare the difference between the two LQ values). The top-right triangles show the same for 2023.
 
+-   Grey triangles - and especially whole grey blocks - are exactly the 'fog is information' point. Using only LQ point data, there would be no grey here. That has two uses. First, it acts to show where there's signal in the separable LQ triangles. And it can be its own signal - for example, construction of buildings (fourth from bottom of top half) is showing its country-wide uncertainty here. London moved from 'more concentrated from five places' to 'unclear there is any difference'.
+
 -   The 'most relative position shifts' plot in the top half shows the top 15 sectors that saw LQs change between low/high/not separable most often. For example, gambling and betting in London has gone from an LQ of 0.65 to 1.23 (LQ values are on the y axis) between 2019 and 2023, and this shows up in the triangles: many have moved from blue (lower concentration than the other ITL1) to orange (higher). Only the North East continues to have a higher concentration than London.
 
 -   The 'fewest relative position shifts' plot in the lower half shows where LQs remained the most unchanged between 2019 and 2023. The solid blocks of blue and orange are sectors in London that have been consistently either higher or lower concentration there. No other ITL1 has this level of fixed structure over the whole dataset (the [South East](https://danolner.github.io/RegEconWorks/triangle-plot-viewer/?region=London&type=lq&years=2012_vs_2023&ranking=shifts) is closest, though that line of higher LQs to London mostly in manufacturing is telling; [West Midlands](https://danolner.github.io/RegEconWorks/triangle-plot-viewer/?region=London&type=lq&years=2012_vs_2023&ranking=shifts) is third). See also [the 2012 to 2023 comparison](https://danolner.github.io/RegEconWorks/triangle-plot-viewer/?region=London&type=lq&years=2012_vs_2023&ranking=shifts) for London - mostly the same sectors have remained unchanged.
@@ -263,96 +273,55 @@ Next, we use the triangle plot approach to look at 'real' (inflation/quality adj
 
 ![](images/clipboard-2302802112.png){#fig-london-cv-triangleplot}
 
-## Discussion and next steps
+## What next?
 
 > **"We demand rigidly defined areas of doubt and uncertainty."** Vroomfondel, Amalgamated Union of Philosophers, Sages, Luminaries and Other Thinking Persons. (Hitchhiker's Guide to the Galaxy)[^6]
 
 [^6]: The stats / greek crossover being what it is, this quote has been used for the same purpose in [this](https://www.nature.com/articles/s41592-020-01036-9) Nature Methods article, [this PhD thesis](https://wrap.warwick.ac.uk/id/eprint/146107/1/WRAP_Theses_Cockayne_2019.pdf) (p.31), [this](https://medium.com/comet-ml/estimating-uncertainty-in-machine-learning-models-part-1-2bd1209c347c) Medium article, [this](https://labs.mcdb.ucsb.edu/smith/william/sites/labs.mcdb.ucsb.edu.smith.william/files/members/files/biome_-_hhg_to_scientific_literature.pdf) teaching handout and probably many other places. I see no reason not to continue this time-honoured tradition.
 
-This end discussion covers two things:
+This chunk has laid out some working examples of how regional output could look when uncertainty is applied. So, should we also be demanding rigidly defined areas of doubt and uncertainty?
 
-1.  What the next step - thinking through implications for regional economic policy - might look like. That includes asking some open questions.
-2.  What else could be done to add uncertainty to economic data.
+The alternative is point estimates, the precision of which we know nothing about, except that we know it's very likely not precise.
 
-### What are the implications for regional economic thinking if we take uncertainty seriously?
+Often, we do have to work with point estimates. Sometimes, it's optimal to do so, if no alternative exists. Allocation of funding is an obvious example - whether through the UK Index of Multiple Deprivation at small scale, or European objective 1 funding given to NUTS2 zones with GDP per head below 75% of the EU average (no longer in the UK of course), point estimates can seem like the only practical approach. Issues are entirely acknowledged, but spurious accuracy is weighed against the 'merit of simplicity' [@bofinger2003 p.p.9], potentially a strong policy advantage if it aids efficiency and legibility.
 
-Often, we have to work with point estimates. Sometimes, it's optimal to do so. Allocation of funding is an obvious example - whether through the UK Index of Multiple Deprivation at small scale, or European objective 1 funding given to NUTS2 zones with GDP per head below 75% of the EU average (no longer in the UK of course), point estimates seem like the only practical approach. Issues are entirely acknowledged but spurious accuracy is weighed against the 'merit of simplicity' [@bofinger2003 p.p.9], potentially a strong policy advantage if it aids efficiency and legibility.
+But why do this if we don't have to? And how might decision-making be affected if we take uncertainty seriously? I'm saving a full dig into that for part 2, but I'll end here with two connected points to bounce off.
 
-The closer decisions get to regions, however, the less point estimates hold up. Why? Spuriously accurate point data masks the need for deeper regional knowledge structures that need building bottom-up and connected into decision-making.
+1.  How to think about error and uncertainty?
 
-Coyle and Muhtar @coyle2023 explore this brilliantly. They identify a structural 'failure to learn' at regional level in the UK. Due to an historic lack of bottom-up development (that they suggest is present in places like Japan and the U.S.) there is an "absence of mechanisms for feedback and learning from local outcomes" which they identify as a "fundamental institutional weakness".
+There's plenty of theory on this topic (e.g. "planning under conditions of deep uncertainty" @haasnoot2013, game-theoretic ideas, Manski's application of minimax regret @stoye2012) but it might not be the best place to begin. Let's start more broadly.
 
-All that the inclusion of error bars does is help face the reality of top-down data (a symptom of the problems Coyle and Muhtar talk about) and the relative immaturity of data/policy sinews below national level. Error makes the fog visible, and so directs us back towards our regions, what we concretely know about them, and how that knowledge is built into the choices we make.
-
-A type I or II error for allocation of centrally allocated money might have profound effects, but if the data arrives top-down in the way GVA does, regions have no say in that anyway. For data that regions can build into their own policy loops, quantitative findings can be sense-checked against deep local expertise.
-
-A more regionalised sense-checking process is precisely what catches mistakes in spuriously accurate top-down data (for example, of the 'x region is growing fastest / x advanced sector is largest in the UK' type) and encourages development of deeper, more devolved knowledge networks.
+"... especially in the context of long-term decision-making in which deep uncertainties are present, there is no “automated” method of analysis for the management of these uncertainties so as to arrive at an optimal decision. Rather, it is necessary to proceed as we have outlined in the rest of this report – see, especially, Section 4 – so that, inevitably, judgements are required at many stages in the decision-making process." [@dent2021 p.p.16]
 
 @johnson2013 argue we have a built-in bias towards type I 'false alarms' mattering more, for good reason:
 
 > "We sometimes think sticks are snakes (which is harmless), but rarely that snakes are sticks (which can be deadly)."
 
-This is embodied in the precautionary principle: "extra precaution is justified when false negatives are worse than false positives" @persson2016. Michael is best using this - it's safer to assume vampire David is leading him off a cliff, even if he isn't.
+This is embodied in the precautionary principle: "extra precaution is justified when false negatives are worse than false positives" @persson2016. In the chasing-vampires example, Michael is best using this - it's safer to assume David is leading him off a cliff, even if he isn't.
 
-But the opposite "there is no cliff oh no yes there is" false negative need not be so immediately deadly - the cumulative effect of type II errors can be more insidious. They are often a symptom of how data is used. The 'streetlight effect' captures this perfectly [@kirman1992 p.p.134]. This is like:
+Spurious accuracy can make the precautionary principle seem unappealing, however. Precise claims of the 'x region is growing fastest / x advanced sector is largest in the UK' type, in isolation, can be hard to resist. Uncertainty around those would allow a little more precaution where it could be vital.
+
+But while the opposite "there is no cliff oh argh yes there is" false negative need not be so immediately deadly, the cumulative effect of these type II errors can be more insidious. They are often a symptom of how data is used. The 'streetlight effect' captures this perfectly [@kirman1992 p.p.134]. This is akin to:
 
 > "... the person who, having dropped his keys in a dark place, chose to look for them under a streetlight since it was easier to see there."
 
-False negatives can become systemic when we mistake a data source for reality. Often, we don't know what we don't know, or we do but have no other information to rely on. This can be particular pernicious when hard-to-reach groups are simply not visible (people not in education, employment or training - NEETs - are a prime example).
+False negatives - failing to see what's there - can become systemic when we mistake a narrow data source for reality. We shouldn't default to using what data there is, just because it's what is available. Again - the fog is information. It suggests slowing down to think through our information systems. As with Michael following vampires toward cliff edges, we can check surroundings and steer more carefully.
 
-It is all these issues that spuriously accurate data masks.
+So there are reasons to suspect uncertainty might help to steer between both types of blindspot. But in what ways, exactly? In day to day policy choices, what would be different?
 
-The value of Coyle and x's paper is -
+This is what we think might be true. What if it is true? What if we've got that wrong?
 
-looking to theory is the wrong direction
+False negative? Foundational economy - can mostly ignore, growth comes via tradeable.
 
-the issue is how to develop
+2.  Spuriously accurate GVA data blinds us to the need for deeper regional knowledge structures built bottom-up.
 
-praxis point from below here - theory only gets so far when goal is building the sinews that Coyle and x suggest are flimsy or missing
+Coyle and Muhtar @coyle2023 explore this brilliantly. They identify a structural 'failure to learn' at regional level in the UK. Due to an historic lack of bottom-up development (hey suggest Japan and the U.S. as place where this has happened successfuly) there is an "absence of mechanisms for feedback and learning from local outcomes" which they identify as a "fundamental institutional weakness".
 
-data is the lifeblood of that, but turn back to region shows that need not be narrowly defined
+A plausible stab at uncertainty helps focus minds towards the weaknesses of top-down data and the relative immaturity of data/policy sinews below national level they identify. Error makes the fog visible, and so directs us back towards our regions, what we concretely know about them, and how that knowledge is built into the choices we make.
 
-create much richer, multi-faceted picture - not much use for horse-race policy, but arguably better for building functional devolved knowledge networks able to steer
+A more regionalised sense-checking process is precisely what catches mistakes in spuriously accurate top-down data and encourages development of deeper, more devolved knowledge networks.
 
-Two: there is a vast body of theoretical work to consider with a "planning under conditions of deep uncertainty" @haasnoot2013 heading. Game-theoretic ideas, Manski's application of minimax regret @stoye2012, a full dive into cybernetic thinking, trying to comprehend decision-making as algedonic (pain/pleasure) signals in a viable system.
-
-The potential damage depends on if we think cliff edges are ahead, or if we unnecessarily travel at a snail's pace or go in an entirely wrong direction.
-
-, especially type I 'false alarms'.
-
-As with Michael following vampires toward cliff edges, we check surroundings and steer more carefully.
-
-That then lets regions get a better grip on the steering wheel. Reaction to data errors can be more fluid.
-
-Regionally, both false alarms and undetected misses
-
-There isn't a clean answer, only test and learn combined with considering existing theory about decisionmaking in uncertainty. But that can quickly lapse in abstraction - how to keep exploration grounded?
-
-Not to say theory doesn't matter, but theory disconnected from practice can drift into abstraction
-
-If we drop horse-race thinking, it points back towards what we *do* know, and that basket of knowledge is quite a different thing. Quantitative data is part of it, but may not be sufficient by itself.
-
-Implications will be best tested at the point decisions are being mulled, including current industrial strategy choices. It is less theoretical, but more iterative and test/learn-oriented. The three examples included above could be one way of exploring these implications. If these are the differences between single-point and uncertain estimates, what could that mean for thinking through where regional economies really are?
-
-Choices are never binary in the way that type I/II thinking encourages, however. Michael was making constant steering decisions as he proceeded - initially on a 'no cliff ahead' basis until new lighthouse information arrived. This has to be part of the thinking - how to use uncertain data to steer? That does raise cybernetic ideas again, but any theoretical ideas are probably most valuable inside a test/learning context, not set in stone beforehand.
-
-We've had false positives from spuriously accurate data where there were actual errors, both of the ranking type: "this city is the UK's number one for growth" and "this region is the UK's number one advanced cluster for x."
-
-The issue might not be that the ranking was wrong, but that this kind of thinking is fundamentally unproductive. As we can see above, where it's possible to detect signal in the noise, that is useful. But where fog remains, that
-
-### Possible further uncertainty if... thens
-
-Possible extensions to adding uncertainty to GVA and other economic data could include:
-
--   Applying the same methods to lower geographies like ITL2 and 3 would require making assumptions about sample size, but - in the same spirit of if/then - that would be entirely doable, and could be simply applied through the sample-to-standard error conversion. It is one extra estimation step away from the work above though (as it would be if we combined sectors).
-
--   Chained volume data could be used to compare different places to each other. For example, it should be possible to estimate how much more uncertain growth slopes ('compound annual growth rates' i.e. putting straight lines through change over time) could be. This would allow the equivalent question to be answered: "Has this sector in this place really grown more than elsewhere?" (This would build on the 'significance of growth slopes' work I have already done e.g. [here](https://danolner.github.io/RegionalEconomicTools/quarto_docs/Yorkshire_n_Humber_growthslope_catalogue_Nov2025.html), but that just uses standard OLS error rates sometimes with [Newey West](https://en.wikipedia.org/wiki/Newey–West_estimator) applied).
-
--   Error values are supplied for hours worked from the annual population survey. Combined with the GVA numbers, it would be possible to place uncertainty on productivity numbers.
-
--   Using other sources to estimate uncertainty in job counts. There's BRES, and also Companies House data - the latter with very large 'sample sizes'.
-
--   Sensitivity testing around assumptions. There are no single 'correct' answers. The approach above can pull out very clearly strong growth signals, but one could explore less conservative assumptions and compare to other sources. We could also use other statistical methods - for example, there is likely information in the correlation between timepoints in @fig-eastmidsfab's latter high values that could change the picture.
+@haasnoot2013 DASS natural fit test/learn/iterate
 
 ------------------------------------------------------------------------
 

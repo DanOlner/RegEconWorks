@@ -1,0 +1,100 @@
+---
+title: "Adding uncertainty to regional GVA part 2: what could it mean for policy?"
+author: "Dan Olner"
+date: last-modified
+format:
+  html:
+    toc: true
+    output-file: index.html
+  pdf:
+    toc: true
+    output-file: uncertainty-regional-gva.pdf
+execute:
+  echo: false
+  message: false
+  warning: false
+bibliography: references.bib
+---
+
+
+## Discussion
+
+This discussion covers two things:
+
+1.  What the next step - thinking through implications for regional economic policy - might look like. That includes asking some open questions.
+2.  What else could be done to add uncertainty to economic data.
+
+### What are the implications for regional economic thinking if we take uncertainty seriously?
+
+Often, we have to work with point estimates. Sometimes, it's optimal to do so. Allocation of funding is an obvious example - whether through the UK Index of Multiple Deprivation at small scale, or European objective 1 funding given to NUTS2 zones with GDP per head below 75% of the EU average (no longer in the UK of course), point estimates seem like the only practical approach. Issues are entirely acknowledged but spurious accuracy is weighed against the 'merit of simplicity' [@bofinger2003 p.p.9], potentially a strong policy advantage if it aids efficiency and legibility.
+
+The closer decisions get to regions, however, the less point estimates hold up. Why? Spuriously accurate point data masks the need for deeper regional knowledge structures that need building bottom-up and connected into decision-making.
+
+Coyle and Muhtar @coyle2023 explore this brilliantly. They identify a structural 'failure to learn' at regional level in the UK. Due to an historic lack of bottom-up development (that they suggest is present in places like Japan and the U.S.) there is an "absence of mechanisms for feedback and learning from local outcomes" which they identify as a "fundamental institutional weakness".
+
+All that the inclusion of error bars does is help face the reality of top-down data (a symptom of the problems Coyle and Muhtar talk about) and the relative immaturity of data/policy sinews below national level. Error makes the fog visible, and so directs us back towards our regions, what we concretely know about them, and how that knowledge is built into the choices we make.
+
+A type I or II error for allocation of centrally allocated money might have profound effects, but if the data arrives top-down in the way GVA does, regions have no say in that anyway. For data that regions can build into their own policy loops, quantitative findings can be sense-checked against deep local expertise.
+
+A more regionalised sense-checking process is precisely what catches mistakes in spuriously accurate top-down data (for example, of the 'x region is growing fastest / x advanced sector is largest in the UK' type) and encourages development of deeper, more devolved knowledge networks.
+
+@johnson2013 argue we have a built-in bias towards type I 'false alarms' mattering more, for good reason:
+
+> "We sometimes think sticks are snakes (which is harmless), but rarely that snakes are sticks (which can be deadly)."
+
+This is embodied in the precautionary principle: "extra precaution is justified when false negatives are worse than false positives" @persson2016. Michael is best using this - it's safer to assume vampire David is leading him off a cliff, even if he isn't.
+
+But the opposite "there is no cliff oh no yes there is" false negative need not be so immediately deadly - the cumulative effect of type II errors can be more insidious. They are often a symptom of how data is used. The 'streetlight effect' captures this perfectly [@kirman1992 p.p.134]. This is like:
+
+> "... the person who, having dropped his keys in a dark place, chose to look for them under a streetlight since it was easier to see there."
+
+False negatives can become systemic when we mistake a data source for reality. Often, we don't know what we don't know, or we do but have no other information to rely on. This can be particular pernicious when hard-to-reach groups are simply not visible (people not in education, employment or training - NEETs - are a prime example).
+
+It is all these issues that spuriously accurate data masks.
+
+The value of Coyle and x's paper is -
+
+looking to theory is the wrong direction
+
+the issue is how to develop
+
+praxis point from below here - theory only gets so far when goal is building the sinews that Coyle and x suggest are flimsy or missing
+
+data is the lifeblood of that, but turn back to region shows that need not be narrowly defined
+
+create much richer, multi-faceted picture - not much use for horse-race policy, but arguably better for building functional devolved knowledge networks able to steer
+
+Two: there is a vast body of theoretical work to consider with a "planning under conditions of deep uncertainty" @haasnoot2013 heading. Game-theoretic ideas, Manski's application of minimax regret @stoye2012, a full dive into cybernetic thinking, trying to comprehend decision-making as algedonic (pain/pleasure) signals in a viable system.
+
+The potential damage depends on if we think cliff edges are ahead, or if we unnecessarily travel at a snail's pace or go in an entirely wrong direction.
+
+, especially type I 'false alarms'.
+
+As with Michael following vampires toward cliff edges, we check surroundings and steer more carefully.
+
+That then lets regions get a better grip on the steering wheel. Reaction to data errors can be more fluid.
+
+Regionally, both false alarms and undetected misses
+
+There isn't a clean answer, only test and learn combined with considering existing theory about decisionmaking in uncertainty. But that can quickly lapse in abstraction - how to keep exploration grounded?
+
+Not to say theory doesn't matter, but theory disconnected from practice can drift into abstraction
+
+If we drop horse-race thinking, it points back towards what we *do* know, and that basket of knowledge is quite a different thing. Quantitative data is part of it, but may not be sufficient by itself.
+
+Implications will be best tested at the point decisions are being mulled, including current industrial strategy choices. It is less theoretical, but more iterative and test/learn-oriented. The three examples included above could be one way of exploring these implications. If these are the differences between single-point and uncertain estimates, what could that mean for thinking through where regional economies really are?
+
+Choices are never binary in the way that type I/II thinking encourages, however. Michael was making constant steering decisions as he proceeded - initially on a 'no cliff ahead' basis until new lighthouse information arrived. This has to be part of the thinking - how to use uncertain data to steer? That does raise cybernetic ideas again, but any theoretical ideas are probably most valuable inside a test/learning context, not set in stone beforehand.
+
+We've had false positives from spuriously accurate data where there were actual errors, both of the ranking type: "this city is the UK's number one for growth" and "this region is the UK's number one advanced cluster for x."
+
+The issue might not be that the ranking was wrong, but that this kind of thinking is fundamentally unproductive. As we can see above, where it's possible to detect signal in the noise, that is useful. But where fog remains, that
+
+Possible extensions to adding uncertainty to GVA and other economic data could include:
+
+-   Applying the same methods to lower geographies like ITL2 and 3 would require making assumptions about sample size, but - in the same spirit of if/then - that would be entirely doable, and could be simply applied through the sample-to-standard error conversion. It is one extra estimation step away from the work above though (as it would be if we combined sectors).
+
+-   Error values are supplied for hours worked from the annual population survey. Combined with the GVA numbers, it would be possible to place uncertainty on productivity numbers.
+
+-   Using other sources to estimate uncertainty in job counts. There's BRES, and also Companies House data - the latter with very large 'sample sizes'.
+
