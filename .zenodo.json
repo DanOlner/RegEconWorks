@@ -1,6 +1,4 @@
 {
-    // Zenodo-specific metadata. This takes priority over CITATION.cff for Zenodo archiving.
-    // See: https://help.zenodo.org/docs/github/describe-software/zenodo-json/
     "creators": [
         {
             "name": "Olner, Dan",
@@ -27,8 +25,5 @@
             "resource_type": "publication-other"
         }
     ],
-    "communities": [
-        // Uncomment and fill in if you join a Zenodo community
-        // {"identifier": "your-community-slug"}
-    ]
+    "communities": []
 }
