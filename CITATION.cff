@@ -5,8 +5,9 @@ authors:
     given-names: Dan
     orcid: "https://orcid.org/0000-0001-7584-6033"
 title: "RegionalEconomicTools"
-version: 0.1.0
-date-released: "2025-02-10"
+version: 0.1.1
+doi: "10.5281/zenodo.18876673"
+date-released: "2026-03-05"
 license: MIT
 url: "https://github.com/DanOlner/RegEconWorks"
 repository-code: "https://github.com/DanOlner/RegEconWorks"
