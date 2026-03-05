@@ -2065,6 +2065,15 @@ plot_focal_LQ_year_comparison(LQ_with_sim_CIs, "South East",
 # Reload data (in case running from here)
 itl1.cv.linked = read_csv('data/itl1_cv_withestimatederrorratefromABS.csv')
 
+# Dan bit: check on slopes for individual sector place combos
+ggplot(
+  itl1.cv.linked %>% filter(qg('yorkshire', Region_name), qg('prof', SIC07_description)),
+  aes(x = year, y = value)
+) +
+  geom_point() +
+  geom_smooth(method = 'lm')
+
+
 # Also get the vanilla OLS slopes for comparison
 slopes_ols <- get_slope_and_se_safely(
   itl1.cv.linked,

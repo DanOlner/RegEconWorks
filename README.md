@@ -24,7 +24,7 @@ What's here so far, and the roadmap for things to add (which will update and cha
   - [x] Chunk 1: Applying Annual Business Survey uncertainty data to regional GVA and looking at the results; asking some questions about implications; discussing a top Lost Boys scene that helps with type I / II errors. Online draft [here](https://danolner.github.io/RegEconWorks/chunks/uncertainty_in_regionalGVA/), made in [this folder](docs/chunks/).
   - [ ] Chunk 2 (not started): What chunk 1 - trying to separate economic signal and noise - might imply for regional decionmaking. Chunk 1 discusses this a bit in its closing section.
 
-Other national-accounts related chunks that may be useful:
+## Other national-accounts related chunks that may be useful:
 
 - [ ] Public sector output: understanding the potential impact of lack of actual productivity measures on regional output
 - [ ] Imputed rent: necessary for comparative national accounts, what effect on measures of regional output? (It's left out of some productivity measures but not all).

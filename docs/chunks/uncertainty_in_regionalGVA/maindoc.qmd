@@ -124,8 +124,6 @@ This competitive view has deep roots in national accounts approaches, originatin
 
 There are counter-arguments that point estimates are the only plausible tool in many policy areas such as funding allocation (see the final section below). I am not trying to suggest uncertainty is the only valid tool. But it should be one valid tool, and currently it is one we rarely use in this setting. Including uncertainty points policy toward iterative, slow-test improvements - careful steering in the fog.
 
-To end this section on an obvious point, uncertainty doesn't have to be limited to GVA data, or to ITL1 scale. Smaller geographies with added uncertainty could actually produce more accurate insight, rather than building on average values spread over entire regions (that is clear, for example, from the [subregional LQ numbers](https://danolner.github.io/RegionalEconomicTools/quarto_docs/Yorkshire_n_Humber_sector_catalogue_November2025.html#manufacture-of-basic-and-fabricated-metal-products) in Yorkshire and Humber, even without error). Error from the annual population survey, BRES data or Companies House could help understand jobs and productivity.
-
 ## Making a data-driven guess about the level of regional GVA uncertainty
 
 This section presents the method and results for making a data-driven educated guess at the level of uncertainty in UK region-by-sector GVA numbers. The ONS [region by industry GVA data](https://www.ons.gov.uk/economy/grossvalueaddedgva/datasets/nominalandrealregionalgrossvalueaddedbalancedbyindustry) is used for the central estimate numbers.
@@ -273,7 +271,7 @@ Next, we use the triangle plot approach to look at 'real' (inflation/quality adj
 
 ![](images/clipboard-2302802112.png){#fig-london-cv-triangleplot}
 
-## What next?
+## So what?
 
 > **"We demand rigidly defined areas of doubt and uncertainty."** Vroomfondel, Amalgamated Union of Philosophers, Sages, Luminaries and Other Thinking Persons. (Hitchhiker's Guide to the Galaxy)[^6]
 
@@ -289,15 +287,17 @@ But why do this if we don't have to? And how might decision-making be affected i
 
 1.  How to think about error and uncertainty?
 
-There's plenty of theory on this topic (e.g. "planning under conditions of deep uncertainty" @haasnoot2013, game-theoretic ideas, Manski's application of minimax regret @stoye2012) but it might not be the best place to begin. Let's start more broadly.
+There's plenty of theory on this topic (e.g. "planning under conditions of deep uncertainty" @haasnoot2013, game-theoretic ideas) but it may not be the best place to start. Manski's application of minimax regret @stoye2012, for example, sounds sensible - quantifying the worst risks, comparing and minimising them. But as [this](https://www.ofgem.gov.uk/publications/decision-making-future-energy-systems) excellent analysis of uncertainty in energy planning points out, approaches like this demand their own forms of 'incredible certitude' to specify their exact trade-off calculations:
 
-"... especially in the context of long-term decision-making in which deep uncertainties are present, there is no “automated” method of analysis for the management of these uncertainties so as to arrive at an optimal decision. Rather, it is necessary to proceed as we have outlined in the rest of this report – see, especially, Section 4 – so that, inevitably, judgements are required at many stages in the decision-making process." [@dent2021 p.p.16]
+> "... especially in the context of long-term decision-making in which deep uncertainties are present, there is no 'automated' method of analysis for \[their management\] so as to arrive at an optimal decision. Rather... judgements are required at many stages in the decision-making process." [@dent2021 p.p.16]
 
-@johnson2013 argue we have a built-in bias towards type I 'false alarms' mattering more, for good reason:
+They point back towards thinking through how decision processes are designed to be iterative and flexible. More on that below.
+
+It is, however, useful to hold in mind the wrong directions we might steer towards: things we mistakenly believe to be true (type I errors) and things we may be missing or are overlooking (type II). This report naturally lends itself to the 'false alarm' type I, as added uncertainty can turn a positive into an "unsure" very easily (every ITL1 has at least one sector that goes from 'signal' to 'noise in this data). And these are the errors that tend to be noisiest when they happen. @johnson2013 argue we have a built-in bias towards type I 'false alarms' mattering more, for good reason:
 
 > "We sometimes think sticks are snakes (which is harmless), but rarely that snakes are sticks (which can be deadly)."
 
-This is embodied in the precautionary principle: "extra precaution is justified when false negatives are worse than false positives" @persson2016. In the chasing-vampires example, Michael is best using this - it's safer to assume David is leading him off a cliff, even if he isn't.
+This is embodied in the precautionary principle: "Extra precaution is justified when false negatives are worse than false positives" @persson2016. In the chasing-vampires example, Michael is best using this - it's safer to assume David is leading him off a cliff, even if he isn't.
 
 Spurious accuracy can make the precautionary principle seem unappealing, however. Precise claims of the 'x region is growing fastest / x advanced sector is largest in the UK' type, in isolation, can be hard to resist. Uncertainty around those would allow a little more precaution where it could be vital.
 
@@ -305,23 +305,25 @@ But while the opposite "there is no cliff oh argh yes there is" false negative n
 
 > "... the person who, having dropped his keys in a dark place, chose to look for them under a streetlight since it was easier to see there."
 
-False negatives - failing to see what's there - can become systemic when we mistake a narrow data source for reality. We shouldn't default to using what data there is, just because it's what is available. Again - the fog is information. It suggests slowing down to think through our information systems. As with Michael following vampires toward cliff edges, we can check surroundings and steer more carefully.
+False negatives - failing to see what's there - can become systemic when we mistake a narrow data source for reality. The error can be more subtle and systemic - for example, if our hypothesis is that foundational sectors in the creative or building economies are downstream of growth choices, their lack of economic signal may make them even more likely to fall from our thinking.
 
-So there are reasons to suspect uncertainty might help to steer between both types of blindspot. But in what ways, exactly? In day to day policy choices, what would be different?
+But we shouldn't default to seeing with what data there is, just because it's what is available. Again - the fog is information. It suggests slowing down to think through our information systems. As with Michael following vampires toward cliff edges, we can check surroundings and steer more carefully.
 
-This is what we think might be true. What if it is true? What if we've got that wrong?
-
-False negative? Foundational economy - can mostly ignore, growth comes via tradeable.
+So there are reasons to suspect uncertainty might help to steer between both types of blindspot. But in what ways, exactly? In day to day policy choices, what would be different? [Thoughts please](https://github.com/DanOlner/RegEconWorks/blob/master/FEEDBACK.md).
 
 2.  Spuriously accurate GVA data blinds us to the need for deeper regional knowledge structures built bottom-up.
 
-Coyle and Muhtar @coyle2023 explore this brilliantly. They identify a structural 'failure to learn' at regional level in the UK. Due to an historic lack of bottom-up development (hey suggest Japan and the U.S. as place where this has happened successfuly) there is an "absence of mechanisms for feedback and learning from local outcomes" which they identify as a "fundamental institutional weakness".
+Coyle and Muhtar @coyle2023 explore this brilliantly. They identify a structural 'failure to learn' at regional level in the UK. Due to an historic lack of bottom-up development (they suggest Japan and the U.S. as places where this has happened successfuly) there is an "absence of mechanisms for feedback and learning from local outcomes" which they identify as a "fundamental institutional weakness".
 
 A plausible stab at uncertainty helps focus minds towards the weaknesses of top-down data and the relative immaturity of data/policy sinews below national level they identify. Error makes the fog visible, and so directs us back towards our regions, what we concretely know about them, and how that knowledge is built into the choices we make.
 
 A more regionalised sense-checking process is precisely what catches mistakes in spuriously accurate top-down data and encourages development of deeper, more devolved knowledge networks.
 
-@haasnoot2013 DASS natural fit test/learn/iterate
+## What next?
+
+I'll aim to talk to people about ways uncertainty like this might affect thinking and decisionmaking, as well as what errors I'm making in the approach (there will be many). Again - [any and all feedback welcome](https://github.com/DanOlner/RegEconWorks/blob/master/FEEDBACK.md).
+
+It would be useful to think about other ways to include uncertainty. Of course, it doesn't have to be - and shouldn't be - limited to GVA data, or to ITL1 scale. Smaller geographies with added uncertainty could actually produce more accurate insight, rather than building on average values spread over entire regions (that is clear, for example, from the [subregional LQ numbers](https://danolner.github.io/RegionalEconomicTools/quarto_docs/Yorkshire_n_Humber_sector_catalogue_November2025.html#manufacture-of-basic-and-fabricated-metal-products) in Yorkshire and Humber, even without error). Error from the annual population survey, BRES data or Companies House could help understand jobs and productivity.
 
 ------------------------------------------------------------------------
 
