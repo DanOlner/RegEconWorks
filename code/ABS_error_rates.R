@@ -2943,7 +2943,9 @@ plot_focal_split_coloured <- function(combined_data, focal_region,
     lo_ols  <- sort(rank_counts_ols  %>% slice_max(n_lower,  n = top_bottom_n, with_ties = FALSE) %>% pull(SIC07_description_shortened))
     lo_comb <- sort(rank_counts_comb %>% slice_max(n_lower,  n = top_bottom_n, with_ties = FALSE) %>% pull(SIC07_description_shortened))
 
-    rank_label <- if (!is.null(sig_rank_by)) paste0(" (ranked by ", sig_rank_by, ")") else ""
+    # Turn this off, it messes the plot up
+    rank_label <- ""
+    # rank_label <- if (!is.null(sig_rank_by)) paste0(" (ranked by ", sig_rank_by, ")") else ""
     p_hi_ols  <- build_sig_panel("se_ols",      hi_ols,  paste0("Most higher — OLS only", rank_label), "left",  FALSE)
     p_hi_comb <- build_sig_panel("se_combined", hi_comb, paste0("Most higher — OLS + extra", rank_label), "right", FALSE)
     p_lo_ols  <- build_sig_panel("se_ols",      lo_ols,  paste0("Most lower — OLS only", rank_label),  "left",  TRUE)
