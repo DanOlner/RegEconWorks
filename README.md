@@ -54,15 +54,6 @@ See the [feedback doc here](FEEDBACK.md) for ways to input/comment - any feedbac
 - **Text/narrative**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 - **Data**: See [data/README.md](data/README.md) for data-specific terms
 
-## Reproducibility
-
-This project uses [`renv`](https://rstudio.github.io/renv/) to lock R package versions. After cloning, run:
-
-```r
-renv::restore()
-```
-
-You may need to make sure you're running the approriate R version.
 
 ## LLM
 
