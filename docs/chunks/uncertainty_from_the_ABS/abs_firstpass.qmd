@@ -1,0 +1,480 @@
+---
+title: "ABS uncertainty: first pass"
+subtitle: "Working note: what the new ABS data prep does, and what it shows so far"
+author: "Drafted by Claude Code (Claude Opus 5.5) for Dan Olner"
+date: 2026-10-19
+date-format: "D MMMM YYYY"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    output-file: abs_firstpass.html
+    embed-resources: true
+    fig-width: 8
+    fig-height: 5
+    fig-dpi: 150
+execute:
+  echo: false
+  message: false
+  warning: false
+---
+
+```{r}
+#| label: setup
+
+library(tidyverse)
+library(knitr)
+
+options(scipen = 999)
+
+# Paths are relative to this file: docs/chunks/uncertainty_from_the_ABS/
+abs_long <- read_csv('../../../data/abs_itl1_long.csv', col_types = cols(SIC_code = 'c'), show_col_types = FALSE)
+abs_legacy <- read_csv('../../../data/abs_itl1_aGVA_legacyshape.csv', col_types = cols(SIC07_code = 'c'), show_col_types = FALSE)
+abs_revisions <- read_csv('../../../data/abs_itl1_revisions.csv', col_types = cols(SIC_code = 'c'), show_col_types = FALSE)
+
+itl1 <- '^TL[C-N]$'
+
+# Colours: reference palette from the dataviz guidance, light mode.
+# Two categorical slots and a five-step ordinal blue ramp (both validated), recessive chrome.
+col_1 <- '#2a78d6'
+col_2 <- '#eb6834'
+ink <- '#0b0b0b'
+ink_2 <- '#52514e'
+muted <- '#898781'
+grid_col <- '#e1e0d9'
+base_col <- '#c3c2b7'
+surface <- '#fcfcfb'
+blues <- c('#86b6ef', '#5598e7', '#2a78d6', '#1c5cab', '#0d366b')
+
+theme_note <- function() {
+  theme_minimal(base_size = 11) +
+    theme(
+      plot.background = element_rect(fill = surface, colour = NA),
+      panel.grid.major = element_line(colour = grid_col, linewidth = 0.3),
+      panel.grid.minor = element_blank(),
+      axis.text = element_text(colour = ink_2),
+      axis.title = element_text(colour = ink_2),
+      plot.title = element_text(colour = ink, face = 'bold', size = 12),
+      plot.subtitle = element_text(colour = ink_2, size = 10),
+      plot.caption = element_text(colour = muted, size = 8, hjust = 0),
+      strip.text = element_text(colour = ink, face = 'bold', hjust = 0),
+      legend.position = 'top',
+      legend.justification = 'left',
+      legend.text = element_text(colour = ink_2),
+      legend.title = element_text(colour = ink_2)
+    )
+}
+
+short_region <- function(x) {
+  x %>%
+    str_replace('Yorkshire and The Humber', 'Yorkshire & Humber') %>%
+    str_replace('East of England', 'East of England')
+}
+
+pct <- function(x, digits = 0) paste0(round(100 * x, digits), '%')
+```
+
+```{r}
+#| label: headline-numbers
+
+aGVA_itl1 <- abs_long %>% filter(variable == 'aGVA', str_detect(ITL_code, itl1))
+
+# Suppression and precision by level, 2012-2024
+share_hidden_div <- aGVA_itl1 %>% filter(level == 'division', year >= 2012) %>% pull(value_flag) %>% {mean(. %in% '[c]')}
+share_hidden_sec <- aGVA_itl1 %>% filter(level == 'section', year >= 2012) %>% pull(value_flag) %>% {mean(. %in% '[c]')}
+med_cov_div <- aGVA_itl1 %>% filter(level == 'division', year >= 2012, value > 0) %>% pull(CoV100) %>% median(na.rm = TRUE)
+med_cov_sec <- aGVA_itl1 %>% filter(level == 'section', year >= 2012, value > 0) %>% pull(CoV100) %>% median(na.rm = TRUE)
+
+# Independence checks
+quad_sectors <- aGVA_itl1 %>%
+  filter(level == 'division', year >= 2012) %>%
+  group_by(ITL_code, year, section) %>%
+  summarise(n = n(), all_se = all(!is.na(SE)), combined = sqrt(sum(SE^2)), .groups = 'drop') %>%
+  filter(all_se, n > 1) %>%
+  inner_join(
+    aGVA_itl1 %>% filter(level == 'section') %>% select(ITL_code, year, section = SIC_code, published = SE),
+    by = c('ITL_code', 'year', 'section')
+  ) %>%
+  filter(!is.na(published)) %>%
+  mutate(panel = 'Across sectors: section SE vs its two-digit SEs combined')
+
+uk_div <- abs_long %>%
+  filter(variable == 'aGVA', level == 'division', ITL_code == 'UK', year >= 2012) %>%
+  select(SIC_code, year, published = SE)
+
+quad_regions <- aGVA_itl1 %>%
+  filter(level == 'division', year >= 2012) %>%
+  group_by(SIC_code, year) %>%
+  summarise(n = sum(!is.na(SE)), combined = sqrt(sum(SE^2)), .groups = 'drop') %>%
+  filter(n == 12) %>%
+  inner_join(uk_div, by = c('SIC_code', 'year')) %>%
+  filter(!is.na(published)) %>%
+  mutate(panel = 'Across regions: UK SE vs the 12 regional SEs combined')
+
+ratio_sectors <- median(quad_sectors$published / quad_sectors$combined)
+ratio_regions <- median(quad_regions$published / quad_regions$combined)
+
+# Year-on-year changes distinguishable from sampling noise (95%), by level
+yoy <- aGVA_itl1 %>%
+  filter(level %in% c('division', 'section'), year >= 2012, !is.na(value), !is.na(SE), SE > 0) %>%
+  arrange(ITL_code, SIC_code, year) %>%
+  group_by(level, ITL_code, SIC_code) %>%
+  mutate(z = abs(value - lag(value)) / sqrt(SE^2 + lag(SE)^2), gap = year - lag(year)) %>%
+  ungroup() %>%
+  filter(gap == 1)
+yoy_sig_div <- mean(yoy$z[yoy$level == 'division'] > 1.96)
+yoy_sig_sec <- mean(yoy$z[yoy$level == 'section'] > 1.96)
+
+# Revisions
+rev_div <- abs_revisions %>%
+  filter(variable == 'aGVA', level == 'division', str_detect(ITL_code, itl1), !is.na(revision_pct), !is.na(revision_over_SE))
+rev_2023 <- rev_div %>% filter(revision_type == 'planned', year == 2023)
+rev_2023_med <- median(abs(rev_2023$revision_pct))
+rev_2023_p90 <- quantile(abs(rev_2023$revision_pct), 0.9)
+rev_2023_1se <- mean(abs(rev_2023$revision_over_SE) <= 1)
+rev_2023_2se <- mean(abs(rev_2023$revision_over_SE) <= 2)
+
+# Share of each region's 2024 aGVA sitting in hidden cells
+hidden_share <- aGVA_itl1 %>%
+  filter(year == 2024, level %in% c('remainder', 'total')) %>%
+  group_by(Region_name) %>%
+  summarise(
+    hidden = sum(value[level == 'remainder'], na.rm = TRUE),
+    total = value[level == 'total'],
+    .groups = 'drop'
+  ) %>%
+  mutate(hidden_share = hidden / total)
+```
+
+## What this is
+
+A first look at what the new ABS data prep produces and what it shows. It's a working note, not a draft of the chunk. It was drafted by Claude Code, and the decisions behind it are Dan's.
+
+The idea, from the [journal](ABS_uncertainty_journal.md): the earlier chunk ("Uncertainty in regional GVA") took error rates from the Annual Business Survey (ABS) and grafted them onto region-by-industry GVA. This pass instead works with the ABS figures and their own standard errors directly. That's survey data we can understand, with no national-accounts balancing in between.
+
+Everything here is computed at render time from three files made by `code/ABS_direct_dataprep.R`:
+
+- `data/abs_itl1_long.csv`: all four ABS variables with SEs, the 12 ITL1 regions plus England and the UK, 2008–2024 (SEs from 2012).
+- `data/abs_itl1_aGVA_legacyshape.csv`: aGVA in the column shape the old `ABS_error_rates.R` functions expect.
+- `data/abs_itl1_revisions.csv`: how much published figures changed between editions.
+
+The full reasoning, checks and decisions are in `llm_output/abs_direct_uncertainty_planner.md`. All values are nominal (current prices), by decision. This note doesn't try "real".
+
+## Headlines
+
+- **There's an extra year.** The 2024 regional ABS came out on 4 June 2026, so values now run 2008–2024 and SEs 2012–2024.
+- **The ABS is internally consistent in useful ways.** The regions add up to the UK total. And sampling errors are effectively independent across sectors: a section's published SE matches its two-digit SEs combined, with a median ratio of `r round(ratio_sectors, 3)`. That means we can build honest SEs for any grouping of sectors.
+- **Detail costs certainty.** At two-digit level, `r pct(share_hidden_div, 1)` of region × sector aGVA cells are hidden, and the median CoV is `r round(med_cov_div, 1)`%. At section level it's `r pct(share_hidden_sec, 1)` hidden and `r round(med_cov_sec, 1)`%. But even for sections, only `r pct(yoy_sig_sec)` of year-on-year changes can be told apart from sampling noise (`r pct(yoy_sig_div)` at two-digit level).
+- **Hidden cells can be handled for totals, but not individually.** "Remainder" rows recover how much each section's hidden cells add up to, so sums match the published totals. Estimating individual hidden cells from neighbouring years was tested and doesn't work well enough.
+- **The newest year always moves.** Each year's first figures are revised once, a year later. For 2023, the median two-digit regional revision was `r round(rev_2023_med, 1)`% (90th percentile `r round(rev_2023_p90, 0)`%). Most revisions sit within the SE (`r pct(rev_2023_1se)` within 1 SE), but the tail doesn't, and the published SEs don't include revision error. 2023 also had a separate processing error, now corrected.
+- **The old analysis tools work on ABS-only data.** The Monte Carlo LQ and slope functions from the earlier chunk run unchanged on the new file. The LQ one is shown in section 5; the slope one was smoke-tested but isn't plotted here.
+
+## 1. What the ABS gives us at ITL1
+
+Only four variables, all in £m at current prices: total turnover, approximate GVA (aGVA), purchases of goods, materials and services, and employment costs. Each has a standard error from 2012. There are no employment counts (moved to BRES), no business counts and no volume measures.
+
+Coverage is the non-financial business economy, about two-thirds of the economy: no finance (K), and only private provision in education and health. aGVA is at basic prices, so product duties come off (tobacco, fuel, alcohol). Employment costs exclude working proprietors' pay.
+
+```{r}
+#| label: tbl-variables
+#| tbl-cap: "Precision and suppression by variable, 12 ITL1 regions, 2012–2024. CoV = SE / |value|, for positive values."
+
+abs_long %>%
+  filter(str_detect(ITL_code, itl1), year >= 2012, level %in% c('division', 'section')) %>%
+  group_by(variable, level) %>%
+  summarise(
+    hidden = mean(value_flag %in% '[c]'),
+    med_cov = median(CoV100[value > 0], na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  pivot_wider(names_from = level, values_from = c(hidden, med_cov)) %>%
+  mutate(
+    variable = recode(variable, aGVA = 'aGVA', turnover = 'Turnover', purchases = 'Purchases',
+                      employment_costs = 'Employment costs'),
+    across(starts_with('hidden'), ~ pct(., 1)),
+    across(starts_with('med_cov'), ~ paste0(round(., 1), '%'))
+  ) %>%
+  select(variable, hidden_division, med_cov_division, hidden_section, med_cov_section) %>%
+  kable(col.names = c('Variable', 'Hidden (two-digit)', 'Median CoV (two-digit)', 'Hidden (section)', 'Median CoV (section)'),
+        align = 'lrrrr')
+```
+
+Purchases and aGVA are the most often hidden and the least precise of the four. Turnover and employment costs are tighter. aGVA is roughly turnover minus purchases, so errors in both feed into it.
+
+## 2. How precise are the regional numbers?
+
+```{r}
+#| label: fig-cov-heatmap
+#| fig-cap: "Coefficient of variation of aGVA by section and region, 2024. Darker = less precise. Grey = hidden or no SE."
+#| fig-height: 6.5
+
+cov_bins <- c('under 5%', '5–10%', '10–20%', '20–40%', '40%+')
+
+cov_sections <- aGVA_itl1 %>%
+  filter(level == 'section', year == 2024) %>%
+  mutate(
+    region = short_region(Region_name),
+    sector = paste0(SIC_code, '  ', str_trunc(SIC_description, 38)),
+    cov_plot = ifelse(!is.na(value) & value > 0, CoV100, NA),
+    cov_bin = cut(cov_plot, breaks = c(0, 5, 10, 20, 40, Inf), labels = cov_bins, right = FALSE),
+    cov_bin = fct_na_value_to_level(cov_bin, 'Hidden')
+  )
+
+sector_order <- cov_sections %>% group_by(sector) %>% summarise(m = median(cov_plot, na.rm = TRUE)) %>% arrange(m) %>% pull(sector)
+region_order <- cov_sections %>% group_by(region) %>% summarise(m = median(cov_plot, na.rm = TRUE)) %>% arrange(m) %>% pull(region)
+
+ggplot(cov_sections, aes(x = factor(region, levels = region_order), y = factor(sector, levels = rev(sector_order)), fill = cov_bin)) +
+  geom_tile(colour = surface, linewidth = 0.8) +
+  # Only bins present in the data appear in the legend; colours stay tied to bin names
+  scale_fill_manual(
+    values = c(set_names(blues, cov_bins), 'Hidden' = grid_col),
+    name = 'CoV'
+  ) +
+  guides(fill = guide_legend(nrow = 1)) +
+  labs(x = NULL, y = NULL) +
+  theme_note() +
+  theme(
+    axis.text.x = element_text(angle = 40, hjust = 1, vjust = 1),
+    panel.grid.major = element_blank(),
+    legend.location = 'plot'
+  )
+```
+
+Even at section level, precision varies a lot.
+
+- **By section:** manufacturing, wholesale and retail, and transport are the most precise (median CoV across regions about 3.5%). Other services, real estate, agriculture, mining and construction are the least precise (medians 10–15%, and up to 36% in individual regions). Hidden section cells are rare, mostly in mining, water and waste, transport and education.
+- **By region:** sorted by median CoV, regions don't follow a simple size pattern. In 2024 Scotland is the most precise (3.6%) and Northern Ireland the least (9.1%), with London second-least (7.7%).
+- **The region order depends on the level.** Pool two-digit cells over 2012–2024 and Scotland and Northern Ireland come out jointly most precise, with Wales and the North East least. So "which regions are measured well" depends on the level you look at. The ABS technical report doesn't explain the regional differences; worth asking ONS.
+
+## 3. Hidden cells and the remainder rows
+
+```{r}
+#| label: fig-suppression-trend
+#| fig-cap: "Share of two-digit × region aGVA cells hidden by ONS ([c]), 12 ITL1 regions."
+#| fig-height: 3.5
+
+aGVA_itl1 %>%
+  filter(level == 'division') %>%
+  group_by(year) %>%
+  summarise(share = mean(value_flag %in% '[c]'), .groups = 'drop') %>%
+  ggplot(aes(x = year, y = share)) +
+  geom_line(colour = col_1, linewidth = 0.8) +
+  geom_point(colour = col_1, size = 2.2) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, NA)) +
+  scale_x_continuous(breaks = seq(2008, 2024, 2)) +
+  labs(x = NULL, y = 'Cells hidden') +
+  theme_note()
+```
+
+ONS hides cells that could reveal an individual business's figures. The share jumped in 2019 and has stayed around 15% since. Hidden amounts still count in the published section and regional totals. So for each section, *published section total minus visible two-digit cells* gives the combined size of the hidden cells: the **suppressed remainder**. It becomes one extra row per section, region, year and variable. Where a whole section is hidden, the leftover goes into one whole-economy remainder row instead.
+
+Remainders make sums right: totals, shares and LQ denominators. With them, the two-digit rows add up to the published totals within £7m. They are **not** estimates of individual hidden sectors, and shouldn't be plotted or ranked as if they were.
+
+```{r}
+#| label: fig-hidden-share
+#| fig-cap: "Share of each region's 2024 aGVA that sits in hidden two-digit cells (the remainder rows)."
+#| fig-height: 4
+
+hidden_share %>%
+  mutate(region = short_region(Region_name)) %>%
+  ggplot(aes(x = hidden_share, y = fct_reorder(region, hidden_share))) +
+  geom_col(fill = col_1, width = 0.7) +
+  scale_x_continuous(labels = scales::percent_format(accuracy = 1), expand = expansion(mult = c(0, 0.05))) +
+  labs(x = 'Share of aGVA in hidden cells', y = NULL) +
+  theme_note() +
+  theme(panel.grid.major.y = element_blank())
+```
+
+In 2024 that ranges from `r sprintf('%.1f%%', 100 * min(hidden_share$hidden_share))` to `r sprintf('%.1f%%', 100 * max(hidden_share$hidden_share))` of a region's aGVA. That's the amount that would quietly drop out of any total built by summing visible two-digit cells.
+
+**Could we estimate the hidden cells from neighbouring years instead?** We tested it (`code/ABS_direct_suppression_test.R`), and it doesn't work well enough:
+
+- Suppression is persistent. Of 1,634 hidden cells (2012–2024), only 45% have the same cell published in an adjacent year, and 18% are never published at all.
+- Where neighbouring years do exist, the estimates are rough (see the table below).
+
+The best option combines both methods: split the known remainder in proportion to neighbouring-year shares. But that's only possible for 45% of section-years.
+
+```{r}
+#| label: tbl-neighbour-test
+#| tbl-cap: "Rebuilding the two smallest two-digit cells in fully published section-years, after hiding them. From code/ABS_direct_suppression_test.R (run 19 Oct 2026)."
+
+tribble(
+  ~Method, ~`Median error`, ~`90th percentile error`, ~`Within 1 SE`, ~`Within 2 SE`,
+  'Neighbouring-year shares alone', '14.3%', '57.6%', '49%', '75%',
+  'Known remainder, split by neighbouring-year shares', '10.1%', '43.2%', '61%', '82%',
+  'Known remainder, split equally', '30.2%', '129.6%', '25%', '46%'
+) %>%
+  kable(align = 'lrrrr')
+```
+
+## 4. Are sampling errors independent?
+
+A lot rests on this: whether SEs can be combined for sector groupings, whether the remainder SE is valid, and whether the Monte Carlo draws can treat cells independently. If errors are independent, the SE of a sum is the square root of the summed squared SEs. ONS publishes SEs at several levels, so we can check.
+
+```{r}
+#| label: fig-independence
+#| fig-cap: "Published SEs (y) vs SEs combined assuming independence (x), aGVA, 2012–2024, log scales. Points on the line = independence holds."
+#| fig-height: 4.5
+
+ratio_labels <- tibble(
+  panel = c(unique(quad_sectors$panel), unique(quad_regions$panel)),
+  label = c(paste0('median ratio ', round(ratio_sectors, 3)), paste0('median ratio ', round(ratio_regions, 3)))
+) %>%
+  # Same factor levels in every layer, or ggplot falls back to alphabetical panel order
+  mutate(panel = factor(panel, levels = panel))
+
+bind_rows(quad_sectors %>% select(panel, combined, published), quad_regions %>% select(panel, combined, published)) %>%
+  filter(combined > 0, published > 0) %>%
+  mutate(panel = factor(panel, levels = levels(ratio_labels$panel))) %>%
+  ggplot(aes(x = combined, y = published)) +
+  geom_abline(slope = 1, intercept = 0, colour = ink_2, linewidth = 0.4) +
+  geom_point(colour = col_1, alpha = 0.25, size = 1.1) +
+  geom_text(data = ratio_labels, aes(x = 0, y = Inf, label = label), inherit.aes = FALSE,
+            hjust = -0.1, vjust = 1.5, colour = ink_2, size = 3.3) +
+  scale_x_log10(labels = scales::comma) +
+  scale_y_log10(labels = scales::comma) +
+  facet_wrap(~ panel, ncol = 2, labeller = label_wrap_gen(32)) +
+  labs(x = 'Combined assuming independence (£m)', y = 'Published SE (£m)') +
+  theme_note() +
+  theme(plot.margin = margin(5.5, 20, 5.5, 5.5), panel.spacing = unit(1.5, 'lines'))
+```
+
+**Across sectors (left), independence holds closely.** That suggests the survey's sample strata sit within sectors. So we can build proper SEs for any custom sector grouping, replacing the old GVA-weighted average of CoVs, and the remainder SEs are valid.
+
+**Across regions (right), the UK SE is typically a little smaller than independence implies** (median ratio `r round(ratio_regions, 3)`). That's mild negative correlation, which fits regions being slices of one national sample. Treating regions as independent is slightly cautious for sums across regions. The tail above the line is probably businesses split across several regions.
+
+## 5. What the uncertainty means in practice
+
+### One region, one sector, over time
+
+```{r}
+#| label: fig-timeseries
+#| fig-cap: "aGVA with 95% confidence band, Yorkshire & Humber. Hollow point: 2024 is provisional and will be revised next year."
+#| fig-height: 4
+
+ts <- aGVA_itl1 %>%
+  filter(ITL_code == 'TLE', year >= 2012,
+         (level == 'division' & SIC_code == '25') | (level == 'section' & SIC_code == 'C')) %>%
+  mutate(panel = ifelse(level == 'section', 'Section C: all manufacturing', 'Two-digit 25: fabricated metal products'))
+
+ggplot(ts, aes(x = year, y = value)) +
+  geom_ribbon(aes(ymin = min95, ymax = max95), fill = col_1, alpha = 0.18) +
+  geom_line(colour = col_1, linewidth = 0.8) +
+  geom_point(aes(shape = provisional), colour = col_1, fill = surface, size = 2.2, stroke = 0.9) +
+  scale_shape_manual(values = c(`FALSE` = 16, `TRUE` = 21), guide = 'none') +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_continuous(breaks = seq(2012, 2024, 2)) +
+  facet_wrap(~ panel, scales = 'free_y') +
+  labs(x = NULL, y = 'aGVA (£m, current prices)') +
+  theme_note()
+```
+
+The same region at two levels. Manufacturing as a whole has a tight band, so its bigger movements stand out from the noise: the fall in 2019 and the jump in 2021–22. Fabricated metal on its own has a band wide enough that many year-to-year moves are within noise. For example, its 2018 and 2019 bands overlap.
+
+Across all regions and sectors, `r pct(yoy_sig_div)` of two-digit year-on-year changes and `r pct(yoy_sig_sec)` of section-level ones are distinguishable at 95%. These are nominal changes, so some of what does show is prices.
+
+### Comparing regions: location quotients with simulated uncertainty
+
+```{r}
+#| label: lq-simulation
+#| output: false
+
+# Location-quotient helper from the RegionalEconomicTools repo, as used by ABS_error_rates.R
+source('https://raw.githubusercontent.com/DanOlner/RegionalEconomicTools/refs/heads/gh-pages/functions/misc_functions.R')
+
+# Pull simulate_LQ_with_CIs out of ABS_error_rates.R without running the rest of that script
+old_script <- parse('../../../code/ABS_error_rates.R')
+is_lq_fn <- map_lgl(as.list(old_script), function(e) {
+  is.call(e) && identical(e[[1]], as.name('<-')) && identical(e[[2]], as.name('simulate_LQ_with_CIs'))
+})
+eval(old_script[[which(is_lq_fn)]])
+
+lq_2024 <- simulate_LQ_with_CIs(abs_legacy, years = 2024, n_sims = 300)
+```
+
+```{r}
+#| label: fig-lq
+#| fig-cap: "2024 location quotients (aGVA) with 95% intervals from 300 Monte Carlo draws, using the ABS's own values and SEs. Log scale; 1 = same share as the UK."
+#| fig-height: 5.5
+
+lq_plot <- lq_2024 %>%
+  inner_join(abs_legacy %>% distinct(SIC07_code, SIC07_description), by = 'SIC07_description') %>%
+  filter(SIC07_code %in% c('25', '62')) %>%
+  mutate(
+    sector = ifelse(SIC07_code == '25', '25: fabricated metal products', '62: computer programming etc.'),
+    region = short_region(Region_name),
+    region_in_sector = paste(region, sector, sep = '___')
+  )
+
+ggplot(lq_plot, aes(y = fct_reorder(region_in_sector, LQ_central))) +
+  geom_vline(xintercept = 1, colour = base_col, linewidth = 0.5) +
+  geom_linerange(aes(xmin = LQ_p025, xmax = LQ_p975), colour = col_1, linewidth = 0.9) +
+  geom_point(aes(x = LQ_central), colour = col_1, size = 2.4) +
+  scale_y_discrete(labels = function(x) str_remove(x, '___.*')) +
+  scale_x_log10() +
+  facet_wrap(~ sector, scales = 'free_y', ncol = 2) +
+  labs(x = 'Location quotient (log scale)', y = NULL) +
+  theme_note() +
+  theme(panel.grid.major.y = element_blank(), plot.margin = margin(5.5, 20, 5.5, 5.5))
+```
+
+These come from the earlier chunk's own `simulate_LQ_with_CIs`, run unchanged on the ABS-only file. The suppressed remainder rows make its totals right.
+
+Fabricated metal shows clear regional structure: the Midlands, Yorkshire and the North East are well above 1, and London far below, with intervals that mostly separate. Neighbouring ranks (for example the two Midlands regions) often overlap. Computer programming is dominated by London and the South East.
+
+These are ABS-only LQs. Their denominator is the non-financial business economy, not the whole economy as in region-by-industry GVA, so they won't match the earlier chunk's numbers.
+
+## 6. Revisions: the newest year always moves
+
+```{r}
+#| label: fig-revisions
+#| fig-cap: "Revisions to two-digit × region aGVA, in units of the cell's SE. Vertical lines at ±1 and ±2 SE. Tails beyond ±4 are piled at the edges."
+#| fig-height: 5.5
+
+rev_div %>%
+  mutate(
+    panel = case_when(
+      revision_type == 'planned' & year == 2022 ~ 'Planned revision to 2022 figures (2022 → 2023 edition)',
+      revision_type == 'planned' & year == 2023 ~ 'Planned revision to 2023 figures (2023 → 2024 edition)',
+      TRUE ~ 'Error correction to 2023 figures (May → Sep 2025)'
+    ),
+    panel = factor(panel, levels = c(
+      'Planned revision to 2022 figures (2022 → 2023 edition)',
+      'Planned revision to 2023 figures (2023 → 2024 edition)',
+      'Error correction to 2023 figures (May → Sep 2025)'
+    )),
+    z = pmax(pmin(revision_over_SE, 4), -4)
+  ) %>%
+  ggplot(aes(x = z)) +
+  geom_vline(xintercept = c(-2, -1, 1, 2), colour = base_col, linewidth = 0.4) +
+  geom_histogram(binwidth = 0.2, boundary = 0, fill = col_1, colour = surface, linewidth = 0.3) +
+  scale_x_continuous(breaks = -4:4) +
+  facet_wrap(~ panel, ncol = 1) +
+  labs(x = 'Revision ÷ SE', y = 'Cells') +
+  theme_note()
+```
+
+ONS revises each year's figures once, in the following year's release, as late returns arrive and businesses correct their data. Years before that never moved between the editions checked. The planned revisions to 2022 and 2023 look alike: most within 1 SE (`r pct(rev_2023_1se)` for 2023), but `r pct(1 - rev_2023_2se)` beyond 2 SE.
+
+The 2023 figures also had a separate processing error ("a methods problem in the system used to collect and process the business survey data"). The correction in September 2025 raised UK aGVA by 0.7% and moved some sectors by up to 11% (human health). The earlier chunk had already used the corrected data.
+
+Two implications:
+
+- The latest year (2024 now) is effectively provisional, and is flagged as such in the data.
+- The published SEs cover sampling error only. Revision error comes on top.
+
+## 7. Caveats and what's next
+
+- **Nominal throughout.** Unpicking how hard "real" is comes later.
+- **The SEs are sampling error only.** They exclude revision error and the model ONS uses to split multi-site businesses across regions. That gap will matter more below ITL1.
+- **The sector level is still open.** Two-digit, sections, or custom groupings with combined SEs (see the planner, question 2).
+- **Ratios come later:** aGVA/turnover, a labour-share proxy, and their SEs.
+- **Next step from the journal:** estimate how SEs would grow at ITL2/ITL3, using business counts and the ABS sample design.
+- **Small things to note:**
+  - ABS LQs use a non-financial business economy denominator.
+  - Some remainder rows have no derivable SE and are held fixed in simulations.
+  - The regional and national ABS totals differ by up to 0.6% for reasons ONS doesn't explain.
+
+## How this was made
+
+Drafted by Claude Code (Claude Opus 5.5) in a working session with Dan Olner on 19 October 2026, following Dan's instructions and decisions. Code: `code/ABS_direct_functions.R`, `code/ABS_direct_dataprep.R` and `code/ABS_direct_suppression_test.R`. Every figure and inline number is computed from the `data/` files when this page renders, except the neighbouring-years table, which is copied from the test script's output. The LQ figure also sources the location-quotient helper from the RegionalEconomicTools repo.
