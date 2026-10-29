@@ -1,0 +1,699 @@
+---
+title: "Wages and profits in GVA"
+subtitle: "Working note: how GVA splits between pay and profit across industries, supply chains, countries and places, with new UK and US calculations"
+author: "Drafted by Claude Code (Claude Opus 5.5) for Dan Olner"
+date: 2026-10-29
+date-format: "D MMMM YYYY"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    output-file: wage_profit_shares.html
+    embed-resources: true
+    fig-width: 8
+    fig-height: 5
+    fig-dpi: 150
+execute:
+  echo: false
+  message: false
+  warning: false
+---
+
+```{r}
+#| label: setup
+
+library(tidyverse)
+library(knitr)
+library(sf)
+library(ggrepel)
+library(patchwork)
+
+options(scipen = 999)
+
+# The analysis scripts use paths relative to the project root, so run everything from there.
+# This file lives in docs/chunks/wage_profit_shares/
+knitr::opts_knit$set(root.dir = normalizePath('../../..'))
+
+# Colours: reference palette from the dataviz guidance, light mode (as in the ABS first-pass note).
+# Categorical slots in fixed order, a one-hue blue ramp for magnitude, blue-red for diverging
+cat_cols <- c('#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300')
+col_1 <- cat_cols[1]
+col_2 <- cat_cols[2]
+ink <- '#0b0b0b'
+ink_2 <- '#52514e'
+muted <- '#898781'
+context_grey <- '#c3c2b7'
+grid_col <- '#e1e0d9'
+surface <- '#fcfcfb'
+diverge_mid <- '#f0efec'
+diverge_low <- '#e34948'
+blue_light <- '#cde2fb'
+blue_mid_light <- '#86b6ef'
+blue_dark <- '#0d366b'
+
+theme_note <- function() {
+  theme_minimal(base_size = 11) +
+    theme(
+      plot.background = element_rect(fill = surface, colour = NA),
+      panel.grid.major = element_line(colour = grid_col, linewidth = 0.3),
+      panel.grid.minor = element_blank(),
+      axis.text = element_text(colour = ink_2),
+      axis.title = element_text(colour = ink_2),
+      plot.title = element_text(colour = ink, face = 'bold', size = 12),
+      plot.subtitle = element_text(colour = ink_2, size = 10),
+      plot.caption = element_text(colour = muted, size = 8, hjust = 0),
+      strip.text = element_text(colour = ink, face = 'bold', hjust = 0),
+      legend.position = 'top',
+      legend.justification = 'left',
+      legend.text = element_text(colour = ink_2),
+      legend.title = element_text(colour = ink_2)
+    )
+}
+
+pct <- function(x, digits = 0) paste0(format(round(100 * x, digits), nsmall = digits), '%')
+pts <- function(x, digits = 1) format(round(100 * x, digits), nsmall = digits)
+
+short_region <- function(x) {
+  x %>%
+    str_replace('Yorkshire and The Humber', 'Yorkshire & Humber') %>%
+    str_replace('Northumberland, Durham and Tyne & Wear', 'Northumberland, Durham, Tyne & Wear')
+}
+
+# Short names for the regional components' industry groups
+sic_names <- c(
+  'A (1-3)' = 'Agriculture', 'B (5-9)' = 'Mining and quarrying', 'CA (10-12)' = 'Food and drink',
+  'CB (13-15)' = 'Textiles', 'CC (16-18)' = 'Wood, paper, printing', 'CD-CE (19-20)' = 'Petroleum and chemicals',
+  'CF (21)' = 'Pharmaceuticals', 'CG (22-23)' = 'Rubber, plastics, minerals', 'CH (24-25)' = 'Metals',
+  'CI (26)' = 'Computers and electronics', 'CJ (27)' = 'Electrical equipment', 'CK (28)' = 'Machinery',
+  'CL (29-30)' = 'Transport equipment', 'CM (31-33)' = 'Other manufacturing', 'D (35)' = 'Energy supply',
+  'E (36-39)' = 'Water and waste', 'F (41-43)' = 'Construction', 'G (45-47)' = 'Wholesale and retail',
+  'H (49-53)' = 'Transport and storage', 'I (55-56)' = 'Accommodation and food', 'J (58-63)' = 'Information and communication',
+  'K (64-66)' = 'Finance and insurance', 'L (68)' = 'Real estate', 'M (69-75)' = 'Professional and scientific',
+  'N (77-82)' = 'Administrative and support', 'O (84)' = 'Public administration', 'P (85)' = 'Education',
+  'Q (86-88)' = 'Health and social work', 'R (90-93)' = 'Arts and recreation', 'S (94-96)' = 'Other services',
+  'T (97-98)' = 'Households as employers'
+)
+```
+
+```{r}
+#| label: run-analysis
+#| include: false
+
+# Each script downloads its raw data once into local/wage_profit_raw/ (gitignored) and leaves
+# its results in named objects. Their console printing is hidden here
+source('code/wage_profit_shares/01_ons_labour_share_article.R')
+source('code/wage_profit_shares/02_io_supply_chain_shares.R')
+source('code/wage_profit_shares/03_regional_shares.R')
+source('code/wage_profit_shares/04_abs_crosscheck.R')
+source('code/wage_profit_shares/05_us_states.R')
+```
+
+```{r}
+#| label: key-numbers
+
+ls_method5 <- ons$methods %>% mutate(year = as.integer(label)) %>% select(year, ls = `Method 5`)
+m5 <- function(y) ls_method5$ls[ls_method5$year == y] / 100
+
+owner_occ_share <- owner_occ$GVA / io_totals$GVA
+ratio_ex_housing <- io_totals$D1 / (io_totals$GOS - owner_occ$GOS)
+
+own_sd <- io_spread$sd[io_spread$measure == 'own_ls']
+chain_sd <- io_spread$sd[io_spread$measure == 'chain_ls']
+
+# Regions are compared with UK less Extra-Regio (UKX), which is what they add up to
+itl1_regions <- itl1_table %>% filter(!code %in% uk_codes)
+uk_row <- itl1_table %>% filter(code == 'UKX')
+london <- itl1_table %>% filter(region == 'London')
+north_east <- itl1_table %>% filter(region == 'North East')
+london_gap <- uk_row$ls_exL - london$ls_exL
+london_mix_gap <- uk_row$ls_exL - london$ls_mix
+
+itl2_low <- itl2_table %>% slice_min(ls_exL, n = 1)
+itl2_high <- itl2_table %>% slice_max(ls_exL, n = 1)
+
+finance_spread <- itl1_industry_spread %>% filter(sic == 'K (64-66)')
+
+abs_cor_2019 <- abs_vs_gvab_cor$spearman[abs_vs_gvab_cor$year == 2019]
+abs_cor_2023 <- abs_vs_gvab_cor$spearman[abs_vs_gvab_cor$year == 2023]
+
+us_low <- us_states %>% slice_min(ls_exRE, n = 1)
+us_high <- us_states %>% slice_max(ls_exRE, n = 1)
+```
+
+## What this is
+
+This note shows the outputs of the scripts in [code/wage_profit_shares](https://github.com/DanOlner/RegEconWorks/tree/master/code/wage_profit_shares), alongside the main points of the longer write-up, [wage_profit_shares_gva.md](https://github.com/DanOlner/RegEconWorks/blob/master/llm_output/wage_profit_shares_gva.md). The write-up has the full literature review, all the sources and the caveats. This note keeps to the headlines and the charts.
+
+The question: what do we know, empirically, about how GVA splits between wages and profits, and how that varies within and across sectors, supply chains, countries and places?
+
+The calculations are new, made with five public datasets:
+
+- ONS's chart data from its [November 2024 labour share article](https://www.ons.gov.uk/economy/economicoutputandproductivity/output/articles/trendsintheuklabourshare1997to2023/2024-11-25);
+- ONS's [2023 input–output analytical tables](https://www.ons.gov.uk/economy/nationalaccounts/supplyandusetables/datasets/ukinputoutputanalyticaltablesdetailed);
+- ONS's [regional GVA(B) income components](https://www.ons.gov.uk/economy/grossvalueaddedgva/datasets/nominalregionalgrossvalueaddedbalancedperheadandincomecomponents), ITL1 and ITL2 by industry, 1998–2023;
+- the repo's own ABS file, `data/abs_itl1_long.csv`, which carries standard errors;
+- BEA's [state GDP by income component](https://apps.bea.gov/regional/zip/SAGDP.zip), 1997–2025.
+
+## Headlines
+
+- **UK: about £1.17 of pay for every £1 of profit, or 1.5 to 1 without housing.** In 2023, compensation of employees was `r pct(io_totals$D1_share)` of GVA at basic prices, and operating surplus and mixed income `r pct(io_totals$GOS_share)`. Owner-occupiers' imputed rent, which no firm earns, is `r pct(owner_occ_share)` of GVA. Taking it out, pay is `r round(ratio_ex_housing, 2)` times the remaining surplus.
+- **The UK labour share has risen since the mid-1990s.** ONS's preferred measure was `r pct(m5(2023), 1)` in 2023, up from `r pct(m5(1996), 1)` in 1996. The US fell over the same period.
+- **Industries differ far more than places.** Industry labour shares run from almost zero to over 80%. Excluding real estate, ITL1 regions sit between `r pct(min(itl1_regions$ls_exL))` and `r pct(max(itl1_regions$ls_exL))`.
+- **Supply chains narrow the spread.** Counting every UK supplier behind each product, the spread of labour shares across products falls by `r pct(1 - chain_sd / own_sd)`. Much of the capital income in labour-intensive service chains is earned by suppliers, especially landlords.
+- **Regional profit shares are partly constructed.** ONS shares out regional profits with indicators, and in finance the indicator is pay. So finance's labour share is almost identical in every region. London's low labour share is mostly within its industries, not its industry mix. But the ABS doesn't reproduce the regional ordering.
+- **Where profits end up is a separate question.** Scotland's GNI was 94% of its GDP in 2021, because profits flow to owners elsewhere. No English region has an equivalent estimate.
+
+## 1. What counts as wages and profits
+
+GVA at basic prices = compensation of employees + gross operating surplus + mixed income + taxes less subsidies on production.
+
+```{r}
+#| label: tbl-components
+
+tibble(
+  Component = c('Compensation of employees', 'Gross operating surplus and mixed income', 'Taxes less subsidies on production',
+                'GVA at basic prices', 'of which: owner-occupiers\' housing services'),
+  `£bn` = c(io_totals$D1, io_totals$GOS, io_totals$TaxP, io_totals$GVA, owner_occ$GVA) / 1000,
+  `Share of GVA` = c(io_totals$D1_share, io_totals$GOS_share, io_totals$TaxP_share, 1, owner_occ_share)
+) %>%
+  mutate(`£bn` = format(round(`£bn`), big.mark = ','), `Share of GVA` = pct(`Share of GVA`, 1)) %>%
+  kable(align = 'lrr', caption = 'UK GVA by income component, 2023 (ONS input–output analytical tables, consistent with Blue Book 2025).')
+```
+
+Five things move the measured ratio of pay to profit by more than most real differences do:
+
+1. **Self-employment.** Mixed income is part pay, part profit. ONS's five ways of splitting it give 2023 labour shares from `r pct(ons$methods$"Method 1"[ons$methods$label == '2023'] / 100, 1)` to `r pct(ons$methods$"Method 4"[ons$methods$label == '2023'] / 100, 1)`. Partnerships' profits and one-person companies' dividends count as profit too.
+2. **Housing.** Imputed rent is surplus with no workers attached.
+3. **Depreciation.** Gross surplus includes capital wearing out. ONS's net labour share was `r pct(ons$corp_net$"Total Net Labour Share"[ons$corp_net$label == '2023'] / 100, 1)` in 2023.
+4. **Taxes on production.** In GVA at basic prices but not at factor cost; about 1% of UK GVA.
+5. **Operating surplus isn't pure profit.** It pays for capital and land as well. Barkai estimates the US pure profit share rose by over 12 points while both labour and capital shares fell.
+
+## 2. The UK over time
+
+```{r}
+#| label: fig-uk-long-run
+#| fig-cap: "UK labour share, 1948–2023, % of GVA at factor cost. The band spans ONS's five ways of treating self-employed income (method 4 starts in 1984). Source: ONS chart data, November 2024."
+#| fig-height: 4.2
+
+methods_long <- ons$methods %>%
+  mutate(year = as.integer(label)) %>%
+  pivot_longer(starts_with('Method'), names_to = 'method', values_to = 'ls')
+
+band <- methods_long %>% group_by(year) %>% summarise(lo = min(ls, na.rm = TRUE), hi = max(ls, na.rm = TRUE))
+
+ggplot() +
+  geom_ribbon(data = band, aes(year, ymin = lo, ymax = hi), fill = blue_light) +
+  geom_line(data = ls_method5, aes(year, ls), colour = col_1, linewidth = 0.8) +
+  annotate('text', x = 1985, y = 66, label = 'Range across\nONS\'s five methods', colour = ink_2, size = 3.2, hjust = 0) +
+  annotate('text', x = 2003, y = 55.5, label = 'ONS preferred (method 5)', colour = col_1, size = 3.2, hjust = 0) +
+  scale_y_continuous(labels = function(x) paste0(x, '%')) +
+  scale_x_continuous(breaks = seq(1950, 2020, 10)) +
+  labs(x = NULL, y = NULL) +
+  theme_note()
+```
+
+ONS's preferred labour share was 68% to 74% from 1948 to the late 1960s. It fell to `r pct(m5(1996), 1)` in 1996, rose to `r pct(m5(2001), 1)` by 2001, and has stayed between `r pct(min(ls_method5$ls[ls_method5$year >= 2001]) / 100, 1)` and `r pct(max(ls_method5$ls[ls_method5$year >= 2001]) / 100, 1)` since. ONS links the rise to the National Minimum Wage, more graduates, a tight labour market, much higher employer pension contributions and a shift to services. It says the UK "has not experienced the decoupling between pay and productivity reported in other advanced countries". The median worker is a different story. Teichgraeber and Van Reenen find median wages fell about 25 points behind productivity from 1981 to 2019, mostly because of rising pay inequality and pension costs.
+
+## 3. Across industries
+
+```{r}
+#| label: fig-industry-groups
+#| fig-cap: "UK labour share by broad industry group, % of industry GVA at factor cost, 1997 and 2022. Source: ONS chart data, November 2024."
+#| fig-height: 4.2
+
+ind <- ons$industry %>%
+  rename(industry = label) %>%
+  mutate(industry = str_replace(industry, 'Distribution transports', 'Distribution, transport,') %>%
+           str_replace('Government health and', 'Government, health and')) %>%
+  mutate(industry = fct_reorder(industry, `2022`))
+
+ggplot(ind, aes(y = industry)) +
+  geom_segment(aes(x = `1997`, xend = `2022`, yend = industry), colour = context_grey, linewidth = 0.6) +
+  geom_point(aes(x = `1997`, colour = '1997'), size = 2.6) +
+  geom_point(aes(x = `2022`, colour = '2022'), size = 2.6) +
+  scale_colour_manual(values = c('1997' = muted, '2022' = col_1), name = NULL) +
+  scale_x_continuous(labels = function(x) paste0(x, '%'), limits = c(0, 90)) +
+  labs(x = NULL, y = NULL) +
+  theme_note() +
+  theme(panel.grid.major.y = element_blank())
+```
+
+Of the 4.3 point rise in the all-industry share from 1997 to 2022, ONS attributes 2.4 points to growth in services with higher labour shares. Construction fell 21.6 points. That may reflect growth in self-employment and one-person companies, whose owners' income counts as surplus. That's my guess; I haven't found an ONS explanation.
+
+At the finer product level (next section), labour shares run from `r pct(min(io_compare$own_ls))` (oil and gas extraction) to `r pct(max(io_compare$own_ls))` (membership organisations). Owner-occupied housing and households as employers are excluded. Industries differ for five main reasons:
+
+- capital intensity and resource rents (extraction, energy, water);
+- property (real estate);
+- self-employment (agriculture, construction, personal services);
+- market power and intangibles (pharmaceuticals, alcohol and tobacco, some finance);
+- public services' output being measured by their inputs.
+
+## 4. Within industries: firms
+
+This section is literature only; there's no new calculation.
+
+- **US.** The labour share fell mainly because output moved to "superstar" firms (Autor and others) and "hyper-productive" plants (Kehrig and Vincent) with low labour shares. The typical firm's or plant's share didn't fall.
+- **UK manufacturing.** Valenzuela and Richiardi find the fall from 1998 to 2014 came from the representative firm, not from dispersion between firms.
+- **UK markups and rent sharing.** UK average markups rose about 10% since 1997, mostly at the top of the distribution (CMA). Wages respond much less to firms' profits after 2000 than before (Bell, Bukowski and Machin). Concentrated local labour markets pay non-unionised workers less (Abel, Tenreyro and Thwaites).
+
+Within an industry, then, a firm's labour share is largely the inverse of its margin. That makes it a story about demand and power as much as technology.
+
+## 5. Along supply chains
+
+Chain GVA is final sales minus primary and imported inputs. Prices between stages only decide who gets what, so each stage's pay–profit split depends on bargaining at each link as well as its own technology.
+
+For each of 105 products in the 2023 input–output table, I traced the pay and surplus earned by every UK industry behind its final sales (the Leontief inverse). I then compared that whole-chain labour share with the product's own. Mixed income can't be separated in these tables, so it all counts as surplus. That understates labour shares in chains with many self-employed, such as farming and construction.
+
+```{r}
+#| label: fig-own-vs-chain
+#| fig-cap: "Labour share of each product's own value added (x) and of all UK value added in its supply chain (y), 2023. Points on the diagonal have the same share either way. Point area shows the product's GVA. Mixed income counts as surplus. Source: ONS input–output analytical tables, 2023; my calculation."
+#| fig-height: 6
+
+io_labels <- c(
+  'CPA_B06 & B07' = 'Oil and gas', 'CPA_D351' = 'Electricity', 'CPA_K65.1-2 & K65.3' = 'Insurance and pensions',
+  'CPA_A01' = 'Agriculture', 'CPA_F41, F42 & F43' = 'Construction', 'CPA_Q87 & Q88' = 'Residential care',
+  'CPA_Q86' = 'Health', 'CPA_H51' = 'Air transport', 'CPA_I56' = 'Food and drink serving',
+  'CPA_C107' = 'Bakery', 'CPA_C101' = 'Meat products', 'CPA_G47' = 'Retail', 'CPA_C105' = 'Dairy products',
+  'CPA_L68BXL683' = 'Real estate (excl. fee-based)', 'CPA_P85' = 'Education'
+)
+
+io_plot <- io_compare %>% mutate(label = io_labels[code])
+
+ggplot(io_plot, aes(own_ls, chain_ls)) +
+  geom_abline(slope = 1, intercept = 0, colour = context_grey, linewidth = 0.5) +
+  geom_point(aes(size = GVA / 1000), colour = col_1, alpha = 0.55, stroke = 0) +
+  geom_text_repel(aes(label = label, point.size = sqrt(GVA / 1000)), colour = ink_2, size = 3, min.segment.length = 0,
+                  segment.colour = context_grey, box.padding = 0.5, force = 2, max.overlaps = Inf, seed = 2) +
+  scale_size_area(max_size = 9, name = 'GVA, £bn', breaks = c(10, 50, 100)) +
+  scale_x_continuous(labels = scales::percent, limits = c(0, 0.92)) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 0.92)) +
+  coord_equal() +
+  labs(x = 'Own-stage labour share', y = 'Whole-chain labour share') +
+  theme_note()
+```
+
+```{r}
+#| label: tbl-io-spread
+
+io_spread %>%
+  mutate(measure = recode(measure, own_ls = 'Own stage', chain_ls = 'Whole chain')) %>%
+  arrange(desc(measure)) %>%
+  transmute(Measure = measure, Mean = pct(mean, 1), `Std dev (points)` = pts(sd), `10th pct` = pct(p10, 1),
+            Median = pct(p50, 1), `90th pct` = pct(p90, 1)) %>%
+  kable(align = 'lrrrrr', caption = 'Spread of labour shares across 102 products, weighted by GVA (excluding owner-occupied housing and households as employers).')
+```
+
+Capital-heavy products (energy, extraction, agriculture) have more labour in their chains than in their own stage. Labour-intensive ones (care, health, food service, air transport) have more surplus. The chart below shows where the extra surplus comes from in six chains.
+
+```{r}
+#| label: fig-chain-sources
+#| fig-cap: "Where each chain's surplus (operating surplus and mixed income) arises, 2023: at the product's own stage, or at which suppliers. 'Property rent' is real estate services excluding fee-based services and owner-occupiers' housing. Source: ONS input–output analytical tables, 2023; my calculation."
+#| fig-height: 4
+
+supplier_group <- function(code) {
+  case_when(
+    code == 'CPA_L68BXL683' ~ 'Property rent',
+    code == 'CPA_G46' ~ 'Wholesale',
+    code %in% c('CPA_D351', 'CPA_D352_3') ~ 'Energy',
+    code == 'CPA_N77' ~ 'Rental and leasing',
+    code == 'CPA_A01' ~ 'Agriculture',
+    TRUE ~ 'Other suppliers'
+  )
+}
+
+chains <- c('CPA_I56' = 'Food and drink serving', 'CPA_H51' = 'Air transport', 'CPA_G47' = 'Retail',
+            'CPA_C105' = 'Dairy products', 'CPA_C107' = 'Bakery products', 'CPA_Q86' = 'Health')
+source_levels <- c('Own stage', 'Property rent', 'Wholesale', 'Energy', 'Rental and leasing', 'Agriculture', 'Other suppliers')
+
+chain_decomp <- imap_dfr(chains, function(chain_name, chain_code) {
+  j <- which(products$code == chain_code)
+  tibble(code = products$code, surplus = g * L[, j]) %>%
+    mutate(source = if_else(code == chain_code, 'Own stage', supplier_group(code))) %>%
+    group_by(source) %>%
+    summarise(surplus = sum(surplus), .groups = 'drop') %>%
+    mutate(share = surplus / sum(surplus), chain = chain_name)
+}) %>%
+  mutate(source = factor(source, levels = rev(source_levels)))
+
+chain_order <- chain_decomp %>% filter(source == 'Own stage') %>% arrange(share) %>% pull(chain)
+
+ggplot(chain_decomp, aes(share, factor(chain, levels = chain_order), fill = source)) +
+  geom_col(width = 0.7, colour = surface, linewidth = 0.6) +
+  scale_fill_manual(values = setNames(c(cat_cols, context_grey), source_levels), breaks = source_levels, name = NULL) +
+  scale_x_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.03))) +
+  labs(x = 'Share of the chain\'s surplus', y = NULL) +
+  guides(fill = guide_legend(nrow = 2)) +
+  theme_note() +
+  theme(panel.grid.major.y = element_blank())
+```
+
+```{r}
+#| label: tbl-chain-sources
+
+chain_decomp %>%
+  mutate(source = factor(source, levels = source_levels)) %>%
+  arrange(source) %>%
+  select(chain, source, share) %>%
+  pivot_wider(names_from = source, values_from = share) %>%
+  mutate(chain = factor(chain, levels = rev(chain_order))) %>%
+  arrange(chain) %>%
+  mutate(across(-chain, ~ pct(.x))) %>%
+  rename(Chain = chain) %>%
+  kable(align = 'lrrrrrrr', caption = 'The same shares as the chart above.')
+```
+
+- Retail and health keep most of their chain's surplus at their own stage. In both, property rent is the largest supplier source.
+- In air transport, three quarters of the surplus is earned by suppliers, led by aircraft leasing and property.
+- In dairy and bakery, most surplus is earned upstream, much of it on farms. Farm surplus is mostly farmers' mixed income, which is partly pay for their own work. So these chains' labour shares are understated.
+
+By type of final demand, ONS's own table gives the following (household consumption looks capital-heavy because it includes imputed rent):
+
+```{r}
+#| label: tbl-final-use
+
+final_use_shares %>%
+  filter(!final_use %in% c('Total final use', 'Final consumption expenditure', 'Acquisitions less disposals of valuables', 'Changes in inventories')) %>%
+  mutate(final_use = recode(final_use,
+    'Final consumption expenditure by non-profit organisations serving households (NPISH)' = 'Non-profit institutions',
+    'Final consumption expenditure by government' = 'Government consumption',
+    'Final consumption expenditure by households' = 'Household consumption',
+    'Gross fixed capital formation' = 'Investment (GFCF)',
+    'Exports of goods to rest of the world' = 'Goods exports outside the EU',
+    'Exports of goods to EU' = 'Goods exports to the EU',
+    'Exports of services' = 'Services exports')) %>%
+  transmute(`Final demand` = final_use, `Pay ÷ (pay + surplus)` = pct(labour_share, 1), `Import content per £` = pct(import_content, 1)) %>%
+  kable(align = 'lrr', caption = 'Labour share of the UK value added behind each type of final demand, and its import content, 2023. Source: ONS input–output analytical tables, "Primary input from final use".')
+```
+
+Published chain studies point the same way:
+
+- **US food.** Of each food dollar in 2024, 54.1 cents went to pay and 32.7 cents to property income (USDA ERS).
+- **iPhone.** Apple kept 58.5% of the 2010 iPhone price as profit; Chinese labour got 1.8%.
+- **Global manufacturing value chains.** Capital's share of the value added rose from 40.9% to 47.4% between 1995 and 2008, mostly as income to intangibles (Timmer and others).
+
+## 6. Across countries
+
+```{r}
+#| label: fig-g7
+#| fig-cap: "Labour share index for G7 countries, 1995 = 100 (ONS method 4, because several countries don't separate operating surplus from mixed income). Source: ONS chart data, November 2024."
+#| fig-height: 4.2
+
+g7 <- ons$g7 %>%
+  mutate(year = as.integer(label)) %>%
+  select(-label) %>%
+  pivot_longer(-year, names_to = 'country', values_to = 'index') %>%
+  filter(!is.na(index)) %>%
+  mutate(group = case_when(country == 'UK' ~ 'UK', country == 'US' ~ 'US', TRUE ~ 'Other G7'))
+
+g7_ends <- g7 %>% group_by(country) %>% slice_max(year, n = 1)
+
+ggplot(g7, aes(year, index, group = country, colour = group)) +
+  geom_hline(yintercept = 100, colour = context_grey, linewidth = 0.4) +
+  geom_line(data = filter(g7, group == 'Other G7'), linewidth = 0.5) +
+  geom_line(data = filter(g7, group != 'Other G7'), linewidth = 0.9) +
+  geom_text_repel(data = g7_ends, aes(label = country), hjust = 0, nudge_x = 0.6, direction = 'y', size = 3,
+                  segment.colour = NA, min.segment.length = Inf, box.padding = 0.15, show.legend = FALSE, seed = 1) +
+  scale_colour_manual(values = c('UK' = col_1, 'US' = col_2, 'Other G7' = context_grey), breaks = c('UK', 'US', 'Other G7'), name = NULL) +
+  scale_x_continuous(breaks = seq(1995, 2020, 5), expand = expansion(add = c(0.5, 3))) +
+  labs(x = NULL, y = 'Index, 1995 = 100') +
+  theme_note()
+```
+
+- **Measured gaps between countries are mostly measurement.** Raw labour shares appear to range from 5% to 80% across countries. Once self-employed income is counted, most sit between 65% and 80% (Gollin).
+- **The "global decline" is mostly a US story.** Once housing and self-employment are treated the same way everywhere, most advanced economies show stable or rising labour shares (Gutiérrez and Piton). The long-run rise in the net capital share comes from housing (Rognlie).
+- **Real differences remain.** These come from natural resources, where a country sits in global value chains, and where multinationals book their profits.
+
+## 7. Geography
+
+### 7.1 First: regional profits are shared out, not measured
+
+ONS's regional income components are national totals shared out by indicators. Pay follows BRES jobs × ASHE earnings. Company profits follow ABS operating surplus in most industries, but **pay** in finance and the public sector. So in those industries the regional labour share is set largely by assumption.
+
+```{r}
+#| label: fig-industry-spread
+#| fig-cap: "Range of each industry's labour share across the 12 ITL1 regions (bar) and the value for the UK less Extra-Regio (dot), 2023, % of factor income, mixed income split as in ONS method 5. Source: ONS regional GVA(B) income components; my calculation."
+#| fig-height: 7
+
+spread_plot <- itl1_industry_spread %>%
+  filter(sic != 'T (97-98)') %>%
+  mutate(
+    industry = fct_reorder(sic_names[sic], ukx),
+    allocation = if_else(sic == 'K (64-66)', 'Finance: profits shared out by pay', 'Other industries')
+  )
+
+ggplot(spread_plot, aes(y = industry)) +
+  geom_segment(aes(x = min, xend = max, yend = industry, colour = allocation), linewidth = 2.2, lineend = 'round') +
+  geom_point(aes(x = ukx), colour = ink, size = 1.6) +
+  scale_colour_manual(values = c('Finance: profits shared out by pay' = col_2, 'Other industries' = blue_mid_light), name = NULL) +
+  scale_x_continuous(labels = scales::percent, limits = c(0, 1)) +
+  labs(x = 'Labour share (range across ITL1 regions; dot = UK less Extra-Regio)', y = NULL) +
+  theme_note() +
+  theme(panel.grid.major.y = element_blank())
+```
+
+Finance's labour share runs only from `r pct(finance_spread$min, 1)` to `r pct(finance_spread$max, 1)` across regions. Most manufacturing industries, whose profits follow the ABS, have standard deviations of 5 to 13 points. In ONS's 2009 method, profits outside manufacturing followed pay. So older regional income components showed near-uniform labour shares by construction.
+
+### 7.2 ITL1 regions
+
+```{r}
+#| label: fig-itl1
+#| fig-cap: "Labour share by ITL1 region, 2023, excluding real estate (ONS method 5): actual, and what each region's industry mix would give at the industry labour shares of the UK less Extra-Regio. The vertical line is the UK less Extra-Regio. Source: ONS regional GVA(B) income components; my calculation."
+#| fig-height: 4.5
+
+itl1_plot <- itl1_regions %>%
+  mutate(region = fct_reorder(short_region(recode(region, 'East' = 'East of England')), ls_exL))
+
+ggplot(itl1_plot, aes(y = region)) +
+  geom_vline(xintercept = uk_row$ls_exL, colour = context_grey, linewidth = 0.5) +
+  geom_segment(aes(x = ls_mix, xend = ls_exL, yend = region), colour = context_grey, linewidth = 0.6) +
+  geom_point(aes(x = ls_mix, colour = 'Expected from industry mix'), size = 2.6) +
+  geom_point(aes(x = ls_exL, colour = 'Actual'), size = 2.6) +
+  scale_colour_manual(values = c('Actual' = col_1, 'Expected from industry mix' = col_2), breaks = c('Actual', 'Expected from industry mix'), name = NULL) +
+  scale_x_continuous(labels = scales::percent) +
+  labs(x = 'Labour share, excluding real estate', y = NULL) +
+  theme_note() +
+  theme(panel.grid.major.y = element_blank())
+```
+
+```{r}
+#| label: tbl-itl1
+
+itl1_table %>%
+  mutate(region = short_region(recode(region, 'East' = 'East of England', 'United Kingdom' = 'UK (incl. Extra-Regio)',
+                                      'United Kingdom less Extra-Regio' = 'UK less Extra-Regio'))) %>%
+  transmute(Region = region, `All industries` = pct(ls_all, 1), `Excl. real estate` = pct(ls_exL, 1),
+            `Expected from mix` = if_else(is.na(ls_mix), '', pct(ls_mix, 1)),
+            `Within-industry gap (pts)` = if_else(is.na(within_gap), '', sprintf('%+.1f', 100 * within_gap)),
+            `Trading profits, % of factor income` = pct(profit_share, 1)) %>%
+  kable(align = 'lrrrrr', caption = 'ITL1 labour shares, 2023 (ONS method 5).')
+```
+
+- **London is low, mostly within industries.** London's share is `r pts(london_gap)` points below that of the UK less Extra-Regio, which is what the regions add up to. Its industry mix accounts for `r pts(london_mix_gap)` points of that; the rest comes from higher profit shares within its industries.
+- **Which industries.** The biggest within-industry contributors are professional and scientific services, then wholesale and retail, information and communication, and administrative services.
+- **Not housing.** London's rental income share is the lowest of any region.
+- **One candidate explanation.** Big law and accounting partnerships' profits count as trading profits, though they are partly pay for partners' work. This is my guess and isn't checked.
+- **Scotland.** Food and drink manufacturing (mostly whisky) has a much lower labour share there than in the UK as a whole.
+
+### 7.3 ITL2 areas
+
+```{r}
+#| label: fig-itl2-map
+#| fig-cap: "ITL2 areas, 2023, excluding real estate (ONS method 5). Left: labour share. Right: the within-industry gap, actual minus what the area's industry mix would give at the industry labour shares of the UK less Extra-Regio (red = more profit than the mix suggests). Insets: London's five ITL2 areas. Sources: ONS regional GVA(B) income components; ONS ITL2 (January 2025) boundaries; my calculation."
+#| fig-height: 7
+
+itl2_map <- load_itl2_boundaries() %>%
+  left_join(itl2_table, by = c('ITL225CD' = 'code'))
+
+stopifnot(sum(is.na(itl2_map$ls_exL)) == 0)
+
+london_codes <- c('TLI3', 'TLI4', 'TLI5', 'TLI6', 'TLI7')
+gap_limit <- max(abs(itl2_map$within_gap))
+
+map_theme <- theme_void(base_size = 10) +
+  theme(
+    plot.background = element_rect(fill = surface, colour = NA),
+    legend.position = 'bottom',
+    legend.text = element_text(colour = ink_2, size = 8),
+    legend.title = element_text(colour = ink_2, size = 9),
+    plot.title = element_text(colour = ink, face = 'bold', size = 11)
+  )
+
+# Main UK map plus a London inset, sharing one fill scale so colours mean the same in both
+make_map <- function(fill_var, fill_scale, title) {
+  main <- ggplot(itl2_map) +
+    geom_sf(aes(fill = .data[[fill_var]]), colour = surface, linewidth = 0.2) +
+    fill_scale +
+    labs(title = title) +
+    map_theme
+
+  inset <- ggplot(filter(itl2_map, ITL225CD %in% london_codes)) +
+    geom_sf(aes(fill = .data[[fill_var]]), colour = surface, linewidth = 0.4) +
+    fill_scale +
+    labs(title = 'London') +
+    map_theme +
+    theme(legend.position = 'none', plot.title = element_text(colour = ink_2, face = 'plain', size = 8),
+          plot.background = element_rect(fill = surface, colour = grid_col, linewidth = 0.4))
+
+  main + inset_element(inset, left = 0.62, bottom = 0.5, right = 1, top = 0.8)
+}
+
+ls_scale <- scale_fill_gradient(low = blue_light, high = blue_dark, limits = range(itl2_map$ls_exL),
+                                labels = scales::percent, name = 'Labour share',
+                                guide = guide_colourbar(barwidth = 9, barheight = 0.5, title.position = 'top'))
+
+gap_scale <- scale_fill_gradient2(low = diverge_low, mid = diverge_mid, high = col_1, midpoint = 0, limits = c(-gap_limit, gap_limit),
+                                  labels = function(x) if_else(round(100 * x) == 0, '0', sprintf('%+.0f', 100 * x)),
+                                  name = 'Within-industry gap (points)',
+                                  guide = guide_colourbar(barwidth = 9, barheight = 0.5, title.position = 'top'))
+
+wrap_plots(make_map('ls_exL', ls_scale, 'Labour share'), make_map('within_gap', gap_scale, 'Gap from industry-mix expectation'))
+```
+
+```{r}
+#| label: tbl-itl2-extremes
+
+bind_rows(
+  itl2_table %>% slice_min(ls_exL, n = 6) %>% mutate(group = 'Lowest'),
+  itl2_table %>% slice_max(ls_exL, n = 6) %>% mutate(group = 'Highest')
+) %>%
+  transmute(` ` = group, `ITL2 area` = short_region(region), `Labour share` = pct(ls_exL, 1),
+            `Expected from mix` = pct(ls_mix, 1), `Within-industry gap (pts)` = sprintf('%+.1f', 100 * within_gap)) %>%
+  kable(align = 'llrrr', caption = 'ITL2 areas with the lowest and highest labour shares, 2023, excluding real estate.')
+```
+
+Across all 46 ITL2 areas, labour shares run from `r pct(itl2_low$ls_exL, 1)` (`r itl2_low$region`) to `r pct(itl2_high$ls_exL, 1)` (`r itl2_high$region`). The median is `r pct(itl2_summary$median, 1)` and the standard deviation `r pts(itl2_summary$sd)` points. Within-industry gaps vary more than industry mix (standard deviations `r pts(itl2_summary$sd_within)` and `r pts(itl2_summary$sd_mix)` points). The highest labour shares are mostly in northern and Midlands urban areas, plus Devon and Kent. The lowest are in inner London, Cheshire, North Yorkshire and parts of the East.
+
+### 7.4 Trends
+
+```{r}
+#| label: fig-itl1-trend
+#| fig-cap: "Top: labour share by ITL1 region, 1998–2023, excluding real estate (ONS method 5). Bottom: gap between the highest and lowest region. Source: ONS regional GVA(B) income components; my calculation."
+#| fig-height: 6
+
+trend_plot <- itl1_trend %>%
+  filter(code != 'UK') %>%
+  mutate(series = case_when(code == 'TLI' ~ 'London', code == 'TLC' ~ 'North East',
+                            code == 'UKX' ~ 'UK less Extra-Regio', TRUE ~ 'Other regions'))
+
+trend_ends <- trend_plot %>% filter(series != 'Other regions', year == max(year))
+
+trend_cols <- c('London' = col_1, 'North East' = col_2, 'UK less Extra-Regio' = ink, 'Other regions' = context_grey)
+
+p_trend <- ggplot(trend_plot, aes(year, ls, group = region, colour = series)) +
+  geom_line(data = filter(trend_plot, series == 'Other regions'), linewidth = 0.4) +
+  geom_line(data = filter(trend_plot, series != 'Other regions'), linewidth = 0.9) +
+  geom_text(data = trend_ends, aes(label = series), hjust = 0, nudge_x = 0.4, size = 3, show.legend = FALSE) +
+  scale_colour_manual(values = trend_cols, breaks = names(trend_cols), name = NULL) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_continuous(expand = expansion(add = c(0.5, 6))) +
+  labs(x = NULL, y = 'Labour share') +
+  theme_note()
+
+p_range <- ggplot(itl1_spread_by_year, aes(year, 100 * range)) +
+  geom_line(colour = col_1, linewidth = 0.8) +
+  scale_y_continuous(limits = c(0, NA)) +
+  scale_x_continuous(expand = expansion(add = c(0.5, 6))) +
+  labs(x = NULL, y = 'Highest − lowest\n(points)') +
+  theme_note()
+
+p_trend / p_range + plot_layout(heights = c(3, 1.3))
+```
+
+From 1998 to 2019, the gap between the highest and lowest region ran from `r pts(min(itl1_spread_by_year$range[itl1_spread_by_year$year <= 2019]))` to `r pts(max(itl1_spread_by_year$range[itl1_spread_by_year$year <= 2019]))` points. Since 2020 it has been wider, reaching `r pts(itl1_spread_by_year$range[itl1_spread_by_year$year == 2023])` points in 2023, mostly because London's share fell. Given section 7.1, these data can't tell whether that is real or an artefact of how profits are shared out.
+
+### 7.5 A cross-check with the ABS
+
+The ABS gives employment costs and aGVA for the non-financial business economy by ITL1, with standard errors. I compared its ratio with ONS's balanced components, restricted to roughly the same industries and without a self-employment adjustment.
+
+```{r}
+#| label: fig-abs
+#| fig-cap: "Labour share by ITL1 region: ONS balanced components restricted to roughly the ABS's industries (x; compensation ÷ factor income) against ABS employment costs ÷ aGVA (y), with 95% intervals from ABS standard errors (treating the two errors as independent, so probably too wide). Sources: ONS regional GVA(B) income components; ABS 2024 edition (data/abs_itl1_long.csv); my calculation."
+#| fig-height: 5
+
+abs_plot <- abs_vs_gvab %>%
+  filter(Region_name != 'United Kingdom') %>%
+  mutate(label = short_region(Region_name))
+
+ggplot(abs_plot, aes(gvab_ls_raw, abs_ls)) +
+  geom_errorbar(aes(ymin = abs_ls - 1.96 * abs_se, ymax = abs_ls + 1.96 * abs_se), colour = blue_mid_light, width = 0, linewidth = 0.8) +
+  geom_point(colour = col_1, size = 2.2) +
+  geom_text_repel(aes(label = label), colour = ink_2, size = 2.7, segment.colour = context_grey, min.segment.length = 0, seed = 3) +
+  facet_wrap(~ year) +
+  scale_x_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = 'ONS balanced components (ABS-like industries)', y = 'ABS employment costs ÷ aGVA') +
+  theme_note()
+```
+
+The two sources only weakly agree on the regional ordering: Spearman rank correlations of `r round(abs_cor_2019, 2)` in 2019 and `r round(abs_cor_2023, 2)` in 2023. Their disagreement is larger than the ABS's own sampling error. London is lowest in the ABS in 2019 but mid-table in 2023. So the regional ordering of labour shares depends on the source and the year.
+
+### 7.6 Where the profits go
+
+Workplace GVA records where pay and profit arise, not who receives them.
+
+- **Scotland.** It had a primary income deficit of 5.6% of GDP in 2021, and its GNI has been below its GDP every year since 1998. The Scottish Government points to foreign ownership (including North Sea operators), few UK headquarters in Scotland, and insurance and pension funds whose policyholders live elsewhere.
+- **Ownership.** 58.8% of UK quoted shares were owned overseas at the end of 2024. Foreign-owned firms produced 28.4% of non-financial aGVA in 2020.
+- **Offshore oil and gas.** Extra-Regio produced £`r round(extra_regio$GVA / 1000)`bn of GVA in 2023, with a labour share of about `r pct(extra_regio$ls_raw)`. That profit isn't placed in any region.
+
+No English region or Wales has a GNI estimate. This is the main quantitative gap on the geography of profits.
+
+### 7.7 Comparing with US states
+
+```{r}
+#| label: fig-us-uk
+#| fig-cap: "Spread of labour shares across US states (2024) and UK ITL2 and ITL1 areas (2023), excluding real estate. Raw shares: compensation ÷ (compensation + all other factor income, including self-employed income), so the UK points here are lower than in sections 7.2 and 7.3. Sources: BEA state GDP (SAGDP4, SAGDP7); ONS regional GVA(B) income components; my calculation."
+#| fig-height: 4
+
+spread_compare <- bind_rows(
+  us_states %>% transmute(group = 'US states and DC, 2024', area, ls = ls_exRE),
+  itl2_table %>% transmute(group = 'UK ITL2 areas, 2023', area = region, ls = ls_raw_exL),
+  itl1_regions %>% transmute(group = 'UK ITL1 regions, 2023', area = recode(region, 'East' = 'East of England'), ls = ls_raw_exL)
+) %>%
+  mutate(group = factor(group, levels = c('UK ITL1 regions, 2023', 'UK ITL2 areas, 2023', 'US states and DC, 2024')))
+
+set.seed(4)
+spread_compare <- spread_compare %>% mutate(y_jit = as.numeric(group) + runif(n(), -0.18, 0.18))
+
+spread_ends <- spread_compare %>%
+  group_by(group) %>%
+  filter(ls == min(ls) | ls == max(ls)) %>%
+  ungroup() %>%
+  mutate(area = short_region(area))
+
+ggplot(spread_compare, aes(ls, y_jit)) +
+  geom_point(colour = col_1, alpha = 0.6, size = 2, stroke = 0) +
+  geom_text_repel(data = spread_ends, aes(label = area), colour = ink_2, size = 2.8, nudge_y = 0.32,
+                  segment.colour = context_grey, min.segment.length = 0, seed = 5) +
+  scale_y_continuous(breaks = 1:3, labels = levels(spread_compare$group)) +
+  scale_x_continuous(labels = scales::percent) +
+  labs(x = 'Labour share, excluding real estate (raw)', y = NULL) +
+  theme_note() +
+  theme(panel.grid.major.y = element_blank())
+```
+
+US states vary about twice as much as UK regions. The lowest is `r us_low$area` (`r pct(us_low$ls_exRE, 1)`), with its corporate registrations and finance. The highest is `r us_high$area` (`r pct(us_high$ls_exRE, 1)`), with the federal government. Farm, oil and gas states sit low. Across states, the same industry's labour share varies most in capital-heavy, profit-heavy industries: manufacturing, mining and finance. I haven't checked how BEA shares out multi-state firms' surplus.
+
+The geography is still explained mainly qualitatively:
+
+- spatial divisions of labour, with headquarters and design in core regions and routine production elsewhere (Massey);
+- branch plants sending profits out of their region;
+- where head offices book profits;
+- buyer power over rural suppliers (Webber and Tiwasing);
+- thin, concentrated local labour markets.
+
+## 8. What this means for RegEconWorks
+
+- **Label how each industry's regional profits are shared out** before reading anything into a region's pay–profit split. Finance and public services follow pay; most market industries follow the ABS regional model.
+- **Report labour shares with and without real estate, and with a self-employment adjustment.** These choices move shares by more than most real differences.
+- **Use the ABS as a sampling-error check, not as the truth.** The ABS and ONS disagree by more than the ABS's error bars.
+- **Use supply chains as a second lens.** Whole-chain shares show how property rent and energy feed capital income into service chains. A regional version needs multi-regional input–output tables.
+- **Ask where profits go, not just where they arise.** Scotland's GNI estimates are the model. Firm-level tax data, such as the CenTax Business-to-Worker Register, could test ONS's regional allocation.
+
+## Method, data and caveats
+
+- **Full write-up.** Literature, sources and the list of things not checked are in [wage_profit_shares_gva.md](https://github.com/DanOlner/RegEconWorks/blob/master/llm_output/wage_profit_shares_gva.md).
+- **Code.** All numbers and charts come from the scripts in [code/wage_profit_shares](https://github.com/DanOlner/RegEconWorks/tree/master/code/wage_profit_shares), sourced at the top of this document. They download raw files once into the gitignored `local/wage_profit_raw/`.
+- **Labour share.** "ONS method 5" splits mixed income between pay and profit in the same proportion as the rest of each group's factor income. "Raw" counts all mixed income as profit.
+- **Whole-chain shares.** These use the Leontief inverse of the 2023 domestic input–output table, with imports excluded.
+- **Industry-mix expectations.** These apply UK industry labour shares to each area's factor-income weights, excluding real estate.
+- **The regional components workbook** was downloaded on 29 October 2026 and runs from 1998 to 2023.
