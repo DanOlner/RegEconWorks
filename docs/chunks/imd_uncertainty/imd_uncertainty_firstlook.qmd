@@ -1,0 +1,532 @@
+---
+title: "How uncertain is the Index of Multiple Deprivation?"
+subtitle: "Working note: what open data can tell us about error in the IMD 2025, what shrinkage reveals, and a first lower bound on rank ranges"
+author: "Drafted by Claude Code (Claude Opus 5.5) for Dan Olner"
+date: 2026-11-10
+date-format: "D MMMM YYYY"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    output-file: imd_uncertainty_firstlook.html
+    embed-resources: true
+    fig-width: 8
+    fig-height: 5
+    fig-dpi: 150
+execute:
+  echo: false
+  message: false
+  warning: false
+---
+
+```{r}
+#| label: setup
+
+library(tidyverse)
+library(knitr)
+
+options(scipen = 999)
+
+# The analysis scripts use paths relative to the project root, so run everything from there.
+# This file lives in docs/chunks/imd_uncertainty/
+knitr::opts_knit$set(root.dir = normalizePath('../../..'))
+
+# Colours: reference palette from the dataviz guidance, light mode (as in the other chunks).
+# Categorical slots in fixed order (validated as a 5-slot set), a one-hue blue ramp for magnitude
+cat_cols <- c('#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4')
+col_1 <- cat_cols[1]
+col_2 <- cat_cols[2]
+ink <- '#0b0b0b'
+ink_2 <- '#52514e'
+muted <- '#898781'
+grid_col <- '#e1e0d9'
+surface <- '#fcfcfb'
+blue_light <- '#cde2fb'
+blue_dark <- '#0d366b'
+
+theme_note <- function() {
+  theme_minimal(base_size = 11) +
+    theme(
+      plot.background = element_rect(fill = surface, colour = NA),
+      panel.grid.major = element_line(colour = grid_col, linewidth = 0.3),
+      panel.grid.minor = element_blank(),
+      axis.text = element_text(colour = ink_2),
+      axis.title = element_text(colour = ink_2),
+      plot.title = element_text(colour = ink, face = 'bold', size = 12),
+      plot.subtitle = element_text(colour = ink_2, size = 10),
+      plot.caption = element_text(colour = muted, size = 8, hjust = 0),
+      strip.text = element_text(colour = ink, face = 'bold', hjust = 0),
+      legend.position = 'top',
+      legend.justification = 'left',
+      legend.text = element_text(colour = ink_2),
+      legend.title = element_text(colour = ink_2)
+    )
+}
+
+num <- function(x, digits = 0) format(round(x, digits), big.mark = ',', nsmall = digits, scientific = FALSE)
+pct <- function(x, digits = 0) paste0(num(100 * x, digits), '%')
+```
+
+```{r}
+#| label: run-analysis
+#| include: false
+
+# Each script downloads what it needs once into local/imd_raw/ (gitignored)
+source('code/imd_uncertainty/01_rebuild_imd.R')
+source('code/imd_uncertainty/02_income_rank_intervals.R')
+source('code/imd_uncertainty/03_nominal_weights.R')
+source('code/imd_uncertainty/04_shrinkage_rebuild.R')
+source('code/imd_uncertainty/05_shrinkage_inversion_test.R')
+source('code/imd_uncertainty/06_rare_event_reliability.R')
+source('code/imd_uncertainty/07_income_employment_mc.R')
+```
+
+```{r}
+#| label: key-numbers
+
+inc <- filter(rebuild_summary, domain == 'Income')
+emp <- filter(rebuild_summary, domain == 'Employment')
+access_pct <- function(level) access_share$share_pct[access_share$access == level]
+
+rare_pooled <- filter(rare_reliability, scenario == 'Counts pooled over all years')
+rare_annual <- filter(rare_reliability, scenario == 'Annual average count')
+crime_pooled_w <- range(rare_pooled$median_w[rare_pooled$indicator != 'Road casualties (pedestrians and cyclists)'])
+crime_annual_w <- range(rare_annual$median_w[rare_annual$indicator != 'Road casualties (pedestrians and cyclists)'])
+crime_pooled_se <- range(rare_pooled$median_se_post[rare_pooled$indicator != 'Road casualties (pedestrians and cyclists)'])
+crime_annual_se <- range(rare_annual$median_se_post[rare_annual$indicator != 'Road casualties (pedestrians and cyclists)'])
+rta_pooled <- filter(rare_pooled, indicator == 'Road casualties (pedestrians and cyclists)')
+rta_annual <- filter(rare_annual, indicator == 'Road casualties (pedestrians and cyclists)')
+
+inv <- function(count, which_case, col) inversion_test[[col]][inversion_test$mean_expected_count == count & inversion_test$case == which_case]
+
+gap_needed <- set_names(separation_by_position$median_gap_needed, separation_by_position$position)
+lad_avg_score <- filter(lad_summary, measure == 'avg_score')
+lad_prop_10 <- filter(lad_summary, measure == 'prop_10')
+```
+
+This note follows on from the [research note on IMD uncertainty](https://github.com/DanOlner/RegEconWorks/blob/master/llm_output/imd_rank_uncertainty_research.md), which lists all 55 indicators behind the [English Indices of Deprivation 2025](https://www.gov.uk/government/statistics/english-indices-of-deprivation-2025) and how they are weighted and combined. It does three things:
+
+1. Sets out what the published, open data can and can't tell us about error in the IMD, given that most of the data behind it is held in secure settings (section 2).
+2. Explores whether the IMD's own shrinkage step, which pulls each LSOA's figures towards the average of similar areas in its local authority, can be run backwards to recover how uncertain each LSOA's figures are (section 3).
+3. Uses what that recovers for the Income and Employment domains to put a first, lower-bound range on every LSOA's and local authority's IMD rank (section 4).
+
+Everything here is my own calculation from the published files unless it says otherwise. The R scripts are in [code/imd_uncertainty](https://github.com/DanOlner/RegEconWorks/tree/master/code/imd_uncertainty).
+
+## Summary
+
+- **The last three stages of the IMD can be rerun exactly from published files.** Ranking each domain, the exponential transform, the domain weights and the local authority summaries reproduce the published IMD score to within `r num(rebuild_check$max_abs_score_diff, 4)`, every LSOA's rank to within `r rebuild_check$max_abs_rank_diff` places (ties from rounding), and all `r lad_check$lads` local authorities' summary measures and ranks exactly.
+- **The earlier stages can't be rerun outside secure settings.** Only `r num(access_pct('Counts published'), 0)`% of the IMD's weight (the Income and Employment domains) has published counts, so its chance error can be estimated directly. Another `r num(access_pct('Shrunk rate published'), 0)`% is published as shrunk rates without counts, `r num(access_pct('Standardised ratio or composite only'), 1)`% as standardised ratios or a composite, `r num(access_pct('Modelled or unshrunk, no error published'), 1)`% as modelled or unshrunk values with no error model, and `r num(access_pct('Not published (secure data)'), 1)`% (pupil-level education) not at all.
+- **Shrinkage implies an error for every LSOA, but only if you know the denominator.** Rebuilding the shrinkage for Income and Employment reproduces the published rates closely (correlation `r num(inc$cor_rates, 5)` and `r num(emp$cor_rates, 4)`). The weights on each LSOA's own data are about `r num(inc$median_w, 2)` and `r num(emp$median_w, 2)`, so shrinkage barely changes these domains: the typical relative standard error of an LSOA's rate is about `r pct(inc$median_rse_post)` (Income) and `r pct(emp$median_rse_post)` (Employment).
+- **Running shrinkage backwards works when the denominators and parent groups are known.** In a synthetic test, the counts and errors behind shrunk rates come back almost exactly, even after rounding. Wrong denominators or parent groups overstate the error, by up to about 15% to 20%, which is the safe direction. But the published values alone can't reveal the denominator. The crime and road casualty rates fit equally well under two readings of the method, and the implied errors differ by about two times between them.
+- **A lower bound on rank uncertainty is already large for LSOAs.** Carrying only the chance error in Income and Employment through to the IMD gives a median 90% range of `r num(lsoa_summary$median_width_90)` ranks. `r pct(lsoa_summary$share_spanning_2plus_deciles)` of LSOAs have a range covering two deciles. `r num(lsoa_summary$published_top10_below_95)` of the `r num(lsoa_summary$published_top10)` LSOAs published as the most deprived 10% are less than 95% likely to belong there. Two LSOAs in the most deprived 10% need to be around `r num(gap_needed['Most deprived 10%'])` ranks apart to be told apart at 95%; elsewhere it's around `r num(gap_needed['Least deprived 40%'])`.
+- **For local authorities, chance error mostly averages out.** Their 90% ranges on average score are typically `r lad_avg_score$median_width_90` ranks wide. So for local authorities, the errors that matter are the ones shared across their LSOAs (denominators, recording practice, local-authority-level indicators, modelled inputs), which this first pass doesn't include.
+
+## 1. How the IMD is built, and the parts that can be rerun
+
+The IoD 2025 builds the IMD in seven stages (technical report section 3.1). The first four (choosing domains and indicators, building indicators from microdata, shrinkage, and combining indicators into domains) happen inside the research team and data suppliers' systems. The last three can be rerun by anyone:
+
+- **Stage 5.** Each domain score is ranked across all `r num(basics$lsoas)` LSOAs, and the rank is transformed to an exponential distribution from 0 to 100 that stretches out the most deprived 10%.
+- **Stage 6.** The transformed scores are added with fixed weights, and the total is ranked.
+- **Stage 7.** LSOA scores and ranks are summarised, weighted by population, for each of the `r basics$lads` local authorities.
+
+| Domain | Weight | How its indicators are combined |
+|---|---|---|
+| Income | 22.5% | Non-overlapping benefit counts ÷ total population (9 indicators) |
+| Employment | 22.5% | Non-overlapping benefit counts ÷ population aged 18 to 66 (12 indicators) |
+| Education, skills and training | 13.5% | Children and young people (5 indicators, factor-analysis weights) and adult skills (1), combined 50/50 |
+| Health and disability | 13.5% | 4 indicators, one a 4-part mental health composite, factor-analysis weights |
+| Crime | 9.3% | 8 police-recorded rates, factor-analysis weights |
+| Barriers to housing and services | 9.3% | Geographical barriers (1) and wider barriers (5 items, equal weights), combined 50/50 |
+| Living environment | 9.3% | Indoors (3) and outdoors (3), equal weights within each, combined 70/30 |
+
+```{r}
+#| label: tbl-rebuild
+#| tbl-cap: "Rerunning stages 5 to 7 from the published files. Sources: IoD 2025 Files 7, 9 and 10; my calculation."
+
+tibble(
+  Check = c(
+    'Exponential transform of each published domain rank, against File 9',
+    'IMD score as the weighted sum of File 9 scores, against File 7',
+    'IMD rank from that score, against File 7',
+    'Local authority average score, average rank and share of LSOAs in the most deprived 10%, against File 10'
+  ),
+  Result = c(
+    paste0('Largest difference ', num(max(transform_check$max_abs_diff), 4), ' (File 9 is rounded to 3 decimal places)'),
+    paste0('Largest difference ', num(rebuild_check$max_abs_score_diff, 4), '; correlation ', num(rebuild_check$correlation, 6)),
+    paste0('Every LSOA within ', rebuild_check$max_abs_rank_diff, ' places; the gaps are ties, with ', num(rebuild_check$tied_published_scores), ' tied published scores'),
+    paste0('All ', lad_check$lads, ' match, and all their ranks are identical')
+  )
+) %>%
+  kable()
+```
+
+So any perturbation of the domain scores can be carried through to IMD and local authority ranks exactly as MHCLG would. That is what section 4 does.
+
+## 2. What open data can and can't tell us
+
+@fig-access shows how much of each domain's weight sits on each kind of published data. @tbl-access gives the totals and what each kind allows.
+
+```{r}
+#| label: fig-access
+#| fig-cap: "Nominal share of the IMD by domain and by what File 8 publishes for each indicator. Nominal shares multiply the domain, sub-domain and indicator weights; ranking and the exponential transforms change each indicator's real influence. Sources: IoD 2025 technical report and File 8; my calculation."
+#| fig-height: 4.6
+
+domain_labels <- c(
+  income = 'Income', employment = 'Employment', education = 'Education, skills and training',
+  health = 'Health and disability', crime = 'Crime', barriers = 'Barriers to housing and services',
+  living = 'Living environment'
+)
+
+access_plot_data <- access_by_domain %>%
+  mutate(domain_label = factor(domain_labels[domain], levels = rev(domain_labels)))
+
+domain_totals <- access_plot_data %>%
+  group_by(domain_label) %>%
+  summarise(total = sum(share_pct), .groups = 'drop')
+
+ggplot(access_plot_data, aes(x = share_pct, y = domain_label)) +
+  geom_col(aes(fill = access), width = 0.68, colour = surface, linewidth = 0.7) +
+  geom_text(data = domain_totals, aes(x = total, label = paste0(num(total, 1), '%')), hjust = -0.2, size = 3.3, colour = ink_2) +
+  scale_fill_manual(values = set_names(cat_cols, access_levels), drop = FALSE, name = NULL) +
+  scale_x_continuous(labels = function(x) paste0(x, '%'), expand = expansion(mult = c(0, 0.08))) +
+  guides(fill = guide_legend(ncol = 2)) +
+  labs(x = 'Nominal share of the IMD', y = NULL) +
+  theme_note() +
+  theme(panel.grid.major.y = element_blank())
+```
+
+```{r}
+#| label: tbl-access
+#| tbl-cap: "What is published for each indicator, and what that allows. Share is the nominal share of the IMD. Sources: IoD 2025 technical report and File 8 notes; my calculation."
+
+access_notes <- tribble(
+  ~access, ~examples, ~allows,
+  'Counts published', 'Income and Employment domains', 'Chance error estimated directly from counts and denominators. Limits: counts rounded to the nearest 5, counts under 10 suppressed, no LSOA error for the population denominators.',
+  'Shrunk rate published', 'Crime (8), road casualties, adult skills, entry to higher education, overcrowding, EPC, outdoor space', 'Counts can be recovered by running shrinkage backwards, but only with the right denominators and parent groups (section 3). Crime and road casualty at-risk denominators are not published.',
+  'Standardised ratio or composite only', 'Illness and disability ratio, years of life lost, acute morbidity, mental health composite', 'Needs expected counts from national age-sex rates and LSOA age structure (not attempted here). The four mental health components are published only as a composite of normal scores, so their separate errors are lost.',
+  'Modelled or unshrunk, no error published', 'Connectivity, housing affordability, homelessness (local authority level), broadband, GP ratio, air quality, poor housing, noise', 'No error model at all. Model error would have to come from the modellers (DfT, Heriot-Watt, BRE, Defra, Ofcom), or be assumed and varied.',
+  'Not published (secure data)', 'Key Stage 2 and 4, pupil absence, persistent absence', 'Nothing at LSOA level (DfE restriction). Only the children and young people sub-domain score is published. Needs secure access to the National Pupil Database, or an assumed error.'
+)
+
+access_share %>%
+  left_join(access_notes, by = 'access') %>%
+  transmute(`Published as` = as.character(access), Indicators = indicators, Share = paste0(num(share_pct, 1), '%'), Examples = examples, `What it allows` = allows) %>%
+  kable()
+```
+
+What this means for understanding the IMD's uncertainty:
+
+- **Nobody outside the research team can check stages 1 to 4.** The microdata are held in secure settings: DWP's benefit systems, Home Office asylum records, the National Pupil Database, hospital and mental health records, ONS deaths, and raw police records that could only be processed inside Lancashire Constabulary. The technical report says even the external assessor checked the sensitive parts only after they had been aggregated to LSOAs (paragraph 5.3.18).
+- **Chance error is estimable now for under half the weight.** That's Income and Employment, `r num(access_pct('Counts published'), 0)`%. Section 3 shows another `r num(access_pct('Shrunk rate published'), 0)`% can be approximated, provided the denominators can be pinned down. The remaining third needs either data that isn't published or assumptions.
+- **Systematic error is invisible in every published file.** Benefit take-up that varies between areas, differences in police recording practice between the 39 forces, uneven NHS trust submissions, and mismatched time points (2024 numerators over mid-2022 denominators) all move LSOAs in ways no published number reveals. Sizing them needs outside benchmarks. Possible ones are DWP take-up estimates, police inspectorate audits of crime recording, and data quality statements. That's work for later.
+- **Even the shrinkage groups are gated.** The 2025 shrinkage pulls each LSOA towards LSOAs of the same area-classification supergroup in its local authority. That classification ([GeoDS 2021/2 LSOAC](https://data.geods.ac.uk/dataset/lsoac)) is open-licensed but can only be downloaded after registering, so this note uses the local authority as the parent, as the 2019 Indices did.
+- **The cheapest fix sits with MHCLG and the research team (my suggestion).** They already compute, for every shrunk indicator, each LSOA's raw variance and shrinkage weight. Publishing the posterior standard error of each published rate, rounded as the rates are, would let anyone carry chance error through the whole index. For indicators whose rates are already published, this reveals little more than the rates do. It wouldn't suit the DfE pupil data, but there a standard error for the published sub-domain score would do. Publishing the parent-group lookup and the at-risk denominators would also help.
+
+## 3. Reading error from the shrinkage step
+
+### 3.1 The idea
+
+For an LSOA with $r$ events out of $n$, the shrinkage step (technical report Appendix C) works on the empirical logit $m = \log\frac{r + 0.5}{n - r + 0.5}$, whose variance is $s^2 = \frac{(n+1)(n+2)}{n(r+1)(n-r+1)}$. It pulls $m$ towards the parent group's pooled logit $M$:
+
+$$m^* = w\,m + (1 - w)\,M, \qquad w = \frac{1/s^2}{1/s^2 + 1/t^2},$$
+
+where $t^2$ is the spread of the raw logits within the group. In the usual empirical Bayes reading, $m^*$ is the posterior mean of the LSOA's underlying rate and its **posterior variance is $w\,s^2$** (my reading; the report gives only the point estimate). Two things follow:
+
+- If $r$ and $n$ are known, the error of every published shrunk rate can be computed.
+- The pull, $m^* - m = (1 - w)(M - m)$, encodes $w$, and through it $s^2$. So the published rates carry information about their own precision, though only relative to raw values we usually can't see.
+
+### 3.2 Test 1: Income and Employment, where the counts are published
+
+```{r}
+#| label: tbl-rebuild-shrinkage
+#| tbl-cap: "Rebuilding the shrinkage step from published counts, with the local authority as the parent group. 'Pull' is how far shrinkage moved each LSOA on the logit scale. Sources: IoD 2025 Files 6, 7 and 8; my calculation."
+
+rebuild_summary %>%
+  transmute(
+    Domain = domain,
+    LSOAs = num(lsoas),
+    `Median count` = num(median_count),
+    `Correlation, published vs rebuilt rate` = num(cor_rates, 5),
+    `Correlation, published vs rebuilt pull` = num(cor_pulls, 2),
+    `Same, if rounding were the only difference` = num(cor_if_only_rounding, 2),
+    `Median weight on own data (w)` = num(median_w, 3),
+    `Lowest 1% of w` = num(w_p01, 2),
+    `Median relative SE of rate` = pct(median_rse_post, 1)
+  ) %>%
+  kable(align = 'lrrrrrrrr')
+```
+
+```{r}
+#| label: fig-pull
+#| fig-cap: "How far shrinkage moved each LSOA: rebuilt with the local authority as parent (x) against what the published rates imply (y), logit scale × 100 (roughly the percentage change in the odds). The dashed line is equality. The most extreme 0.5% of LSOAs at each end are off the axes. Sources: IoD 2025 Files 6 to 8; my calculation."
+#| fig-height: 4.2
+
+pull_plot_data <- rebuilt %>%
+  mutate(domain = factor(domain, levels = c('Income', 'Employment'))) %>%
+  group_by(domain) %>%
+  filter(
+    between(pull_rebuilt, quantile(pull_rebuilt, 0.005), quantile(pull_rebuilt, 0.995)),
+    between(pull_published, quantile(pull_published, 0.005), quantile(pull_published, 0.995))
+  ) %>%
+  ungroup()
+
+ggplot(pull_plot_data, aes(x = 100 * pull_rebuilt, y = 100 * pull_published)) +
+  geom_hline(yintercept = 0, colour = grid_col) +
+  geom_vline(xintercept = 0, colour = grid_col) +
+  geom_point(size = 0.35, alpha = 0.12, colour = col_1) +
+  geom_abline(slope = 1, intercept = 0, colour = ink_2, linetype = 'dashed', linewidth = 0.4) +
+  facet_wrap(~ domain, scales = 'free') +
+  labs(x = 'Rebuilt pull (logit × 100)', y = 'Published pull (logit × 100)') +
+  theme_note()
+```
+
+- **The rebuild reproduces the published rates, but only part of the pull.** The pulls are small, because Income and Employment counts are large (median `r num(inc$median_count)` and `r num(emp$median_count)`). The rebuilt pull correlates `r num(inc$cor_pulls, 2)` and `r num(emp$cor_pulls, 2)` with the published one (@fig-pull).
+- **Rounding doesn't explain the gap.** If the local authority parent were right and the counts' rounding to the nearest 5 were the only difference, the correlations would be about `r num(inc$cor_if_only_rounding, 2)` and `r num(emp$cor_if_only_rounding, 2)`. The rest of the gap fits the 2025 change to supergroup-within-local-authority parents, as expected.
+- **Shrinkage hardly touches these two domains.** The weight on each LSOA's own data has a median of `r num(inc$median_w, 3)` (Income) and `r num(emp$median_w, 3)` (Employment). Only 1% of LSOAs fall below `r num(inc$w_p01, 2)` and `r num(emp$w_p01, 2)`. So the posterior errors are almost the plain binomial errors, and the supergroup question barely matters for them.
+
+### 3.3 Test 2: can the error be recovered from shrunk rates alone?
+
+Most shrunk indicators are published without counts. To test whether shrinkage can be run backwards, I made up a rare-event indicator with a known answer:
+
+1. Take the real LSOA populations and local authorities, and true rates proportional to the Income rates, scaled so the average LSOA expects 3 to 300 events.
+2. Draw the counts and shrink them the IoD way.
+3. Publish the shrunk rates.
+4. Solve the shrinkage equations backwards within each local authority (a damped fixed-point iteration in `invert_shrinkage()`), using only the published rates, denominators and groups.
+
+Four cases:
+
+- **Everything known.** Exact published rates, right denominators, right parent groups. Shrinking and un-shrinking with the same model makes this exact by construction.
+- **Rounded like crime.** Published as an annual rate per 1,000 to 1 decimal place, from 6 years of data.
+- **Rounded, denominator 25% too small.** Like using residents in place of crime's at-risk population.
+- **Rounded, wrong parent groups.** Shrunk within local authority × deprivation-tertile groups (standing in for supergroups), but inverted assuming local authority groups.
+
+```{r}
+#| label: tbl-inversion
+#| tbl-cap: "Synthetic test of running shrinkage backwards. 'SE ratio' is the recovered posterior standard error over the true one (1 = exact; above 1 = overstated). Coverage is the share of LSOAs whose true rate lies inside a 90% interval. Sources: IoD 2025 Files 7 and 8 for populations and rate pattern; simulated data; my calculation."
+
+inversion_test %>%
+  transmute(
+    `Expected count` = mean_expected_count,
+    Case = case,
+    `Median w, true` = num(median_w_true, 2),
+    `Median w, recovered` = num(median_w_recovered, 2),
+    `Median SE ratio (10th to 90th percentile)` = paste0(num(median_se_ratio, 2), ' (', num(se_ratio_p10, 2), ' to ', num(se_ratio_p90, 2), ')'),
+    `Coverage, true posterior` = pct(coverage_posterior),
+    `Coverage, recovered` = pct(coverage_recovered)
+  ) %>%
+  kable(align = 'rlrrrrr')
+```
+
+What the test shows:
+
+- **The published value, its denominator and its parent group pin down the count, and so the error.**
+- **Rounding like the crime rates costs almost nothing.** The SE ratio stays within a few percent of 1.
+- **Getting the inputs wrong errs on the safe side.**
+  - A denominator 25% too small overstates the error by about 15% (close to the $\sqrt{1/0.75}$ you'd expect).
+  - The wrong parent groups make shrinkage look weaker than it was: recovered w is `r num(inv(3, 'Rounded, wrong parent groups', 'median_w_recovered'), 2)` against a true `r num(inv(3, 'Rounded, wrong parent groups', 'median_w_true'), 2)` at an expected count of 3. That overstates the error by up to about `r pct(max(inversion_test$median_se_ratio) - 1)`.
+- **Posterior intervals under-cover slightly when counts are small.** At an expected count of 3, `r pct(inv(3, 'Everything known', 'coverage_posterior'))` of true rates fall in the nominal 90% interval. The empirical Bayes posterior ignores uncertainty in the group mean and spread.
+
+### 3.4 Applying it: crime and road casualties
+
+The crime and road casualty rates are published only after shrinkage, as annual rates per 1,000 at-risk people. I ran the shrinkage backwards with two approximations:
+
+- **Denominator.** Residents only. The true at-risk denominator adds the non-resident workplace population, which isn't published, so this overstates the error where many people work.
+- **Parent groups.** Local authorities.
+
+Burglary is left out because its denominator is properties.
+
+The technical report doesn't say whether shrinkage used the counts pooled over all the years (6 for recorded crime, 2 for anti-social behaviour, 5 for road casualties) or the annual average count. The order of steps in paragraphs 4.7.10 to 4.7.13 suggests the annual average. Both fit the published rates exactly, so both are shown.
+
+```{r}
+#| label: fig-reliability
+#| fig-cap: "Estimated weight on each LSOA's own data (w) for crime and road casualty indicators, under two readings of how the counts were shrunk. Points are medians, bars the middle 50% of LSOAs. w = 1 means shrinkage left the LSOA's own data untouched. Approximate: residents-only denominators and local authority parent groups. Sources: IoD 2025 Files 7 and 8; my calculation."
+#| fig-height: 4.4
+
+rare_plot_data <- rare_reliability %>%
+  mutate(
+    scenario = factor(scenario, levels = c('Counts pooled over all years', 'Annual average count')),
+    indicator = fct_reorder(indicator, median_w, .fun = min)
+  )
+
+ggplot(rare_plot_data, aes(y = indicator, colour = scenario)) +
+  geom_linerange(aes(xmin = w_q25, xmax = w_q75), linewidth = 0.9, position = position_dodge(width = 0.55)) +
+  geom_point(aes(x = median_w), size = 2.4, position = position_dodge(width = 0.55)) +
+  scale_colour_manual(values = c(col_1, col_2), name = NULL) +
+  scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
+  labs(x = "Weight on the LSOA's own data (w)", y = NULL) +
+  theme_note() +
+  theme(panel.grid.major.y = element_blank())
+```
+
+```{r}
+#| label: tbl-reliability
+#| tbl-cap: "Approximate counts, shrinkage weights and posterior standard errors for crime and road casualties. Count is the median count behind each LSOA's rate (over all years, or per year). SE is the median posterior standard error on the logit scale, which for rare events is close to the relative error of the rate. Sources: IoD 2025 Files 7 and 8; my calculation."
+
+rare_reliability %>%
+  mutate(scenario = if_else(scenario == 'Counts pooled over all years', 'pooled', 'annual')) %>%
+  select(indicator, scenario, median_count, median_w, median_se_post) %>%
+  pivot_wider(names_from = scenario, values_from = c(median_count, median_w, median_se_post)) %>%
+  arrange(median_w_pooled) %>%
+  transmute(
+    Indicator = as.character(indicator),
+    `Count, pooled` = num(median_count_pooled, 1), `w, pooled` = num(median_w_pooled, 2), `SE, pooled` = num(median_se_post_pooled, 2),
+    `Count, annual` = num(median_count_annual, 1), `w, annual` = num(median_w_annual, 2), `SE, annual` = num(median_se_post_annual, 2)
+  ) %>%
+  kable(align = 'lrrrrrr')
+```
+
+- **Crime.** With pooled counts, a typical LSOA has about `r num(min(rare_pooled$median_count[rare_pooled$indicator != 'Road casualties (pedestrians and cyclists)']))` (anti-social behaviour, two years) to `r num(max(rare_pooled$median_count))` (theft) incidents of each type behind its rate. The weights are `r num(crime_pooled_w[1], 2)` to `r num(crime_pooled_w[2], 2)` and posterior errors are around `r pct(crime_pooled_se[1])` to `r pct(crime_pooled_se[2])` of the rate. With annual average counts, the weights fall to `r num(crime_annual_w[1], 2)` to `r num(crime_annual_w[2], 2)` and the errors roughly double, to `r pct(crime_annual_se[1])` to `r pct(crime_annual_se[2])`.
+- **Road casualties are where shrinkage really bites.** About `r num(rta_pooled$median_count, 0)` weighted casualties lie behind a typical LSOA's rate over five years. The weight is `r num(rta_pooled$median_w, 2)` pooled or `r num(rta_annual$median_w, 2)` annual, and the error is `r pct(rta_pooled$median_se_post)` to `r pct(rta_annual$median_se_post)` of the rate. Under the annual reading, for `r pct(rta_annual$share_w_below_half)` of LSOAs the published value owes more to the parent group's average than to the LSOA's own casualties (w below 0.5).
+- **Which reading is right matters, and the published data can't tell us.** If the annual reading is right, the Indices shrink crime and road casualties harder than the pooled data need. That's a question for the research team.
+
+### 3.5 What this means
+
+- **Reverse engineering the error is possible.** The pull towards the parent area does encode each LSOA's precision. With the right denominator and parent group, it can be read back off the published rate, and mistakes in either tend to overstate the error rather than hide it.
+- **It needs the denominator, and nothing in the published values supplies it.** Any assumed denominator gives a set of counts that shrinks exactly to the published rates. So the method turns "how uncertain is this rate?" into "what was the denominator, and how were the years combined?" For crime, that means the at-risk population. For road casualties it also means the severity weighting, which makes the counts more variable than plain counts.
+- **For Income and Employment it isn't needed, because their counts are published and shrinkage barely moves them.** Their chance error is close to binomial, and that's what section 4 uses.
+- **It can't reach the standardised health ratios, the mental health composite or the pupil data.** Their counts, or the expected counts behind them, aren't published.
+
+## 4. A lower bound on rank uncertainty: Income and Employment error carried to the IMD
+
+Each of `r num(n_draws)` Monte Carlo draws does the following:
+
+1. Perturb every LSOA's Income and Employment rate by its posterior standard error from section 3.2: normal on the logit scale, independent between LSOAs, centred on the published rate.
+2. Rerun stages 5 to 7 exactly: rank both domains, exponentially transform them, add all seven domains with the published weights, rank the IMD, and recompute the local authority summaries.
+3. Hold the other five domains at their published values.
+
+So this is a **lower bound**:
+
+- two domains (45% of the weight);
+- chance error only;
+- no denominator error, systematic error or error in the other domains.
+
+### LSOAs
+
+```{r}
+#| label: fig-lsoa-width
+#| fig-cap: "Width of the 90% range of each LSOA's IMD rank across draws, by its published rank, in bands of 500 ranks. The line is the median and the band the middle 50% of LSOAs. Ranges narrow at both ends because ranks can't go below 1 or above 33,755. Only Income and Employment chance error is included. Sources: IoD 2025 Files 6 to 9; my calculation."
+#| fig-height: 4.2
+
+ggplot(lsoa_width_by_rank, aes(x = band_mid)) +
+  geom_ribbon(aes(ymin = q25, ymax = q75), fill = blue_light) +
+  geom_line(aes(y = median_width), colour = col_1, linewidth = 0.8) +
+  geom_vline(xintercept = n_most_deprived_10, colour = ink_2, linetype = 'dashed', linewidth = 0.4) +
+  annotate('text', x = n_most_deprived_10 + 400, y = max(lsoa_width_by_rank$q75) * 0.98, label = 'Most deprived 10%\nto the left', hjust = 0, vjust = 1, size = 3.2, colour = ink_2) +
+  scale_x_continuous(labels = scales::comma, breaks = seq(0, 35000, 5000), expand = expansion(mult = c(0.01, 0.01))) +
+  scale_y_continuous(labels = scales::comma, limits = c(0, NA)) +
+  labs(x = 'Published IMD rank (1 = most deprived)', y = 'Width of 90% range (ranks)') +
+  theme_note()
+```
+
+```{r}
+#| label: tbl-lsoa-mc
+#| tbl-cap: "LSOA rank ranges from Income and Employment chance error alone. Sources: IoD 2025 Files 6 to 9; my calculation."
+
+tibble(
+  Measure = c(
+    'Median width of the 90% rank range, all LSOAs',
+    '… for LSOAs in the most deprived 10%',
+    '… for LSOAs in the least deprived 10%',
+    'LSOAs whose 90% range covers two deciles',
+    'LSOAs whose 90% range covers three or more deciles',
+    'LSOAs between 5% and 95% likely to be in the most deprived 10%',
+    'LSOAs published in the most deprived 10% but less than 95% likely to belong there'
+  ),
+  Value = c(
+    paste(num(lsoa_summary$median_width_90), 'ranks'),
+    paste(num(lsoa_summary$median_width_decile1), 'ranks'),
+    paste(num(lsoa_summary$median_width_decile10), 'ranks'),
+    pct(lsoa_summary$share_spanning_2plus_deciles - lsoa_summary$share_spanning_3plus_deciles),
+    pct(lsoa_summary$share_spanning_3plus_deciles),
+    num(lsoa_summary$uncertain_top10_status),
+    paste0(num(lsoa_summary$published_top10_below_95), ' of ', num(lsoa_summary$published_top10))
+  )
+) %>%
+  kable(align = 'lr')
+```
+
+How far apart two LSOAs need to be before the more deprived one comes out ahead in at least 95% of draws, checked for 300 LSOAs spread through the ranking:
+
+```{r}
+#| label: tbl-separation
+#| tbl-cap: "Rank gap needed for two LSOAs to be told apart at 95%, from Income and Employment chance error alone. Gaps were tested at 10, 25, 50, 75, 100, 150, 200, 300, 400, 500, 750, 1,000, 1,250, 1,500, 2,000 ranks and up. Sources: IoD 2025 Files 6 to 9; my calculation."
+
+separation_by_position %>%
+  transmute(`Position in published ranking` = position, `LSOAs checked` = lsoas_checked, `Median gap needed (ranks)` = num(median_gap_needed)) %>%
+  kable(align = 'lrr')
+```
+
+- **Even this narrow slice of the error is wide.** A typical LSOA's IMD rank could plausibly sit anywhere in a range of about `r num(lsoa_summary$median_width_90)` places, and that's before error in the other five domains and in the denominators is added.
+- **The most deprived end is the best separated.** That fits the Indices' design: the exponential transform stretches it out (section 4.4 of the research note). Even there, LSOAs need to be around `r num(gap_needed['Most deprived 10%'])` ranks apart. For the policy-relevant threshold, `r num(lsoa_summary$uncertain_top10_status)` LSOAs could be either side of the most deprived 10% line.
+- **It agrees with the rough first look in the research note, without being directly comparable.** That calculation (`02_income_rank_intervals.R`) used one domain, 95% intervals and fixed neighbours.
+
+### Local authorities
+
+```{r}
+#| label: fig-lad
+#| fig-cap: "Local authority ranks on two IMD summary measures across draws, as differences from the published rank. Bars are 90% ranges, points medians. The lower panel leaves out the authorities with no LSOAs in the most deprived 10%, which tie at the bottom. Only Income and Employment chance error is included. Sources: IoD 2025 Files 6 to 10; my calculation."
+#| fig-height: 5.6
+
+lad_plot_data <- lad_mc %>%
+  filter(measure %in% c('avg_score', 'prop_10'), !(measure == 'prop_10' & prop_10_value == 0)) %>%
+  mutate(measure_label = factor(measure, levels = c('avg_score', 'prop_10'),
+                                labels = c('Average score', 'Proportion of LSOAs in the most deprived 10%')))
+
+ggplot(lad_plot_data, aes(x = published_rank)) +
+  geom_hline(yintercept = 0, colour = ink_2, linewidth = 0.3) +
+  geom_linerange(aes(ymin = rank_q05 - published_rank, ymax = rank_q95 - published_rank), colour = col_1, linewidth = 0.45) +
+  geom_point(aes(y = rank_median - published_rank), colour = blue_dark, size = 0.6) +
+  facet_wrap(~ measure_label, ncol = 1, scales = 'free') +
+  # Ranks are whole numbers, so keep the breaks whole
+  scale_y_continuous(breaks = function(lims) unique(round(pretty(lims)))) +
+  labs(x = 'Published rank (1 = most deprived)', y = 'Simulated rank minus published rank') +
+  theme_note()
+```
+
+```{r}
+#| label: tbl-lad-mc
+#| tbl-cap: "Local authority rank ranges from Income and Employment chance error alone. 'Neighbours told apart' is the share of authorities next to each other in the published ranking whose order holds in at least 95% of draws. Sources: IoD 2025 Files 6 to 10; my calculation."
+
+lad_summary %>%
+  mutate(measure = recode(measure, avg_score = 'Average score', avg_rank = 'Average rank', prop_10 = 'Proportion in most deprived 10% (authorities with any)')) %>%
+  transmute(Measure = measure, Authorities = lads, `Median width of 90% range (ranks)` = median_width_90, `Widest (ranks)` = max_width_90, `Neighbours told apart` = pct(adjacent_pairs_separable_95)) %>%
+  kable(align = 'lrrrr')
+```
+
+- **For local authorities, independent LSOA-level chance error largely cancels.** The 90% ranges on average score are typically `r lad_avg_score$median_width_90` ranks wide.
+- **Neighbours still can't usually be told apart.** Only `r pct(lad_avg_score$adjacent_pairs_separable_95)` of neighbouring pairs on average score hold their order 95% of the time.
+- **The threshold measure is less stable.** The proportion of LSOAs in the most deprived 10% has ranges typically `r lad_prop_10$median_width_90` ranks wide and up to `r lad_prop_10$max_width_90`.
+- **The errors that will matter for local authorities are the shared ones.** Population denominators, local-authority-level homelessness indicators, police force recording practice and modelled inputs move all of an authority's LSOAs together and don't cancel. They're the priority for the next step.
+
+## 5. Caveats and next steps
+
+**Caveats.**
+
+- **Parent groups.** Everything uses the local authority as the shrinkage parent, not the 2025 supergroup-within-local-authority. For Income and Employment this barely matters (section 3.2). For the rare-event indicators, the synthetic test suggests it would overstate the error somewhat.
+- **What the Monte Carlo leaves out.** Error in the other five domains, error in the denominators, rounding of the published counts and all systematic error. The ranges in section 4 are therefore minimums.
+- **The posterior variance is approximate.** The $w\,s^2$ formula ignores uncertainty in the group mean and spread, and the synthetic test shows its intervals under-cover a little at small counts.
+- **The crime and road casualty estimates are approximate.** They rest on residents-only denominators and an unresolved choice between pooled and annual counts.
+
+**Next steps** (each also in the questions section of the research note):
+
+- **Get the shrinkage parent groups right.** Download the GeoDS classification (needs registration) and rerun sections 3 and 4 with supergroup-within-local-authority parents.
+- **Bring in crime and road casualties.** Build approximate at-risk denominators from Census 2021 workplace population tables, then add these indicators to the Monte Carlo using the section 3 inversion.
+- **Approximate the health ratios.** Estimate expected counts for the standardised health ratios from national age-sex rates and the LSOA age structure.
+- **Put assumed, varied errors on what can't be rebuilt.** That covers the modelled indicators, the local-authority-level homelessness indicators and the children and young people education sub-domain. Share draws across a local authority or modelling area where the input is shared.
+- **Add shared errors.** Population denominator error at local authority level from ONS's published uncertainty intervals, and force-level recording differences. These are the ones that will move local authority ranks.
+- **Ask MHCLG and the research team** whether the posterior standard errors (or raw variances and weights) and the at-risk denominators can be published, and how the crime years were combined in the shrinkage step.
+
+## Sources and code
+
+- [English Indices of Deprivation 2025 (MHCLG, 30 October 2025, files updated 17 November 2025)](https://www.gov.uk/government/statistics/english-indices-of-deprivation-2025): technical report, research report, and data Files 6 to 10.
+- [UK LSOA / DZ / SDZ Classification (2021/2 LSOAC), Geographic Data Service](https://data.geods.ac.uk/dataset/lsoac): the 2025 shrinkage parent groups (not used here; needs registration).
+- Research note with all 55 indicators, weights and sources: [llm_output/imd_rank_uncertainty_research.md](https://github.com/DanOlner/RegEconWorks/blob/master/llm_output/imd_rank_uncertainty_research.md).
+- R scripts: [code/imd_uncertainty](https://github.com/DanOlner/RegEconWorks/tree/master/code/imd_uncertainty).
+  - `functions.R`: loaders, the exponential transform, shrinkage and its inverse.
+  - `01`: rebuilds stages 5 to 7.
+  - `02`: rough Income rank intervals.
+  - `03`: nominal weights and data access.
+  - `04`: shrinkage rebuild.
+  - `05`: synthetic inversion test.
+  - `06`: crime and road casualty reliability.
+  - `07`: the Monte Carlo.
