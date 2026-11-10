@@ -9,13 +9,14 @@
 # and docs/chunks/imd_uncertainty/imd_uncertainty_firstlook.qmd
 source('code/imd_uncertainty/functions.R')
 
-# What File 8 publishes for each indicator, and so what a public user can do about its error:
+# What the open data allow for each indicator's error. Grouped by what a public user can do, using File 8
+# and the open sources behind some indicators (11 and 12 rebuild road casualties and overcrowding):
 access_levels <- c(
-  'Counts published',                          # numerator and denominator: error can be estimated directly
-  'Shrunk rate published',                     # rate after shrinkage; counts need a denominator and inversion
-  'Standardised ratio or composite only',      # age-sex standardised ratios, or a composite of normal scores
-  'Modelled or unshrunk, no error published',  # model outputs and indicators with no sampling model
-  'Not published (secure data)'                # pupil-level indicators: DfE doesn't allow LSOA release
+  'Counts published or open at source',               # counts and denominators known: error estimated directly
+  'Shrunk rate published, count recoverable',         # rate after shrinkage; count via a denominator and inversion
+  'Ratio, composite or score with no count',          # standardised ratios, composites of normal scores, property scores
+  'Modelled or unshrunk, no error published',         # model outputs and indicators with no sampling model
+  'Not published (secure data)'                       # pupil-level indicators: DfE doesn't allow LSOA release
 )
 
 # One row per indicator. sub_w = sub-domain weight within the domain; ind_w = indicator weight within the sub-domain
@@ -47,17 +48,17 @@ indicator_weights <- tribble(
   'barriers',   'geographical',              'Connectivity score',                       0.5,    1,              'DfT',                                       4,
   'barriers',   'wider',                     'Housing affordability: owner-occupation',  0.5,    1 / 5 / 2,      'Modelled (Heriot-Watt)',                    4,
   'barriers',   'wider',                     'Housing affordability: private rental',    0.5,    1 / 5 / 2,      'Modelled (Heriot-Watt)',                    4,
-  'barriers',   'wider',                     'Overcrowding: rooms',                      0.5,    1 / 5 / 2,      'ONS Census 2021',                           2,
-  'barriers',   'wider',                     'Overcrowding: bedrooms',                   0.5,    1 / 5 / 2,      'ONS Census 2021',                           2,
+  'barriers',   'wider',                     'Overcrowding: rooms',                      0.5,    1 / 5 / 2,      'ONS Census 2021',                           1,
+  'barriers',   'wider',                     'Overcrowding: bedrooms',                   0.5,    1 / 5 / 2,      'ONS Census 2021',                           1,
   'barriers',   'wider',                     'Statutory homelessness (LAD level)',       0.5,    1 / 5 / 2,      'MHCLG',                                     4,
   'barriers',   'wider',                     'Core homelessness (LAD level)',            0.5,    1 / 5 / 2,      'Modelled (Heriot-Watt)',                    4,
   'barriers',   'wider',                     'Broadband speed',                          0.5,    1 / 5,          'Ofcom',                                     4,
   'barriers',   'wider',                     'Patient-to-GP ratio',                      0.5,    1 / 5,          'NHS',                                       4,
   'living',     'indoors',                   'Housing in poor condition',                0.7,    1 / 3,          'Modelled (BRE)',                            4,
-  'living',     'indoors',                   'Housing energy performance (EPC)',         0.7,    1 / 3,          'MHCLG',                                     2,
-  'living',     'indoors',                   'Housing lacking private outdoor space',    0.7,    1 / 3,          'OS and ONS',                                2,
+  'living',     'indoors',                   'Housing energy performance (EPC)',         0.7,    1 / 3,          'MHCLG',                                     3,
+  'living',     'indoors',                   'Housing lacking private outdoor space',    0.7,    1 / 3,          'OS and ONS',                                3,
   'living',     'outdoors',                  'Air quality',                              0.3,    1 / 3,          'Modelled (Defra)',                          4,
-  'living',     'outdoors',                  'Road casualties, pedestrians and cyclists', 0.3,   1 / 3,          'DfT',                                       2,
+  'living',     'outdoors',                  'Road casualties, pedestrians and cyclists', 0.3,   1 / 3,          'DfT',                                       1,
   'living',     'outdoors',                  'Noise',                                    0.3,    1 / 3,          'Modelled (Defra)',                          4
 ) %>%
   mutate(access = factor(access_levels[access], levels = access_levels))

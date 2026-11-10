@@ -12,11 +12,14 @@ It then sets out what the Indices already say about uncertainty (section 5), the
 
 It is based on the [English Indices of Deprivation 2025 (IoD 2025)](https://www.gov.uk/government/statistics/english-indices-of-deprivation-2025), published by MHCLG on 30 October 2025. I read the [technical report](https://assets.publishing.service.gov.uk/media/68ff59c80f801e57b5bef907/ID_2025_Technical_Report.pdf) in full and searched the [research report](https://assets.publishing.service.gov.uk/media/68ff547a49d08dd781b48351/ID_2025_Research_Report.pdf). I downloaded Files 7, 8 and 9 on 10 November 2026 and checked them. Where something is my own calculation or inference, it says so. My calculations are in sections 3.8, 4.4 and 8, and the R scripts are in [code/imd_uncertainty](../code/imd_uncertainty/).
 
-A follow-up report, [docs/chunks/imd_uncertainty/imd_uncertainty_firstlook.html](../docs/chunks/imd_uncertainty/imd_uncertainty_firstlook.html) (source: the `.qmd` beside it), covers three things:
+A follow-up report, [docs/chunks/imd_uncertainty/imd_uncertainty_firstlook.html](../docs/chunks/imd_uncertainty/imd_uncertainty_firstlook.html) (source: the `.qmd` beside it), takes this further:
 
 - what open and secure data mean for estimating the IMD's error;
-- whether the shrinkage step can be run backwards to recover each LSOA's error;
-- a first lower bound on rank ranges, from Income and Employment error alone.
+- whether the shrinkage step can be run backwards to recover each LSOA's error, tested on real and made-up data;
+- rank ranges for LSOAs and local authorities, from Income and Employment error under two error models, then with error in the other domains added in layers;
+- formal confidence sets for local authority ranks.
+
+A review of the report's first version, with the plan for the second, is in [imd_uncertainty_review_and_plan.md](imd_uncertainty_review_and_plan.md). Draft questions for the research team are in [imd_uncertainty_questions_for_iod_team.md](imd_uncertainty_questions_for_iod_team.md).
 
 ## Short answers
 
@@ -277,9 +280,10 @@ A factor-weighted sum of eight normal scores (Table 4.6):
 
 These matter for an exact rebuild and for knowing the effective weights. They're listed as questions in section 10.
 
-- **Are composite items re-standardised?** The homelessness item is "standardised core plus standardised statutory". Housing affordability and overcrowding are equal-weighted pairs. If they aren't re-standardised before entering the wider barriers sub-domain, their spread differs from the single-indicator items, so "equal weights" wouldn't give them equal influence.
+- **Are composite items re-standardised?** The homelessness item is "standardised core plus standardised statutory". Housing affordability and overcrowding are equal-weighted pairs. If they aren't re-standardised before entering the wider barriers sub-domain, their spread differs from the single-indicator items, so "equal weights" wouldn't give them equal influence. *Update: rebuilding stage 4 from File 8 (`10_stage4_rebuild.R`) shows they are re-standardised, and that the sub-domain is the sum, not the mean, of the five normal scores. The normal score is the inverse normal of rank ÷ (N + 1), with ties averaged.*
 - **Shrinkage of modelled indicators.** Appendix C (C.1.3) says modelled indicators, "road distance indicators" and LAD-level indicators are not shrunk. But chapter 4 and File 8 say housing in poor condition and noise are shrunk. Road distance indicators no longer exist in 2025, so the Appendix C sentence may be a leftover from 2019. For housing affordability, chapter 4 doesn't say either way.
-- **Order of steps for overcrowding.** Paragraph 4.8.13 describes ranking to normal scores *then* shrinkage. Shrinkage is defined on proportions, and File 8 publishes overcrowding as proportions. Probably shrinkage came first.
+- **Order of steps for overcrowding.** Paragraph 4.8.13 describes ranking to normal scores *then* shrinkage. Shrinkage is defined on proportions, and File 8 publishes overcrowding as proportions. Probably shrinkage came first. *Update: the published proportions differ from the Census 2021 counts in the way shrinkage would make them (`12_census_indicators.R`), which supports this.*
+- **Was road casualties shrunk?** *Added later.* Paragraph 4.9.30 says so, but rebuilt from DfT's open data the published indicator matches the unshrunk rate, and almost every LSOA published at exactly 0 had no casualties (`11_road_casualties.R`). Shrinkage as described couldn't leave them at 0.
 - **Footnote 22** lists "self harm" among the indicators shrunk to the LAD. There's no self-harm indicator in 2025.
 - **Standard errors for non-proportions.** Appendix C gives the shrinkage formula for counts out of a population (`r` of `n`). It doesn't say how the standard error is formed for the KS2 and KS4 point scores, the age-sex standardised ratios (CIDR, years of life lost, acute morbidity), the crime rates with workplace-adjusted denominators, or the property-level EPC and outdoor-space scores.
 
@@ -587,14 +591,14 @@ Each has a suggested default so work can start without waiting.
 9. **Confidence level and multiple comparisons.** 90% or 95%? Should pairwise statements be corrected for the number of comparisons? *Suggested: 90% marginal intervals for display, simultaneous sets where the claim is about the whole ranking.*
 10. **Policy hook.** Is there a particular use of IMD cut-offs to test, for example "most deprived 10%" or "20%" thresholds used to target funding? That would decide which thresholds the outputs focus on. I haven't checked which current schemes use which cut-offs.
 11. **Contacting the IoD team.** The section 3.7 gaps (re-standardised composites, which modelled indicators are shrunk, step order for overcrowding, how standard errors are formed for non-proportions) could be put to the team along with question 5. Do you want to do that, and should it come from you directly?
-12. **Where the bundle lives.** The scripts are now in `code/imd_uncertainty/`. The write-up could go in, for example, `docs/chunks/imd_uncertainty/`, following the existing layout. Should this note move into the chunk folder?
+12. **Where the bundle lives.** The scripts are in `code/imd_uncertainty/` and the report in `docs/chunks/imd_uncertainty/`, following the existing layout. Should this note move into the chunk folder?
 
 ## Things I couldn't check
 
 - Figure 3.3 of the technical report is an image (a summary diagram of the whole construction), so I relied on the text.
 - I didn't read Dibben and others (2007), Noble and others (2004, Annex F on factor analysis), the 2025 methods review, or the IoD 2025 FAQ.
 - I read the uncertainty papers in section 7 at abstract or summary level, apart from the `csranks` reference manual.
-- Whether housing affordability is shrunk, and whether composite items are re-standardised (section 3.7).
+- Whether housing affordability is shrunk (section 3.7). Re-standardising composite items is now settled by the stage 4 rebuild.
 - What standard errors the Indices used for non-proportion indicators.
 - Searches may have missed existing work on IMD rank uncertainty.
 
@@ -607,14 +611,19 @@ The scripts are in [code/imd_uncertainty](../code/imd_uncertainty/) and run from
 - **[02_income_rank_intervals.R](../code/imd_uncertainty/02_income_rank_intervals.R)** (section 8): uses the File 8 Income numerators and the File 7 mid-2022 populations with the Appendix C logit variance. Maps the 95% bounds to ranks against all 33,755 published Income rates.
 - **[03_nominal_weights.R](../code/imd_uncertainty/03_nominal_weights.R)** (section 3.8): multiplies the domain, sub-domain and indicator weights from the technical report, sums the share resting on DWP data, and groups the indicators by what File 8 publishes.
 
-Scripts 04 to 07 feed the follow-up report:
+Scripts 04 to 16 feed the follow-up report. [The README in that folder](../code/imd_uncertainty/README.md) lists what each does, and `00_run_all.R` rebuilds everything from scratch:
 
-- **[04_shrinkage_rebuild.R](../code/imd_uncertainty/04_shrinkage_rebuild.R)**: rebuilds the shrinkage step for Income and Employment.
-- **[05_shrinkage_inversion_test.R](../code/imd_uncertainty/05_shrinkage_inversion_test.R)**: a synthetic test of running shrinkage backwards.
-- **[06_rare_event_reliability.R](../code/imd_uncertainty/06_rare_event_reliability.R)**: applies the inversion to the crime and road casualty rates.
-- **[07_income_employment_mc.R](../code/imd_uncertainty/07_income_employment_mc.R)**: a Monte Carlo carrying Income and Employment error to IMD and local authority ranks.
+- **04 to 06**: the shrinkage step rebuilt for Income and Employment, a synthetic test of running it backwards, and the inversion applied to crime.
+- **07**: a Monte Carlo carrying Income and Employment error to IMD and local authority ranks, under two error models.
+- **08 and 09**: the inversion tested on the published counts, and the shrinkage reading tested on the IoD 2019.
+- **10**: stage 4 rebuilt from File 8.
+- **11 and 12**: road casualties rebuilt from DfT open data, and overcrowding and adult skills from Census 2021.
+- **13**: IDACI and IDAOPI rank ranges.
+- **14**: a coverage test of the simulated ranges.
+- **15**: a Monte Carlo through stages 4 to 7, in layers.
+- **16**: formal confidence sets for local authority ranks.
 
-They also use Files 6 and 10.
+They also use Files 6 and 10, the IoD 2019 Files 6 to 8, DfT road safety data, ONS LSOA boundaries, Census 2021 tables and BRES employment.
 
 ## Sources
 

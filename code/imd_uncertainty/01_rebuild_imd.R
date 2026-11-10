@@ -42,34 +42,50 @@ both <- both %>%
 # The weights are used as printed: they add to 0.999, not 1
 sum(domains$weight)
 
+# The same, but from the exact (unrounded) transform of the published domain ranks rather than File 9's
+# rounded values. If this gives back every published IMD rank, the published ranks come from unrounded
+# scores, and a simulation with no noise added should return them exactly
+both <- both %>%
+  mutate(
+    imd_exact = as.vector(sapply(domains$domain, function(d) exp_transform(both[[paste0(d, '_rank')]])) %*% domains$weight),
+    rank_exact = rank(-imd_exact, ties.method = 'first')
+  )
+
 rebuild_check <- both %>%
   summarise(
     max_abs_score_diff = max(abs(imd_rebuilt - imd_score)),
     correlation = cor(imd_rebuilt, imd_score),
     max_abs_rank_diff = max(abs(rank_rebuilt - imd_rank)),
     # Rank differences come from ties: the published score has 3 decimal places
-    tied_published_scores = sum(duplicated(imd_score))
+    tied_published_scores = sum(duplicated(imd_score)),
+    exact_rank_mismatches = sum(rank_exact != imd_rank),
+    exact_max_abs_score_diff = max(abs(imd_exact - imd_score))
   )
 rebuild_check
 
 
 # LOCAL AUTHORITY SUMMARIES----
 
-# Rebuild average score, average rank and proportion in the most deprived 10% from the LSOA data,
-# and compare them and their ranks with File 10.
-# File 10's average rank counts LSOA ranks the other way round (33,755 = most deprived), so compare
-# with N + 1 minus ours. File 10 gives the proportion to 4 decimal places
-lad_check <- lad_summaries(iod$lad, iod$pop, iod$imd_score, iod$imd_rank) %>%
-  inner_join(load_lad_summaries(), by = 'lad', suffix = c('', '_published')) %>%
-  summarise(
-    lads = n(),
-    max_abs_avg_score_diff = max(abs(avg_score - avg_score_published)),
-    avg_score_rank_mismatches = sum(rank_avg_score != rank_avg_score_published),
-    max_abs_avg_rank_diff = max(abs((nrow(iod) + 1 - avg_rank) - avg_rank_published)),
-    avg_rank_rank_mismatches = sum(rank_avg_rank != rank_avg_rank_published),
-    prop_10_mismatches = sum(abs(round(prop_10, 4) - prop_10_published) > 1e-9),
-    prop_10_rank_mismatches = sum(rank_prop_10 != rank_prop_10_published)
-  )
+# Rebuild all five IMD summary measures from the LSOA data and compare them and their ranks with File 10.
+# File 10 rounds the average score to 3 decimal places, average rank and local concentration to 2, and the
+# proportion and extent to 4. Count a value as matching if it is within one unit of the last published digit
+lad_rebuilt <- lad_summaries(iod$lad, iod$pop, iod$imd_score, iod$imd_rank)
+lad_published_all <- load_lad_summaries_all()
+
+lad_check_by_measure <- names(lad_measure_labels) %>%
+  map_dfr(function(m) {
+    x <- inner_join(select(lad_rebuilt, lad, value = all_of(m), rank = all_of(paste0('rank_', m))),
+                    select(lad_published_all, lad, published = all_of(m), published_rank = all_of(paste0('rank_', m))), by = 'lad')
+    digits <- c(avg_score = 3, avg_rank = 2, prop_10 = 4, extent = 4, local_conc = 2)[[m]]
+    tibble(measure = m, lads = nrow(x),
+           max_abs_diff = max(abs(x$value - x$published)),
+           value_mismatches = sum(abs(x$value - x$published) > 10^-digits + 1e-9),
+           rank_mismatches = sum(x$rank != x$published_rank))
+  })
+lad_check_by_measure
+
+lad_check <- tibble(lads = n_distinct(lad_rebuilt$lad), measures = nrow(lad_check_by_measure),
+                    measures_matching = sum(lad_check_by_measure$value_mismatches == 0 & lad_check_by_measure$rank_mismatches == 0))
 lad_check
 
 
