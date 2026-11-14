@@ -726,12 +726,54 @@ Entries are in time order. Each names the commit it went into; all are on `maste
     - warm-started inner solves gave inconsistent welfare levels (outcomes now use fresh starts);
     - the adaptive hill climb stalls at high mobility (a fixed-step version for large problems).
 
-**Status after these entries.** Five round 2 commits are on `master` but not pushed: `bc81fec`, `77a128f`, `c1a4134`, `6585d4f` and `e72a75d`.
+**14 November 2026, midday: the synthesis** (Dan agreed the order: commit the log, write the synthesis, then strong agglomeration over many draws).
+
+- **A new opening section of the report, "The answer so far",** pulls the tests together against the hypothesis. Its numbers come from the cached results, not typed in.
+    1. As a national priority rule, "tradables first" doesn't hold:
+        - most leverage is outside the exported products;
+        - business-to-business sectors feed exporters;
+        - the long tail has about 4.6 times the frontier's room;
+        - with demand fitted to UK data, upstream productivity is about level with the frontier push per point.
+    2. Productivity in the broader sectors carries costs the shorthand misses: jobs in the improving sector, lost GDP when the economy is slack, an official lens that hides the gain, and land taking a similar share either way.
+    3. Local and national strategy align only in some conditions:
+        - local services with people staying put;
+        - not nationally traded business services;
+        - not when people are mobile;
+        - demand policy only when labour is slack.
+    4. For round 1's question: the tradable split is a poor guide; the trade closure (a Ricardian terms-of-trade question) is the biggest modelling choice; Venables's lever doesn't work.
+    5. What's robust, what depends on modelling choices, and what's unknown (the cost of a point).
+- **Mistakes caught:** the summary table's local-services column picked up the "P4 with P9" rows and showed NA, and one section reference was wrong. Both fixed before commit.
+
+**14 November 2026, afternoon: strong agglomeration over six draws** (step 3 of the order Dan agreed; `28_strong_agglomeration_draws.R`; section 18, and the synthesis's table and "How sure to be").
+
+- **The run.** Section 18's steps for productivity draws 101–106, in parallel (about an hour):
+    - continuation to agglomeration 0.3;
+    - six scrambled starts;
+    - the four proxies from every stable equilibrium.
+- **Equilibria.**
+    - Every draw has 2–5 stable equilibria, 21 in all. Continuation and every start converged.
+    - Most were found by a single start, so the counts are lower bounds.
+    - Within a draw they differ by 2.3–5.8% of workers in one place-sector, and in welfare by at most 0.6%, except one draw (1.4%).
+- **Switching.** A proxy switches when some place-sector's share of all workers moves by more than 1 point.
+    - The long-tail proxy switched from 8 of 21 starting equilibria, in 3 of 6 draws. It gains when it does: break-even 0.90 against 0.69 when it doesn't, and the comparison holds within draws. Its switches don't start from worse equilibria than its non-switches.
+    - The frontier push switched from 2 of 21:
+        - once out of a draw's worst equilibrium (1.4% below the best), with 2.35 welfare points per point against 1.63 from the draw's other equilibria;
+        - once for slightly less than from the draw's other equilibria (1.52 against 1.56–1.60).
+    - Upstream and local services never switched.
+- **Averages barely move.** Mean break-evens are 0.77 (long tail), 0.95 (upstream) and 0.68 (local services), against 0.74, 0.90 and 0.63 at agglomeration 0.03. Strong agglomeration adds spread, not a different ranking.
+- **Answer to the question set.** Policy-driven switching is common for broad catch-up and rare for the frontier push. On balance it favours broad catch-up, but the biggest single gain from a switch was the frontier push's.
+- **Mistakes caught:**
+    - a tibble column named `eq` masked the table of equilibria inside `tibble()`, so every draw errored at the policy step (the first run was lost);
+    - the by-proxy summary named its count column `switched` before using `switched`, the same summarise() ordering bug as in T2 (fixed: counts last);
+    - the cache key was the whole script, so editing the summaries would rerun the hour of draws. It is now the draw function's code and settings. A first version of that key also changed with the report's `scipen` option, because `deparse()` writes 1e-8 differently, so the render started the draws again (the key now fixes `scipen`).
+
+**Status after these entries.** Six round 2 commits are on `master` but not pushed: `bc81fec`, `77a128f`, `c1a4134`, `6585d4f`, `e72a75d` and `ea25170`. The synthesis and the six-draw work are not yet committed.
 
 **Not done:**
 
 - the flow model's lenses beyond the standard rows, and its calibration routine;
 - calibrating the flow model's export elasticity and wage curve to its own economy;
-- policy experiments over many productivity draws with strong agglomeration (section 18 uses one);
+- more starts per draw with strong agglomeration (most equilibria were found by one start);
+- retrying round 1's local-rent case with the new solvers;
 - regional input–output coefficients, needed for T3's regional version and T5's multipliers;
 - the household round of T5.

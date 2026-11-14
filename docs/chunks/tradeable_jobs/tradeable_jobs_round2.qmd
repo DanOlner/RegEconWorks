@@ -91,6 +91,111 @@ gm <- gr %>% filter(group != 'public_providential') %>% arrange(desc(domar_net))
 ratio <- gm %>% mutate(r = domar / va_share) %>% arrange(desc(r))
 ```
 
+## The answer so far
+
+```{r}
+#| label: synthesis-setup
+#| include: false
+for (s in c('14_t4_payment_tradability.R', '15_t3_chain_labour.R', '16_modelF.R', '16b_modelF_closure.R', '17_t6_own_jobs.R',
+            '18_t5_local_sourcing.R', '19_t10_breakeven.R', '20_t11b_moments.R', '21_modelF_demand.R', '22_flow_model.R',
+            '23_t9_flow_slack.R', '24_modelF_local_sigma.R', '25_modelA_supply_chains.R', '26_modelF_agglomeration.R', '27_solvers.R',
+            '28_strong_agglomeration_draws.R'))
+  invisible(capture.output(source(file.path('code/tradeable_jobs', s))))
+px <- c('P2', 'P3', 'P4')
+be_row <- function(label, f) tibble(Setting = label, `Long tail` = num(f('P2'), 2), `Upstream business-to-business` = num(f('P3'), 2),
+                                    `Local services` = num(f('P4'), 2))
+pick <- function(d, px, col = 'breakeven', exp_col = 'experiment') {   # P4 also matches 'P4 with P9', which has no ratio
+  v <- d[[col]][grepl(paste0('^', px, ' '), d[[exp_col]]) & !grepl('with P9', d[[exp_col]])]; mean(v) }
+syn_be <- bind_rows(
+  be_row('Default demand, foreign demand fixed', function(p) pick(t10$national %>% filter(mobility == 'frechet'), p, 'breakeven_mean')),
+  be_row("Default demand, Rice and Venables's closure", function(p) pick(mf_closure_proxies %>% filter(mobility == 'frechet', grepl('Rice', closure)), p, 'breakeven_vs_P1', 'proxy')),
+  be_row('Demand fitted to T6, foreign demand fixed', function(p) pick(md_breakeven %>% filter(mobility == 'frechet', grepl('Calibrated', demand), grepl('fixed', closure)), p)),
+  be_row("Demand fitted to T6, Rice and Venables's closure", function(p) pick(md_breakeven %>% filter(mobility == 'frechet', grepl('Calibrated', demand), grepl('Rice', closure)), p)),
+  be_row('Fitted demand, local services less price-sensitive between places', function(p) pick(ls_breakeven %>% filter(mobility == 'frechet', grepl('services 3', variant)), p)),
+  be_row('The same, with agglomeration 0.03', function(p) pick(ag_breakeven %>% filter(mobility == 'frechet', kappa == 0.03), p)),
+  local({ sdp <- function(p) { r <- sd_by_proxy[grepl(paste0('^', p, ' '), sd_by_proxy$proxy), ]
+            paste0(num(r$breakeven_mean, 2), ' (', num(r$breakeven_min, 2), '–', num(r$breakeven_max, 2), ')') }
+    tibble(Setting = paste0('The same, agglomeration 0.3: mean (range) over ', nrow(sd_policies) / 4, ' starting equilibria in ', nrow(sd_summary), ' draws'),
+           `Long tail` = sdp('P2'), `Upstream business-to-business` = sdp('P3'), `Local services` = sdp('P4')) }))
+cu_syn <- t11a$catchup %>% filter(!group %in% c('public_providential', 'excluded'))
+syn_room <- sum(cu_syn$national_tail_halfway, na.rm = TRUE) / sum(cu_syn$national_top10_plus10, na.rm = TRUE)
+syn_t6 <- function(term) t6$regs$estimate[t6$regs$sample == 'Stacked 5-year differences, slope by reach' & t6$regs$term == term]
+ls_loc <- ls_e2 %>% filter(grepl('services 3', variant), group %in% ls$local)
+syn_land <- median(mf_e1$land_share[mf_e1$supply_chains & mf_e1$mobility == 'frechet'])
+fxs <- function(pol, eco, col) t9f[[col]][grepl(pol, t9f$policy, fixed = TRUE) & grepl(eco, t9f$economy) & t9f$place == 'all' & grepl('Extended', t9f$version)]
+```
+
+Your hypothesis was that "tradables first, then hope for trickle-down" doesn't stack up, given what productivity in the much broader set of other sectors could do. Round 2 tested it four ways:
+
+- the input–output tables;
+- UK firm data;
+- Rice and Venables's model with supply chains (Model F);
+- the flow model in R.
+
+**1. As a national priority rule, "tradables first" doesn't hold.**
+
+- **Most of the economy's leverage is outside the exported products.** Products exporting a quarter or more of their output carry `r pct(rs('International'))` of the market economy's first-order gain from productivity (T2, section 2). Construction, professional services, finance and wholesale carry the biggest weights, on both sides of the tradable line.
+- **Business-to-business sectors feed exporters.** 35–45% of a gain in transport, wholesale, support, professional or financial services ends up in cheaper exports (section 4). About half the jobs behind manufactured products are in other sectors (T3, section 10).
+- **The long tail has far more room than the frontier.** In UK firm data, half-closing the gap to the median within industries is worth about `r num(syn_room, 1)` times a 10% gain for the top decile (T11a, section 8).
+- **Per point of productivity, the frontier push's lead is modest and conditional.** The table gives each broad policy's break-even cost ratio against a frontier push in tradables: a ratio of 0.8 means its points must be 20% cheaper to match.
+
+```{r}
+#| label: tbl-synthesis
+#| tbl-cap: "Break-even cost ratios against the frontier push (people mobile), across Model F's settings. Below 1: the policy's points must be that much cheaper to match the frontier push; above 1: it wins at equal cost per point."
+syn_be %>% kable(align = 'lrrr')
+```
+
+- **Reading the table.**
+    - With demand fitted to UK data, upstream business-to-business productivity is about level with the frontier push, under either trade closure.
+    - The long tail and local services need their points somewhat cheaper.
+    - The frontier push's lead was largest in the first, least realistic setting. It rests on export gains coming back as cheaper imports, and on demand far more price-sensitive than UK industries show.
+    - Strong agglomeration leaves the averages about where they were but widens the range, because a policy can tip the economy into another equilibrium (section 18).
+
+**2. But productivity in the broader sectors carries costs the shorthand misses.**
+
+- **It costs the improving sector jobs.** Across UK industries, 1997–2019, hours fell `r num(-syn_t6('reachbusiness to business:d_oph'), 2)` log points per point of productivity growth in business-to-business industries and `r num(-syn_t6('reachlocal services:d_oph'), 2)` in local services, against `r num(-syn_t6('reachtradable:d_oph'), 2)` in tradables (T6, section 12).
+    - Where people can move or find other work, that's the gain.
+    - Where they can't, it's a cost to exactly the people the hypothesis is meant to help.
+- **In a slack economy, productivity without demand costs jobs and measured GDP.** Real income rises only where the cheaper output is bought locally (flow model, section 17).
+- **The official lens hides the gain.** A place that makes its everyday services more productive shows lower measured GVA per worker while its residents' real income rises (T8, sections 11 and 17).
+- **Land and property take a large share either way.** About `r pct(syn_land)` of the national income gain goes to the local fixed factor in Model F, for tradable and non-tradable gains alike. Landowners are no more a problem for one than the other.
+
+**3. Local and national strategy align only in some conditions** (T9, sections 11 and 17).
+
+- **Local services, people staying put:** aligned. A lagging place keeps `r pct(min(ls_loc$lag_gain_share[ls_loc$mobility == 'immobile']))`–`r pct(max(ls_loc$lag_gain_share[ls_loc$mobility == 'immobile']))` of the gain from its own local services. But the national gain is small.
+- **Nationally traded business services:** local gain smaller than national. The gain spreads to buyers everywhere through prices, so no single place has much reason to pay for it. That's a case for national rather than local policy.
+- **People mobile:** a place keeps little of any productivity gain, at most `r pct(max(ls_loc$lag_gain_share[ls_loc$mobility == 'frechet']))` from local services. Migration and rents spread it.
+- **Demand-side policy:**
+    - When labour is slack, a place's own procurement keeps most of its gain (`r pct(fxs('D2t', 'Slack', 'town_share_of_real_gain'))` in the flow model) and costs no one.
+    - When labour is tight, it crowds out other places: the town gets `r pct(fxs('D2t', 'Tight', 'town_share_of_real_gain'))` of the national gain.
+
+**4. What this adds to round 1's question.**
+
+Round 1 asked whether the tradeable-jobs argument adds anything to Ricardo.
+
+- **Supply chains make the tradable/non-tradable split a poor guide** to where productivity matters. The split that does the work is:
+    - position in the supply chain;
+    - how price-sensitive demand is;
+    - whether people can move;
+    - whether the economy is slack.
+- **The biggest single modelling choice is a Ricardian one:** whether gains in exporters come back as cheaper imports (the terms of trade).
+- **Venables's "missing lever" doesn't work.** Cheaper local non-tradable inputs don't pull lagging places into tradables, in Model F or in his own city model with supply chains (section 11).
+- **Sparsity remains a measure of concentration, not tradability** (T4, round 1).
+
+**5. How sure to be.**
+
+- **Robust:**
+    - the spread of leverage across both sides of the tradable line;
+    - business-to-business sectors' reach into exports;
+    - the room in the long tail;
+    - the job losses outside tradables;
+    - the official lens disagreeing with real income;
+    - how mobility decides what stays local.
+- **Depends on modelling choices:**
+    - the per-point ranking, which turns on the trade closure and demand elasticities;
+    - everything with strong agglomeration, which is far stronger than empirical estimates. Over six productivity draws it makes a policy's effect depend on which equilibrium the economy starts in. The long-tail proxy tips the economy into another equilibrium from `r sum(sd_policies$switched[sd_policies$proxy == 'P2 long tail'])` of `r sum(sd_policies$proxy == 'P2 long tail')` starting points and gains from it. The frontier push does so from `r sum(sd_policies$switched[sd_policies$proxy == 'P1 frontier push'])`, the other two never (section 18).
+- **Unknown:** the cost of a point of productivity in each sector. Neither side has credible UK evidence (T10, section 14). That, not the models, is now the binding gap.
+
 ## In brief
 
 - **The question.** The tradables-first argument says a place, or a country, does best by raising productivity in the sectors that sell outside it. Hulten's theorem gives the national, first-order answer to "where does a 1% productivity gain do the most good?" It is the sector's *Domar weight*: its gross output as a share of GDP, whoever buys it.
@@ -971,6 +1076,17 @@ bif <- sv_bifurcation %>% group_by(vartheta) %>% summarise(first_unstable = min(
 fp <- sv_full$direct %>% left_join(sv_full$continuation, by = 'kappa')
 fm <- sv_full$multi
 fpol <- sv_full$policies
+source('code/tradeable_jobs/28_strong_agglomeration_draws.R')
+sdb <- function(p, col) sd_by_proxy[[col]][grepl(paste0('^', p, ' '), sd_by_proxy$proxy)]
+sdq <- sd_policies %>% filter(proxy == 'P2 long tail') %>% group_by(seed) %>% filter(any(switched), any(!switched)) %>%
+  summarise(sw = mean(breakeven[switched]), not = mean(breakeven[!switched]), .groups = 'drop')
+sd_p1 <- sd_policies %>% filter(proxy == 'P1 frontier push')
+sd_esc <- sd_p1 %>% filter(switched) %>% slice_max(gain_per_point, n = 1)
+sd_esc_other <- sd_p1 %>% filter(seed == sd_esc$seed, !switched)
+sd_esc_be <- sd_policies %>% filter(seed == sd_esc$seed, eq == sd_esc$eq, !grepl('^P1', proxy))
+sd_p1_sw <- sd_p1 %>% filter(switched, seed != sd_esc$seed) %>% slice(1)
+sd_p1_ref <- sd_p1 %>% filter(seed == sd_p1_sw$seed, !switched)
+sd_spread <- sd_summary %>% mutate(s = welfare_max / welfare_min - 1)
 ```
 
 **The solvers before this section.** Each model had one solver:
@@ -1044,17 +1160,55 @@ fpol %>% transmute(eq = paste('Equilibrium', eq), proxy, v = num(breakeven, 2)) 
     - It gains from the move: break-even `r num(max(fpol$breakeven[fpol$proxy == 'P2 long tail']), 2)`.
     - From the other two, where that move has already happened, it is `r num(min(fpol$breakeven[fpol$proxy == 'P2 long tail']), 2)`.
 - **The upstream and local-services proxies hardly depend on the starting point** (`r num(min(fpol$breakeven[fpol$proxy == 'P3 upstream']), 2)`–`r num(max(fpol$breakeven[fpol$proxy == 'P3 upstream']), 2)` and `r num(min(fpol$breakeven[fpol$proxy == 'P4 local services']), 2)`–`r num(max(fpol$breakeven[fpol$proxy == 'P4 local services']), 2)`).
+**Over six productivity draws** (script 28). The same setting and steps for draws `r min(sd_summary$seed)`–`r max(sd_summary$seed)`: continuation to agglomeration 0.3, six scrambled starts, then the four proxies from every stable equilibrium found.
+
+- **Every draw has more than one stable equilibrium:** `r min(sd_summary$stable)` to `r max(sd_summary$stable)`, `r sum(sd_summary$stable)` in all.
+    - Continuation solved every step in every draw, and every start converged.
+    - `r sum(sd_equilibria$hits == 1)` of the `r nrow(sd_equilibria)` were found by a single start, so more starts would probably find more. The counts are lower bounds.
+- **As in the single draw, they differ in where activity sits more than in welfare.**
+    - The largest shift between two equilibria of a draw is `r pct(min(sd_summary$max_share_gap), 1)`–`r pct(max(sd_summary$max_share_gap), 1)` of all workers in one place-sector.
+    - Welfare differs by at most `r pct(sort(sd_spread$s, decreasing = TRUE)[2], 1)` within a draw, except in draw `r sd_spread$seed[which.max(sd_spread$s)]` (`r pct(max(sd_spread$s), 1)`).
+
+```{r}
+#| label: tbl-sd-proxies
+#| tbl-cap: "Full Model F, agglomeration 0.3, six productivity draws: how often each proxy tips the economy into another equilibrium (some place-sector's share of all workers moves by more than 1 point), and its break-even cost ratio against the frontier push (P1) from the same starting equilibrium."
+sd_by_proxy %>% transmute(Proxy = proxy,
+                          `Switched (of starting equilibria)` = paste0(n_switched, ' of ', cases),
+                          `Draws with a switch` = draws_switched,
+                          `Break-even: mean (range)` = ifelse(grepl('^P1', proxy), '1 (reference)',
+                                                              paste0(num(breakeven_mean, 2), ' (', num(breakeven_min, 2), '–', num(breakeven_max, 2), ')')),
+                          `When it switched` = ifelse(grepl('^P1', proxy) | is.na(breakeven_if_switched), '', num(breakeven_if_switched, 2)),
+                          `When it didn't` = ifelse(grepl('^P1', proxy), '', num(breakeven_if_not, 2))) %>%
+  kable(align = 'lrrrrr')
+```
+
+- **Switching is common for the long tail, rare for the frontier push, absent for the rest.**
+    - The long-tail proxy tips the economy from `r sdb('P2', 'n_switched')` of `r sdb('P2', 'cases')` starting equilibria, in `r sdb('P2', 'draws_switched')` of the `r nrow(sd_summary)` draws.
+    - The frontier push does so from `r sdb('P1', 'n_switched')`. Upstream and local services never do: no place-sector's share moves by more than `r pct(max(sdb('P3', 'moved_max'), sdb('P4', 'moved_max')), 2)`.
+    - That fits how the proxies are built. The long tail raises the weakest place-sectors, which can change which places are big enough to gain from agglomeration. The frontier push raises the places already ahead.
+- **The long tail gains when it switches.**
+    - Its break-even is `r num(sdb('P2', 'breakeven_if_switched'), 2)` when it tips the economy and `r num(sdb('P2', 'breakeven_if_not'), 2)` when it doesn't.
+    - The comparison holds within draws: in the `r nrow(sdq)` draws where it switches from some equilibria and not others, `r paste0(num(sdq$sw, 2), ' against ', num(sdq$not, 2), collapse = ' and ')`.
+    - It isn't escaping bad equilibria. Where it switches, the starting equilibrium is `r pct(-mean(sd_policies$start_welfare_vs_best[sd_policies$proxy == 'P2 long tail' & sd_policies$switched]), 1)` below the draw's best on average, the same as where it doesn't.
+- **The frontier push's one big switch is an escape.**
+    - In draw `r sd_esc$seed` the economy starts in that draw's worst equilibrium, `r pct(-sd_esc$start_welfare_vs_best, 1)` below the best.
+    - The frontier push tips it out: `r num(sd_esc$gain_per_point, 2)` welfare points per point of productivity, against `r num(min(sd_esc_other$gain_per_point), 2)`–`r num(max(sd_esc_other$gain_per_point), 2)` from the draw's other equilibria.
+    - No other proxy tips it, so there their break-evens are the lowest anywhere (`r num(min(sd_esc_be$breakeven), 2)`–`r num(max(sd_esc_be$breakeven), 2)`).
+    - Its other switch, in draw `r sd_p1_sw$seed`, didn't pay: `r num(sd_p1_sw$gain_per_point, 2)` per point, against `r num(min(sd_p1_ref$gain_per_point), 2)`–`r num(max(sd_p1_ref$gain_per_point), 2)` from that draw's other equilibria.
+- **On average, strong agglomeration changes little.** Mean break-evens over the `r sdb('P2', 'cases')` starting points are `r num(sdb('P2', 'breakeven_mean'), 2)`, `r num(sdb('P3', 'breakeven_mean'), 2)` and `r num(sdb('P4', 'breakeven_mean'), 2)` for the long tail, upstream and local services. With agglomeration 0.03 they were `r num(pick(ag_breakeven %>% filter(mobility == 'frechet', kappa == 0.03), 'P2'), 2)`, `r num(pick(ag_breakeven %>% filter(mobility == 'frechet', kappa == 0.03), 'P3'), 2)` and `r num(pick(ag_breakeven %>% filter(mobility == 'frechet', kappa == 0.03), 'P4'), 2)` (section 16, three draws). What strong agglomeration adds is the spread.
+
 - **What this means.**
     - With strong agglomeration, policy can shift an economy between equilibria, and a policy's measured effect then depends on the history it starts from.
-    - Here that matters for broad catch-up more than for the frontier push, the reverse of the usual cluster argument.
-    - One productivity draw and agglomeration far stronger than estimates suggest make this an illustration, not a finding about the UK.
+    - Over six draws that matters more for broad catch-up than for the frontier push. The long tail tips the economy far more often, and gains when it does. That is the reverse of the usual cluster argument, in which backing the leaders is how a policy exploits agglomeration.
+    - But it cuts both ways: the largest single gain from a switch is the frontier push's, out of a bad equilibrium. Neither side can count on history.
+    - Agglomeration far stronger than estimates suggest, and six draws of a 12-place economy, still make this an illustration, not a finding about the UK.
 
 ## 19. What is not done yet
 
 - **The flow model's lenses** beyond the standard results rows (chains, booking, measurement), and its calibration routine. The model itself is ported and validated (section 17).
 - **Calibrating the flow model's extensions.** The export elasticity and wage curve are set from Model F and the literature, not fitted to the flow model's own economy.
 - **Model F extensions.**
-    - Policy experiments over many productivity draws with strong agglomeration (section 18 uses one), and the equilibrium-switching they can cause.
+    - More starts per draw with strong agglomeration: most of section 18's equilibria were found by a single start, so there are probably more.
     - A pass-through switch calibrated on T11a, so that firms keep part of a gain instead of passing it all to prices.
     - Equal-cost (rather than equal-percentage) proxies once T10's ratios have been argued over.
 - **The regional version of T3, and T5's local multipliers.** Both need regional input–output coefficients that the payment flows can't supply.
@@ -1071,4 +1225,4 @@ fpol %>% transmute(eq = paste('Equilibrium', eq), proxy, v = num(breakeven, 2)) 
 - **Firm data (section 8):** Companies House accounts (open data), as processed in the companieshouseopen project's report outputs; read in place, with the aggregate tables kept in the gitignored `local/` folder because they are rebuilt from that project.
 - **The models:** Rice and Venables (2023), as rebuilt in round 1 ([tradeable_jobs_firstlook.qmd](tradeable_jobs_firstlook.qmd)); the "where GVA is booked" flow model (modelling_demand, model spec v1), ported from its TypeScript build (modelling repo, commit 70c3804).
 
-*Code: `code/tradeable_jobs/functions_io.R`, `functions_ch.R`, `functions_payments.R`, `functions_modelF.R`, `functions_solvers.R` and `functions_flow.R` (with its inputs in `flow_model/`), and scripts `12` to `27`. Outputs: `docs/chunks/tradeable_jobs/outputs/` (`t2_*` to `t11b_*` and `mf_*`); T11a's tables stay in the gitignored `local/tradeable_jobs/companieshouse/`. Plan and log: [tradeable_jobs_further_tests_plan.md](tradeable_jobs_further_tests_plan.md).*
+*Code: `code/tradeable_jobs/functions_io.R`, `functions_ch.R`, `functions_payments.R`, `functions_modelF.R`, `functions_solvers.R` and `functions_flow.R` (with its inputs in `flow_model/`), and scripts `12` to `28`. Outputs: `docs/chunks/tradeable_jobs/outputs/` (`t2_*` to `t11b_*` and `mf_*`); T11a's tables stay in the gitignored `local/tradeable_jobs/companieshouse/`. Plan and log: [tradeable_jobs_further_tests_plan.md](tradeable_jobs_further_tests_plan.md).*

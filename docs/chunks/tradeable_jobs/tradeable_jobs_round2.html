@@ -2313,7 +2313,8 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul class="collapse">
-  <li><a href="#in-brief" id="toc-in-brief" class="nav-link active" data-scroll-target="#in-brief">In brief</a></li>
+  <li><a href="#the-answer-so-far" id="toc-the-answer-so-far" class="nav-link active" data-scroll-target="#the-answer-so-far">The answer so far</a></li>
+  <li><a href="#in-brief" id="toc-in-brief" class="nav-link" data-scroll-target="#in-brief">In brief</a></li>
   <li><a href="#what-was-done" id="toc-what-was-done" class="nav-link" data-scroll-target="#what-was-done">1. What was done</a></li>
   <li><a href="#where-the-leverage-sits" id="toc-where-the-leverage-sits" class="nav-link" data-scroll-target="#where-the-leverage-sits">2. Where the leverage sits</a></li>
   <li><a href="#leverage-against-value-added-and-jobs" id="toc-leverage-against-value-added-and-jobs" class="nav-link" data-scroll-target="#leverage-against-value-added-and-jobs">3. Leverage against value added and jobs</a></li>
@@ -2371,6 +2372,159 @@ window.Quarto = {
 </header>
 
 
+<section id="the-answer-so-far" class="level2">
+<h2 class="anchored" data-anchor-id="the-answer-so-far">The answer so far</h2>
+<p>Your hypothesis was that “tradables first, then hope for trickle-down” doesn’t stack up, given what productivity in the much broader set of other sectors could do. Round 2 tested it four ways:</p>
+<ul>
+<li>the input–output tables;</li>
+<li>UK firm data;</li>
+<li>Rice and Venables’s model with supply chains (Model F);</li>
+<li>the flow model in R.</li>
+</ul>
+<p><strong>1. As a national priority rule, “tradables first” doesn’t hold.</strong></p>
+<ul>
+<li><strong>Most of the economy’s leverage is outside the exported products.</strong> Products exporting a quarter or more of their output carry 37% of the market economy’s first-order gain from productivity (T2, section 2). Construction, professional services, finance and wholesale carry the biggest weights, on both sides of the tradable line.</li>
+<li><strong>Business-to-business sectors feed exporters.</strong> 35–45% of a gain in transport, wholesale, support, professional or financial services ends up in cheaper exports (section 4). About half the jobs behind manufactured products are in other sectors (T3, section 10).</li>
+<li><strong>The long tail has far more room than the frontier.</strong> In UK firm data, half-closing the gap to the median within industries is worth about 4.6 times a 10% gain for the top decile (T11a, section 8).</li>
+<li><strong>Per point of productivity, the frontier push’s lead is modest and conditional.</strong> The table gives each broad policy’s break-even cost ratio against a frontier push in tradables: a ratio of 0.8 means its points must be 20% cheaper to match.</li>
+</ul>
+<div class="cell">
+<div id="tbl-synthesis" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-synthesis-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 1: Break-even cost ratios against the frontier push (people mobile), across Model F’s settings. Below 1: the policy’s points must be that much cheaper to match the frontier push; above 1: it wins at equal cost per point.
+</figcaption>
+<div aria-describedby="tbl-synthesis-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 55%">
+<col style="width: 11%">
+<col style="width: 20%">
+<col style="width: 11%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Setting</th>
+<th style="text-align: right;">Long tail</th>
+<th style="text-align: right;">Upstream business-to-business</th>
+<th style="text-align: right;">Local services</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Default demand, foreign demand fixed</td>
+<td style="text-align: right;">0.66</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">0.40</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Default demand, Rice and Venables’s closure</td>
+<td style="text-align: right;">1.07</td>
+<td style="text-align: right;">1.19</td>
+<td style="text-align: right;">1.04</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Demand fitted to T6, foreign demand fixed</td>
+<td style="text-align: right;">0.84</td>
+<td style="text-align: right;">0.92</td>
+<td style="text-align: right;">0.64</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Demand fitted to T6, Rice and Venables’s closure</td>
+<td style="text-align: right;">0.53</td>
+<td style="text-align: right;">1.04</td>
+<td style="text-align: right;">0.96</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fitted demand, local services less price-sensitive between places</td>
+<td style="text-align: right;">0.78</td>
+<td style="text-align: right;">0.91</td>
+<td style="text-align: right;">0.64</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">The same, with agglomeration 0.03</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">0.90</td>
+<td style="text-align: right;">0.63</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">The same, agglomeration 0.3: mean (range) over 21 starting equilibria in 6 draws</td>
+<td style="text-align: right;">0.77 (0.47–1.02)</td>
+<td style="text-align: right;">0.95 (0.66–1.09)</td>
+<td style="text-align: right;">0.68 (0.46–0.74)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<ul>
+<li><strong>Reading the table.</strong>
+<ul>
+<li>With demand fitted to UK data, upstream business-to-business productivity is about level with the frontier push, under either trade closure.</li>
+<li>The long tail and local services need their points somewhat cheaper.</li>
+<li>The frontier push’s lead was largest in the first, least realistic setting. It rests on export gains coming back as cheaper imports, and on demand far more price-sensitive than UK industries show.</li>
+<li>Strong agglomeration leaves the averages about where they were but widens the range, because a policy can tip the economy into another equilibrium (section 18).</li>
+</ul></li>
+</ul>
+<p><strong>2. But productivity in the broader sectors carries costs the shorthand misses.</strong></p>
+<ul>
+<li><strong>It costs the improving sector jobs.</strong> Across UK industries, 1997–2019, hours fell 0.54 log points per point of productivity growth in business-to-business industries and 0.34 in local services, against 0.14 in tradables (T6, section 12).
+<ul>
+<li>Where people can move or find other work, that’s the gain.</li>
+<li>Where they can’t, it’s a cost to exactly the people the hypothesis is meant to help.</li>
+</ul></li>
+<li><strong>In a slack economy, productivity without demand costs jobs and measured GDP.</strong> Real income rises only where the cheaper output is bought locally (flow model, section 17).</li>
+<li><strong>The official lens hides the gain.</strong> A place that makes its everyday services more productive shows lower measured GVA per worker while its residents’ real income rises (T8, sections 11 and 17).</li>
+<li><strong>Land and property take a large share either way.</strong> About 55% of the national income gain goes to the local fixed factor in Model F, for tradable and non-tradable gains alike. Landowners are no more a problem for one than the other.</li>
+</ul>
+<p><strong>3. Local and national strategy align only in some conditions</strong> (T9, sections 11 and 17).</p>
+<ul>
+<li><strong>Local services, people staying put:</strong> aligned. A lagging place keeps 75%–95% of the gain from its own local services. But the national gain is small.</li>
+<li><strong>Nationally traded business services:</strong> local gain smaller than national. The gain spreads to buyers everywhere through prices, so no single place has much reason to pay for it. That’s a case for national rather than local policy.</li>
+<li><strong>People mobile:</strong> a place keeps little of any productivity gain, at most 13% from local services. Migration and rents spread it.</li>
+<li><strong>Demand-side policy:</strong>
+<ul>
+<li>When labour is slack, a place’s own procurement keeps most of its gain (83% in the flow model) and costs no one.</li>
+<li>When labour is tight, it crowds out other places: the town gets 130% of the national gain.</li>
+</ul></li>
+</ul>
+<p><strong>4. What this adds to round 1’s question.</strong></p>
+<p>Round 1 asked whether the tradeable-jobs argument adds anything to Ricardo.</p>
+<ul>
+<li><strong>Supply chains make the tradable/non-tradable split a poor guide</strong> to where productivity matters. The split that does the work is:
+<ul>
+<li>position in the supply chain;</li>
+<li>how price-sensitive demand is;</li>
+<li>whether people can move;</li>
+<li>whether the economy is slack.</li>
+</ul></li>
+<li><strong>The biggest single modelling choice is a Ricardian one:</strong> whether gains in exporters come back as cheaper imports (the terms of trade).</li>
+<li><strong>Venables’s “missing lever” doesn’t work.</strong> Cheaper local non-tradable inputs don’t pull lagging places into tradables, in Model F or in his own city model with supply chains (section 11).</li>
+<li><strong>Sparsity remains a measure of concentration, not tradability</strong> (T4, round 1).</li>
+</ul>
+<p><strong>5. How sure to be.</strong></p>
+<ul>
+<li><strong>Robust:</strong>
+<ul>
+<li>the spread of leverage across both sides of the tradable line;</li>
+<li>business-to-business sectors’ reach into exports;</li>
+<li>the room in the long tail;</li>
+<li>the job losses outside tradables;</li>
+<li>the official lens disagreeing with real income;</li>
+<li>how mobility decides what stays local.</li>
+</ul></li>
+<li><strong>Depends on modelling choices:</strong>
+<ul>
+<li>the per-point ranking, which turns on the trade closure and demand elasticities;</li>
+<li>everything with strong agglomeration, which is far stronger than empirical estimates. Over six productivity draws it makes a policy’s effect depend on which equilibrium the economy starts in. The long-tail proxy tips the economy into another equilibrium from 8 of 21 starting points and gains from it. The frontier push does so from 2, the other two never (section 18).</li>
+</ul></li>
+<li><strong>Unknown:</strong> the cost of a point of productivity in each sector. Neither side has credible UK evidence (T10, section 14). That, not the models, is now the binding gap.</li>
+</ul>
+</section>
 <section id="in-brief" class="level2">
 <h2 class="anchored" data-anchor-id="in-brief">In brief</h2>
 <ul>
@@ -2488,7 +2642,7 @@ window.Quarto = {
 <div id="tbl-reach" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-reach-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 1: The market economy’s national leverage, by market reach and by what limits productivity. Leverage is the Domar weight net of within-product sales, so the national first-order gain from a 1% gain in every product in the class, as % of GDP. Public administration, education, health, care and imputed rent are left out.
+Table 2: The market economy’s national leverage, by market reach and by what limits productivity. Leverage is the Domar weight net of within-product sales, so the national first-order gain from a 1% gain in every product in the class, as % of GDP. Public administration, education, health, care and imputed rent are left out.
 </figcaption>
 <div aria-describedby="tbl-reach-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -2753,7 +2907,7 @@ Figure 3: Where a 1% productivity gain in each group ends up: the share of the 
 <div id="tbl-groups" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-groups-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 2: Proposed sector groups. Leverage: net Domar weight, % of GDP. GVA per job: £ thousand, UK GVA over GB employees, so about 3% high everywhere, and high for groups with many self-employed. B2B: share of sales to other businesses. Exports: direct share of sales; embodied: share of a gain landing on exports. Upstream: Ghosh row sums (1 = all to final demand).
+Table 3: Proposed sector groups. Leverage: net Domar weight, % of GDP. GVA per job: £ thousand, UK GVA over GB employees, so about 3% high everywhere, and high for groups with many self-employed. B2B: share of sales to other businesses. Exports: direct share of sales; embodied: share of a gain landing on exports. Upstream: Ghosh row sums (1 = all to final demand).
 </figcaption>
 <div aria-describedby="tbl-groups-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -3120,7 +3274,7 @@ Table 2: Proposed sector groups. Leverage: net Domar weight, % of GDP. GVA per 
 <div id="tbl-checks" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl quarto-uncaptioned" id="tbl-checks-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 3
+Table 4
 </figcaption>
 <div aria-describedby="tbl-checks-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -3280,7 +3434,7 @@ Figure 5: Implied national gain (% of GDP) from two changes in each group, scal
 <div id="tbl-catchup" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-catchup-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 4: Catch-up arithmetic by type of group (market groups only). Gains are % of GDP, scaling each group’s firm-sample gain by its share of value added.
+Table 5: Catch-up arithmetic by type of group (market groups only). Gains are % of GDP, scaling each group’s firm-sample gain by its share of value added.
 </figcaption>
 <div aria-describedby="tbl-catchup-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -3350,7 +3504,7 @@ Table 4: Catch-up arithmetic by type of group (market groups only). Gains are %
 <div id="tbl-decomp" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-decomp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 5: Change in real GVA per job, 2019 to 2024, firms with 10+ employees (Melitz–Polanec decomposition, £ per job, 2019 prices). ‘Reporters’ counts any firm missing from one year as an entrant or exiter; ‘real entry and exit’ keeps only firms incorporated after 2019 and firms gone before 2024.
+Table 6: Change in real GVA per job, 2019 to 2024, firms with 10+ employees (Melitz–Polanec decomposition, £ per job, 2019 prices). ‘Reporters’ counts any firm missing from one year as an entrant or exiter; ‘real entry and exit’ keeps only firms incorporated after 2019 and firms gone before 2024.
 </figcaption>
 <div aria-describedby="tbl-decomp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -3438,7 +3592,7 @@ Table 5: Change in real GVA per job, 2019 to 2024, firms with 10+ employees (Me
 <div id="tbl-respons" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-respons-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 6: By sector group. Responsiveness: next year’s log jobs growth on log GVA per job against the group-year mean (with relative size and year effects). Pass-through: log wage bill growth on log GVA growth, holding log jobs growth (year effects). Errors clustered by firm; groups with 300+ year-on-year links.
+Table 7: By sector group. Responsiveness: next year’s log jobs growth on log GVA per job against the group-year mean (with relative size and year effects). Pass-through: log wage bill growth on log GVA growth, holding log jobs growth (year effects). Errors clustered by firm; groups with 300+ year-on-year links.
 </figcaption>
 <div aria-describedby="tbl-respons-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -3588,7 +3742,7 @@ Table 6: By sector group. Responsiveness: next year’s log jobs growth on log 
 <div id="tbl-place" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-place-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 7: How much of the spread in log GVA per job across firms (averages 2022–24, positive GVA, firms classed as having many sites and the providential group left out) is explained by industry and place: adjusted R² of fixed-effect models, and the standard deviations of crossed random effects.
+Table 8: How much of the spread in log GVA per job across firms (averages 2022–24, positive GVA, firms classed as having many sites and the providential group left out) is explained by industry and place: adjusted R² of fixed-effect models, and the standard deviations of crossed random effects.
 </figcaption>
 <div aria-describedby="tbl-place-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -3712,7 +3866,7 @@ Table 7: How much of the spread in log GVA per job across firms (averages 2022�
 <div id="tbl-irt" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-irt-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 8: Trade between UK regions as a share of output, 2019, eight industry groups: ONS interregional trade estimates (exports summed over all pairs of ITL1 regions) over output in the 2019 input–output tables. Wholesale and retail trade is valued at sales but their output is the margin, so their shares aren’t comparable. Sparsity: round 1’s SK, employment-weighted. Payment index: this section’s measure, income-weighted.
+Table 9: Trade between UK regions as a share of output, 2019, eight industry groups: ONS interregional trade estimates (exports summed over all pairs of ITL1 regions) over output in the 2019 input–output tables. Wholesale and retail trade is valued at sales but their output is the margin, so their shares aren’t comparable. Sparsity: round 1’s SK, employment-weighted. Payment index: this section’s measure, income-weighted.
 </figcaption>
 <div aria-describedby="tbl-irt-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -4091,7 +4245,7 @@ Tradables’ own purchases need more non-tradable cities.</li>
 <div id="tbl-t10" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-t10-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 9: Break-even cost ratios against the frontier push (P1), national real income per point. Model F’s closure: means (range) over three draws. Rice and Venables’s closure: one draw.
+Table 10: Break-even cost ratios against the frontier push (P1), national real income per point. Model F’s closure: means (range) over three draws. Rice and Venables’s closure: one draw.
 </figcaption>
 <div aria-describedby="tbl-t10-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -4233,7 +4387,7 @@ Table 9: Break-even cost ratios against the frontier push (P1), national real i
 <div id="tbl-md-fit" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-md-fit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 10: Own-jobs response to own productivity (log points of jobs per log point of productivity), by market reach: T6’s estimates from UK industries (stacked five-year differences, standard errors in brackets) against Model F with the calibrated demand and with the default.
+Table 11: Own-jobs response to own productivity (log points of jobs per log point of productivity), by market reach: T6’s estimates from UK industries (stacked five-year differences, standard errors in brackets) against Model F with the calibrated demand and with the default.
 </figcaption>
 <div aria-describedby="tbl-md-fit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -4301,7 +4455,7 @@ Table 10: Own-jobs response to own productivity (log points of jobs per log poi
 <div id="tbl-md-breakeven" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-md-breakeven-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 11: Break-even cost ratios against the frontier push (P1), national real income per point, people mobile: the default demand and the demand calibrated to T6, under both trade closures. Model F’s closure: mean of three draws; Rice and Venables’s: one draw.
+Table 12: Break-even cost ratios against the frontier push (P1), national real income per point, people mobile: the default demand and the demand calibrated to T6, under both trade closures. Model F’s closure: mean of three draws; Rice and Venables’s: one draw.
 </figcaption>
 <div aria-describedby="tbl-md-breakeven-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -4420,7 +4574,7 @@ Table 11: Break-even cost ratios against the frontier push (P1), national real 
 <div id="tbl-flow-t9" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-flow-t9-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 12: Flow model, slack economy (exports down 20%): each policy’s effect at period 40 against the same economy without it. National GDP (the official lens), unemployment (percentage points), real disposable income, and the town’s share of the national change in real disposable income.
+Table 13: Flow model, slack economy (exports down 20%): each policy’s effect at period 40 against the same economy without it. National GDP (the official lens), unemployment (percentage points), real disposable income, and the town’s share of the national change in real disposable income.
 </figcaption>
 <div aria-describedby="tbl-flow-t9-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -4545,7 +4699,7 @@ Table 12: Flow model, slack economy (exports down 20%): each policy’s effect 
 <div id="tbl-flow-tight" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-flow-tight-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 13: Extended flow model (price-elastic exports, wage curve): each policy’s effect at period 40 in the slack and the tight economy. Real disposable income nationally, the town’s share of it, and the change in wages (average across producers).
+Table 14: Extended flow model (price-elastic exports, wage curve): each policy’s effect at period 40 in the slack and the tight economy. Real disposable income nationally, the town’s share of it, and the change in wages (average across producers).
 </figcaption>
 <div aria-describedby="tbl-flow-tight-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -4718,7 +4872,7 @@ Table 13: Extended flow model (price-elastic exports, wage curve): each policy�
 <div id="tbl-sv-test" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-sv-test-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 14: The test case’s equilibria and which methods found them. Shares are place 1 sector 1, place 2 sector 1, place 1 sector 2, place 2 sector 2.
+Table 15: The test case’s equilibria and which methods found them. Shares are place 1 sector 1, place 2 sector 1, place 1 sector 2, place 2 sector 2.
 </figcaption>
 <div aria-describedby="tbl-sv-test-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -4806,7 +4960,7 @@ Table 14: The test case’s equilibria and which methods found them. Shares are
 <div id="tbl-sv-policies" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-sv-policies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 15: Full Model F, agglomeration 0.3: break-even cost ratios against the frontier push (P1), national welfare per point, starting from each of the four equilibria found. The economy adjusts from that equilibrium by hill climbing.
+Table 16: Full Model F, agglomeration 0.3: break-even cost ratios against the frontier push (P1), national welfare per point, starting from each of the four equilibria found. The economy adjusts from that equilibrium by hill climbing.
 </figcaption>
 <div aria-describedby="tbl-sv-policies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -4857,18 +5011,118 @@ Table 15: Full Model F, agglomeration 0.3: break-even cost ratios against the f
 </div>
 </div>
 <ul>
-<li><strong>Which equilibrium the economy is in changes the answer for the long tail.</strong>
+<li><p><strong>Which equilibrium the economy is in changes the answer for the long tail.</strong></p>
 <ul>
 <li>From two of the four, the long-tail proxy tips the economy into another equilibrium, moving 2.6% of workers.</li>
 <li>It gains from the move: break-even 0.93.</li>
 <li>From the other two, where that move has already happened, it is 0.74.</li>
 </ul></li>
-<li><strong>The upstream and local-services proxies hardly depend on the starting point</strong> (0.92–0.95 and 0.67–0.68).</li>
-<li><strong>What this means.</strong>
+<li><p><strong>The upstream and local-services proxies hardly depend on the starting point</strong> (0.92–0.95 and 0.67–0.68). <strong>Over six productivity draws</strong> (script 28). The same setting and steps for draws 101–106: continuation to agglomeration 0.3, six scrambled starts, then the four proxies from every stable equilibrium found.</p></li>
+<li><p><strong>Every draw has more than one stable equilibrium:</strong> 2 to 5, 21 in all.</p>
+<ul>
+<li>Continuation solved every step in every draw, and every start converged.</li>
+<li>14 of the 21 were found by a single start, so more starts would probably find more. The counts are lower bounds.</li>
+</ul></li>
+<li><p><strong>As in the single draw, they differ in where activity sits more than in welfare.</strong></p>
+<ul>
+<li>The largest shift between two equilibria of a draw is 2.3%–5.8% of all workers in one place-sector.</li>
+<li>Welfare differs by at most 0.6% within a draw, except in draw 105 (1.4%).</li>
+</ul></li>
+</ul>
+<div class="cell">
+<div id="tbl-sd-proxies" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-sd-proxies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 17: Full Model F, agglomeration 0.3, six productivity draws: how often each proxy tips the economy into another equilibrium (some place-sector’s share of all workers moves by more than 1 point), and its break-even cost ratio against the frontier push (P1) from the same starting equilibrium.
+</figcaption>
+<div aria-describedby="tbl-sd-proxies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 13%">
+<col style="width: 26%">
+<col style="width: 15%">
+<col style="width: 19%">
+<col style="width: 13%">
+<col style="width: 11%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Proxy</th>
+<th style="text-align: right;">Switched (of starting equilibria)</th>
+<th style="text-align: right;">Draws with a switch</th>
+<th style="text-align: right;">Break-even: mean (range)</th>
+<th style="text-align: right;">When it switched</th>
+<th style="text-align: right;">When it didn’t</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">P1 frontier push</td>
+<td style="text-align: right;">2 of 21</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1 (reference)</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">P2 long tail</td>
+<td style="text-align: right;">8 of 21</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.77 (0.47–1.02)</td>
+<td style="text-align: right;">0.90</td>
+<td style="text-align: right;">0.69</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">P3 upstream</td>
+<td style="text-align: right;">0 of 21</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.95 (0.66–1.09)</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">0.95</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">P4 local services</td>
+<td style="text-align: right;">0 of 21</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.68 (0.46–0.74)</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">0.68</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<ul>
+<li><p><strong>Switching is common for the long tail, rare for the frontier push, absent for the rest.</strong></p>
+<ul>
+<li>The long-tail proxy tips the economy from 8 of 21 starting equilibria, in 3 of the 6 draws.</li>
+<li>The frontier push does so from 2. Upstream and local services never do: no place-sector’s share moves by more than 0.23%.</li>
+<li>That fits how the proxies are built. The long tail raises the weakest place-sectors, which can change which places are big enough to gain from agglomeration. The frontier push raises the places already ahead.</li>
+</ul></li>
+<li><p><strong>The long tail gains when it switches.</strong></p>
+<ul>
+<li>Its break-even is 0.90 when it tips the economy and 0.69 when it doesn’t.</li>
+<li>The comparison holds within draws: in the 2 draws where it switches from some equilibria and not others, 0.84 against 0.74 and 0.79 against 0.65.</li>
+<li>It isn’t escaping bad equilibria. Where it switches, the starting equilibrium is 0.2% below the draw’s best on average, the same as where it doesn’t.</li>
+</ul></li>
+<li><p><strong>The frontier push’s one big switch is an escape.</strong></p>
+<ul>
+<li>In draw 105 the economy starts in that draw’s worst equilibrium, 1.4% below the best.</li>
+<li>The frontier push tips it out: 2.35 welfare points per point of productivity, against 1.63–1.67 from the draw’s other equilibria.</li>
+<li>No other proxy tips it, so there their break-evens are the lowest anywhere (0.46–0.66).</li>
+<li>Its other switch, in draw 104, didn’t pay: 1.52 per point, against 1.56–1.60 from that draw’s other equilibria.</li>
+</ul></li>
+<li><p><strong>On average, strong agglomeration changes little.</strong> Mean break-evens over the 21 starting points are 0.77, 0.95 and 0.68 for the long tail, upstream and local services. With agglomeration 0.03 they were 0.74, 0.90 and 0.63 (section 16, three draws). What strong agglomeration adds is the spread.</p></li>
+<li><p><strong>What this means.</strong></p>
 <ul>
 <li>With strong agglomeration, policy can shift an economy between equilibria, and a policy’s measured effect then depends on the history it starts from.</li>
-<li>Here that matters for broad catch-up more than for the frontier push, the reverse of the usual cluster argument.</li>
-<li>One productivity draw and agglomeration far stronger than estimates suggest make this an illustration, not a finding about the UK.</li>
+<li>Over six draws that matters more for broad catch-up than for the frontier push. The long tail tips the economy far more often, and gains when it does. That is the reverse of the usual cluster argument, in which backing the leaders is how a policy exploits agglomeration.</li>
+<li>But it cuts both ways: the largest single gain from a switch is the frontier push’s, out of a bad equilibrium. Neither side can count on history.</li>
+<li>Agglomeration far stronger than estimates suggest, and six draws of a 12-place economy, still make this an illustration, not a finding about the UK.</li>
 </ul></li>
 </ul>
 </section>
@@ -4879,7 +5133,7 @@ Table 15: Full Model F, agglomeration 0.3: break-even cost ratios against the f
 <li><strong>Calibrating the flow model’s extensions.</strong> The export elasticity and wage curve are set from Model F and the literature, not fitted to the flow model’s own economy.</li>
 <li><strong>Model F extensions.</strong>
 <ul>
-<li>Policy experiments over many productivity draws with strong agglomeration (section 18 uses one), and the equilibrium-switching they can cause.</li>
+<li>More starts per draw with strong agglomeration: most of section 18’s equilibria were found by a single start, so there are probably more.</li>
 <li>A pass-through switch calibrated on T11a, so that firms keep part of a gain instead of passing it all to prices.</li>
 <li>Equal-cost (rather than equal-percentage) proxies once T10’s ratios have been argued over.</li>
 </ul></li>
@@ -4899,7 +5153,7 @@ Table 15: Full Model F, agglomeration 0.3: break-even cost ratios against the f
 <li><strong>Firm data (section 8):</strong> Companies House accounts (open data), as processed in the companieshouseopen project’s report outputs; read in place, with the aggregate tables kept in the gitignored <code>local/</code> folder because they are rebuilt from that project.</li>
 <li><strong>The models:</strong> Rice and Venables (2023), as rebuilt in round 1 (<a href="tradeable_jobs_firstlook.qmd">tradeable_jobs_firstlook.qmd</a>); the “where GVA is booked” flow model (modelling_demand, model spec v1), ported from its TypeScript build (modelling repo, commit 70c3804).</li>
 </ul>
-<p><em>Code: <code>code/tradeable_jobs/functions_io.R</code>, <code>functions_ch.R</code>, <code>functions_payments.R</code>, <code>functions_modelF.R</code>, <code>functions_solvers.R</code> and <code>functions_flow.R</code> (with its inputs in <code>flow_model/</code>), and scripts <code>12</code> to <code>27</code>. Outputs: <code>docs/chunks/tradeable_jobs/outputs/</code> (<code>t2_*</code> to <code>t11b_*</code> and <code>mf_*</code>); T11a’s tables stay in the gitignored <code>local/tradeable_jobs/companieshouse/</code>. Plan and log: <a href="tradeable_jobs_further_tests_plan.md">tradeable_jobs_further_tests_plan.md</a>.</em></p>
+<p><em>Code: <code>code/tradeable_jobs/functions_io.R</code>, <code>functions_ch.R</code>, <code>functions_payments.R</code>, <code>functions_modelF.R</code>, <code>functions_solvers.R</code> and <code>functions_flow.R</code> (with its inputs in <code>flow_model/</code>), and scripts <code>12</code> to <code>28</code>. Outputs: <code>docs/chunks/tradeable_jobs/outputs/</code> (<code>t2_*</code> to <code>t11b_*</code> and <code>mf_*</code>); T11a’s tables stay in the gitignored <code>local/tradeable_jobs/companieshouse/</code>. Plan and log: <a href="tradeable_jobs_further_tests_plan.md">tradeable_jobs_further_tests_plan.md</a>.</em></p>
 </section>
 
 </main>
