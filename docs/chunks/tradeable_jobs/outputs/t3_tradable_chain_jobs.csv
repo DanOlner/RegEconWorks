@@ -1,0 +1,22 @@
+group,jobs,group_name,foundational,limit,share
+admin_support,864823.5813854341,Administrative and support services,Business services,Catch-up,0.13223625133080244
+agri_fish,14199.788577916283,"Agriculture, forestry and fishing",Material foundational,Squeezed supplier,0.002171225266805868
+arts_personal,127161.31308753334,"Arts, recreation and personal services",Everyday services,Limited by local demand,0.01944365963062664
+chem_pharma,103376.3063390173,"Fuels, chemicals and pharmaceuticals",Tradable or basic,Tradable frontier,0.015806802128125408
+construction,51946.606746986414,Construction,Material foundational,Catch-up,0.007942920028351286
+excluded,0,"Left out: imputed rent, households as employers",Left out,Left out,0
+finance,630300.8281341888,Finance and insurance,Tradable or basic,Tradable frontier,0.09637644083391238
+food_drink,31183.759344544946,"Food, drink and tobacco",Material foundational,Squeezed supplier,0.004768167204134886
+hospitality,460038.7427044554,Accommodation and food service,Everyday services,Limited by local demand,0.07034243759255258
+info_comms,472363.3903447949,Information and communication,Tradable or basic,Tradable frontier,0.07222694356349368
+light_mfg,194226.26776976633,"Textiles, wood, paper, printing, furniture",Tradable or basic,Catch-up,0.029698257670890026
+machinery_vehicles,588739.5944339345,"Electronics, machinery, vehicles and repair",Tradable or basic,Tradable frontier,0.09002150109417878
+metals_minerals,194189.35280375206,"Plastics, minerals and metal products",Tradable or basic,Catch-up,0.029692613170868517
+mining,24387.739956046527,"Mining, oil and gas",Tradable or basic,Tradable frontier,0.00372901870350449
+professional,1206653.7140780978,"Professional, scientific and technical",Business services,Tradable frontier,0.18450394651410812
+public_providential,90469.14666544588,"Public administration, education, health, care",Providential (held fixed),Held fixed,0.013833226884227768
+real_estate,24620.756900143908,Real estate (actual rents and fees),Housing,Land rent,0.0037646482675534193
+retail,158262.758800364,Retail,Everyday services,Limited by local demand,0.02419924063067828
+transport,429393.18730582483,"Transport, storage and post",Material foundational,Catch-up,0.06565656471270653
+utilities,33132.79802637484,"Energy, water and waste",Material foundational,Catch-up,0.005066185868902362
+wholesale_motor,840519.0057317822,Wholesale and motor trades,Material foundational,Catch-up,0.12851994890357663

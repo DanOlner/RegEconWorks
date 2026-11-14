@@ -1,0 +1,6 @@
+check,value
+Model F with no intermediates against the round 1 engine: max |log wage gap|,7.216449660063518e-16
+"Hulten, one closed place: max |gain - Domar weight|",1.0412853403054395e-7
+Export calibration: max |log gap| in export shares,3.8459767013868874e-7
+Calibrated output shares: correlation with the input-output tables,0.996850653111102
+Largest trade imbalance in any run (share of income; zero by Walras with fixed foreign demand),3.82009020502812e-9

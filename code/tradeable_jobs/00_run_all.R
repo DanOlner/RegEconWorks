@@ -8,6 +8,8 @@
 # The reports (docs/chunks/tradeable_jobs/tradeable_jobs_firstlook.qmd for round 1, tradeable_jobs_round2.qmd
 # for round 2) source the same scripts, so rendering one on its own also works: it reuses the cache, or
 # builds it if missing. Round 2's scripts read round 1's outputs (uk_sectors.csv), so run 09 first.
+# 13 reads the companieshouseopen report outputs (read-only; options(tj.ch_reports = ...) sets where) and
+# writes aggregates only, to the gitignored local/tradeable_jobs/companieshouse/. Without them it does nothing.
 
 source('code/tradeable_jobs/functions_common.R')
 unlink(tj_cache_dir, recursive = TRUE)
@@ -26,7 +28,16 @@ scripts <- c(
   '10_leverage.R',               # how far costs can fall in lagging places, against cluster premiums
   '11_synthesis.R',              # claims against benchmarks, verdicts by version
   # round 2
-  '12_t2_domar_tradability.R'    # T2: Domar weights against tradability, sector groups for Model F
+  '12_t2_domar_tradability.R',   # T2: Domar weights against tradability, sector groups for Model F
+  '13_t11a_firm_aggregates.R',   # T11a: firm-level aggregates by group (needs the Companies House outputs)
+  '14_t4_payment_tradability.R', # T4: tradability within the UK from payment flows; Scottish and interregional checks
+  '15_t3_chain_labour.R',        # T3: jobs and value added embodied along each product's UK supply chain
+  '16_modelF.R',                 # T1: Model F, the Rice and Venables engine with supply chains; T7, T8, T9 (model half)
+  '16b_modelF_closure.R',        # Model F under Rice and Venables's own trade closure, for comparison
+  '17_t6_own_jobs.R',            # T6: productivity growth against own hours, UK industries 1997-2019
+  '18_t5_local_sourcing.R',      # T5 (limited): how locally each industry buys, from the payment flows
+  '19_t10_breakeven.R',          # T10: break-even cost ratios per point of productivity, national and local
+  '20_t11b_moments.R'            # T11b: Model F's revenue productivity against the firm data's
 )
 for (s in scripts) {
   message('== ', s)

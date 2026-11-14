@@ -1,0 +1,173 @@
+```{r}
+#| label: t11a-numbers
+
+cu <- t11a$catchup
+cu_m <- cu %>% filter(!group %in% c('public_providential', 'excluded'))
+cu_type <- cu_m %>% group_by(limit) %>%
+  summarise(half = sum(national_tail_halfway, na.rm = TRUE), top = sum(national_top10_plus10, na.rm = TRUE), .groups = 'drop')
+ct <- function(cls, col) cu_type[[col]][cu_type$limit == cls]
+dec <- t11a$decomp
+du <- function(v, col) dec[[col]][dec$level == 'UK' & dec$version == v]
+sh <- function(term) t11a$shift$value[t11a$shift$term == term]
+hosp <- t11a$shift_groups %>% filter(group == 'hospitality')
+rsp <- t11a$respons; rnt <- t11a$rent
+rsp_g <- rsp %>% filter(!grepl('^all', group)); rnt_g <- rnt %>% filter(!grepl('^all', group), model == 'wage bill on GVA, with jobs')
+pr2 <- t11a$place_r2; pvc <- t11a$place_vc
+r2 <- function(m) pr2$adj_r2[pr2$model == m]
+vsd <- function(model, term) pvc$sd[pvc$model == model & pvc$term == term]
+gname <- function(id) str_to_lower(t2_groups$group_name[match(id, t2_groups$group)])
+k <- function(x, d = 1) paste0(ifelse(x < 0, '−', ''), '£', num(abs(x) / 1000, d), 'k')
+```
+
+## 8. What the firm data say (T11a)
+
+- **Data.** These are firms with 10 or more employees and a usable profit and loss account, from the Companies House report outputs (gva_spatial built `r t11a_builds[['gva_spatial']]`, jobs_gva built `r t11a_builds[['jobs_gva']]`).
+- **What it measures.**
+    - Revenue productivity: GVA from the income side, pay plus EBITDA, in 2019 prices.
+    - Each firm is placed at its registered office.
+    - Firms are grouped into T2's sector groups by their SIC division.
+- **Only aggregates leave the source data,** written to the gitignored `local/tradeable_jobs/companieshouse/`. Cells with fewer than 20 firms are suppressed.
+- **The pooled numbers match the source reports.**
+    - The 2019–24 decomposition gives `r k(du('Reporters', 'change'))` = within `r k(du('Reporters', 'within'))`, between `r k(du('Reporters', 'between'))`, entry `r k(du('Reporters', 'entry'))`, exit `r k(du('Reporters', 'exit'))`.
+    - Responsiveness is `r num(rsp$estimate[rsp$group == 'all (as jobs_gva: sections)'], 3)`.
+    - Pass-through to the wage bill is `r num(rnt$estimate[rnt$group == 'all (as jobs_gva: sections)' & rnt$model == 'wage bill on GVA, with jobs'], 3)`.
+
+**In brief.**
+
+- **The long tail has more room than the frontier, by a wide margin.**
+    - Suppose firms below their industry and size band's median closed half the gap. Spread across the market economy at each group's share of value added, that would be worth `r num(100 * sum(cu_m$national_tail_halfway, na.rm = TRUE), 1)`% of GDP.
+    - A 10% gain for the top decile of each group would be worth `r num(100 * sum(cu_m$national_top10_plus10, na.rm = TRUE), 1)`%.
+    - To match the tail, the top decile would need GVA per job `r num(100 * median(cu_m$top10_rise_to_match_halfway, na.rm = TRUE))`% higher (median across groups).
+    - This is room, not cost. Whether a point is cheaper in the tail is T10's question.
+- **Jobs moved the wrong way.**
+    - Among firms present in both 2019 and 2024, jobs moving between groups took `r k(abs(sh('between groups') + sh('cross')))` off GVA per job, nearly cancelling within-group gains of `r k(sh('within groups'))`.
+    - Most of it is hospitality: its share of these firms' jobs rose from `r pct(hosp$share_2019)` to `r pct(hosp$share_2024)`, at about `r k(hosp$lp_2019, 0)` per job.
+    - This is the premise of the hypothesis in the data: the low-productivity sectors are where the jobs are going.
+- **Labour moves slowly to better firms, in every group.** A firm 10% more productive than its group grows `r num(10 * min(rsp_g$estimate), 2)`–`r num(10 * max(rsp_g$estimate), 2)`% faster in jobs the next year.
+- **Workers keep a fifth of a gain.** A 10% rise in a firm's GVA comes with a `r num(10 * min(rnt_g$estimate), 1)`–`r num(10 * max(rnt_g$estimate), 1)`% rise in its wage bill, holding jobs. Pass-through is highest in labour-intensive services and lowest in chemicals and utilities.
+- **Place adds little once industry is known.**
+    - Industry (SIC division) explains `r pct(r2('SIC division'))` of the spread in log GVA per job.
+    - Adding ITL2 regions, or region-by-group effects, raises that to `r pct(r2('SIC division + ITL2 x group'))`.
+    - Place-by-group effects have a standard deviation of about `r num(vsd('ITL2', 'g_itl2'), 2)` log points.
+
+### 8.1 The spread within groups
+
+```{r}
+#| label: fig-spread
+#| fig-height: 5.6
+#| fig-cap: "Real GVA per job (2019 prices) across firms with 10+ employees, each firm averaged over its usable years in 2022–24: the 10th to 90th percentiles (thin), 25th to 75th (thick) and median (dot), by sector group."
+
+dd <- t11a$dist %>% filter(band == 'all', group != 'all') %>%
+  left_join(t2_groups %>% select(group, group_name), by = 'group') %>%
+  mutate(group_name = fct_reorder(group_name, p50))
+ggplot(dd, aes(y = group_name)) +
+  geom_segment(aes(x = p10, xend = p90, yend = group_name), colour = cat_cols[1], alpha = 0.35, linewidth = 1) +
+  geom_segment(aes(x = p25, xend = p75, yend = group_name), colour = cat_cols[1], linewidth = 3) +
+  geom_point(aes(x = p50), shape = 21, fill = surface, colour = ink, size = 2.2, stroke = 0.8) +
+  scale_x_continuous(labels = function(v) paste0('£', v / 1000, 'k'), expand = expansion(mult = c(0.01, 0.03))) +
+  labs(x = NULL, y = NULL) + theme_note()
+```
+
+- **The spread inside a group is wider than the gaps between groups.**
+    - Across all groups, the 90th percentile firm has `r num(t11a$dist$p90[t11a$dist$group == 'all'] / t11a$dist$p10[t11a$dist$group == 'all'], 1)` times the GVA per job of the 10th.
+    - The standard deviation of log GVA per job within groups runs from `r num(min(dd$sd_log), 2)` (`r gname(dd$group[which.min(dd$sd_log)])`) to `r num(max(dd$sd_log), 2)` (`r gname(dd$group[which.max(dd$sd_log)])`).
+- **Some of the spread is not productivity in the physical sense.** It also reflects capital per job, markups and measurement (W8). So the catch-up figures below are an upper bound on what better practice alone could do.
+
+### 8.2 The long tail against the frontier
+
+```{r}
+#| label: fig-catchup
+#| fig-height: 5.4
+#| fig-cap: "Implied national gain (% of GDP) from two changes in each group, scaling the firm sample's gains by the group's share of value added: firms below their industry and size band's median close half the gap, or the top decile of firms gains 10%. Market groups only: the providential group is held fixed."
+
+d <- cu_m %>% mutate(group_name = fct_reorder(group_name, national_tail_halfway)) %>%
+  select(group_name, `Long tail closes half the gap to the median` = national_tail_halfway,
+         `Top decile gains 10%` = national_top10_plus10) %>%
+  pivot_longer(-group_name) %>% filter(!is.na(value))
+ggplot(d, aes(value, group_name)) +
+  geom_line(aes(group = group_name), colour = grid_col, linewidth = 1.2) +
+  geom_point(aes(fill = name), shape = 21, colour = surface, stroke = 0.6, size = 3) +
+  scale_fill_manual(values = cat_cols[1:2], name = NULL) +
+  scale_x_continuous(labels = function(v) paste0(v * 100, '%'), expand = expansion(mult = c(0.01, 0.04))) +
+  labs(x = NULL, y = NULL) + theme_note()
+```
+
+```{r}
+#| label: tbl-catchup
+#| tbl-cap: "Catch-up arithmetic by type of group (market groups only). Gains are % of GDP, scaling each group's firm-sample gain by its share of value added."
+cu_type %>% arrange(desc(half)) %>%
+  transmute(`What limits productivity` = limit, `Long tail closes half the gap` = paste0(num(100 * half, 2), '%'),
+            `Top decile gains 10%` = paste0(num(100 * top, 2), '%')) %>% kable(align = 'lrr')
+```
+
+- **The long tail beats the frontier in every group.** The tail block is about `r num(sum(cu_m$national_tail_halfway, na.rm = TRUE) / sum(cu_m$national_top10_plus10, na.rm = TRUE), 1)` times larger in total.
+    - Catch-up groups carry the most (`r num(100 * ct('Catch-up', 'half'), 2)`% of GDP), then the tradable frontier groups (`r num(100 * ct('Tradable frontier', 'half'), 2)`%).
+    - The tail has room in the frontier sectors too. "Tail against frontier" is a within-sector split, not a sector choice.
+- **The median target is set within SIC divisions and size bands,** so it doesn't count differences between industries inside a group as room for catch-up. Using the group's median instead changes the tail gains by up to four points of group GVA.
+- **Caveats.**
+    - The sample is firms with 10+ employees that report a profit and loss account. Scaling to each group's whole value added assumes the same spread among micro firms and non-reporters.
+    - This is first-order arithmetic, with jobs held fixed.
+
+### 8.3 Where the change in 2019–24 came from
+
+```{r}
+#| label: tbl-decomp
+#| tbl-cap: "Change in real GVA per job, 2019 to 2024, firms with 10+ employees (Melitz–Polanec decomposition, £ per job, 2019 prices). 'Reporters' counts any firm missing from one year as an entrant or exiter; 'real entry and exit' keeps only firms incorporated after 2019 and firms gone before 2024."
+dec %>% filter(level == 'UK') %>%
+  transmute(Version = version, Survivors = num(n_survivors), Entrants = num(n_entrants), Exiters = num(n_exiters),
+            `2019` = num(Phi_1), `2024` = num(Phi_2), Change = num(change), Within = num(within), Between = num(between),
+            Entry = num(entry), Exit = num(exit)) %>% kable(align = 'lrrrrrrrrrr')
+```
+
+- **The firms that carried on improved, but jobs moved to the less productive ones.**
+    - The `r num(du('Reporters', 'n_survivors'))` firms in both years raised their unweighted GVA per job by `r k(du('Reporters', 'within'))`.
+    - Reallocation among them took `r k(abs(du('Reporters', 'between')))` off.
+- **Most "entry" is firms starting to report a profit and loss account.** With real entry and exit only, the change is `r k(du('Real entry and exit', 'change'))`, not `r k(du('Reporters', 'change'))`.
+- **The between-group shift.** Among survivors, jobs moving between groups took `r k(abs(sh('between groups')))` off (with a cross term of `r k(sh('cross'))`), against `r k(sh('within groups'))` from within groups.
+    - Hospitality's share of survivors' jobs rose by `r num(100 * (hosp$share_2024 - hosp$share_2019), 1)` points.
+    - Wholesale, construction and manufacturing lost share.
+    - 2019 to 2024 spans the pandemic, so part of this is hospitality's recovery among firms that survived it.
+
+### 8.4 How fast labour moves, and who keeps a gain
+
+```{r}
+#| label: tbl-respons
+#| tbl-cap: "By sector group. Responsiveness: next year's log jobs growth on log GVA per job against the group-year mean (with relative size and year effects). Pass-through: log wage bill growth on log GVA growth, holding log jobs growth (year effects). Errors clustered by firm; groups with 300+ year-on-year links."
+rsp_g %>% select(group, resp = estimate, resp_se = se, links = n_links) %>%
+  left_join(rnt_g %>% select(group, pt = estimate, pt_se = se), by = 'group') %>%
+  left_join(t2_groups %>% select(group, group_name), by = 'group') %>% arrange(desc(pt)) %>%
+  transmute(Group = group_name, `Links` = num(links), Responsiveness = paste0(num(resp, 3), ' (', num(resp_se, 3), ')'),
+            `Pass-through to pay` = paste0(num(pt, 2), ' (', num(pt_se, 2), ')')) %>% kable(align = 'lrrr')
+```
+
+- **Responsiveness is low everywhere,** with the strongest in information and communication and light manufacturing. In every group, frontier gains can't spread quickly by pulling jobs into the best firms.
+- **Pass-through to pay is highest where pay is most of GVA:** administrative and support, professional services, transport and hospitality. It is lowest in chemicals, utilities and agriculture.
+    - The providential group is highest of all, as expected where prices are set on labour costs.
+    - The pay-per-head version of the estimate is a little higher everywhere (division bias).
+
+### 8.5 Place after sector
+
+```{r}
+#| label: tbl-place
+#| tbl-cap: "How much of the spread in log GVA per job across firms (averages 2022–24, positive GVA, firms classed as having many sites and the providential group left out) is explained by industry and place: adjusted R² of fixed-effect models, and the standard deviations of crossed random effects."
+bind_rows(
+  pr2 %>% transmute(Measure = paste('Adjusted R²:', model), Value = num(adj_r2, 3)),
+  pvc %>% filter(model == 'ITL2') %>%
+    transmute(Measure = paste('Standard deviation (ITL2 model):', recode(term, sic2 = 'industry', itl2 = 'region', g_itl2 = 'region x group',
+                                                                       Residual = 'firm (residual)')),
+              Value = num(sd, 3))) %>% kable(align = 'lr')
+```
+
+- **Region by group adds little.**
+    - Region-by-group effects have a standard deviation of `r num(vsd('ITL2', 'g_itl2'), 3)` log points (`r num(vsd('ITL1', 'g_itl1'), 3)` at ITL1).
+    - That is against `r num(vsd('ITL2', 'sic2'), 2)` for industry and `r num(vsd('ITL2', 'Residual'), 2)` between firms.
+- **What this means for Rice and Venables's settings.**
+    - Rice and Venables draw place-by-sector *physical* productivity with a standard deviation of 0.2. In their model, prices and wages absorb much of it, so measured revenue productivity varies far less.
+    - So this is not a direct test. It is the moment Model F has to reproduce (T11b): with the settings that drive its results, does revenue productivity vary by place within a sector by about 0.05, not more?
+
+### 8.6 What this sets for Model F
+
+- **Spread within sectors:** a log standard deviation of `r num(min(dd$sd_log), 1)`–`r num(max(dd$sd_log), 1)` by group, for the long-tail proxy (P2).
+- **Labour moving between firms:** about 0.03–0.06 log points of jobs growth per log point of productivity a year. That is slow, and it rules out instant reallocation as the default.
+- **Pass-through:** a switch splitting a firm-level gain between pay (about 0.2, by group as above), profit and prices, instead of passing it all to prices.
+- **A target moment for T11b:** place-by-sector revenue productivity spread of about 0.05 log points.

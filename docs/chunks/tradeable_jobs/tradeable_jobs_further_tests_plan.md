@@ -247,6 +247,19 @@ This is the standard Caliendo–Parro or Caliendo et al. (2018) structure that R
 - With no intermediates ($\gamma_{ks} = 0$), the model must reproduce round 1.
 - With one place, it must reproduce Hulten: the national gain follows Domar weights.
 
+**Done (14 November 2026).** `functions_modelF.R`, `16_modelF.R`, `16b_modelF_closure.R`; section 11 of [tradeable_jobs_round2.qmd](tradeable_jobs_round2.qmd).
+
+- **The build.** 18 market groups from T2 and 12 places, with productivity sd 0.2, three draws. All non-labour value added is a local fixed factor (land and buildings). Imports and taxes are fixed-price inputs. Foreign demand by sector is calibrated to export shares.
+- **Both checks pass:** no intermediates reproduces round 1's engine exactly, and one closed place reproduces Hulten to 1e-7.
+- **Closure (a change from round 1's engine).**
+    - Rice and Venables's closure has a fixed import price, with a foreign-demand shifter balancing trade. It sends export-sector gains abroad: a 5% gain in machinery gives 0.01 of its Hulten gain.
+    - Model F holds foreign demand fixed instead, so trade balances by Walras's law.
+    - The two closures rank tradables against the rest in opposite orders. Both are reported. Round 1's headline results compared places within one equilibrium, so they don't depend on this.
+- **Results.**
+    - National gains run 0.8–1.4 times Hulten. Supply chains raise the upstream groups' gains (construction 0.97% against 0.55% without).
+    - With people mobile, a lagging place keeps −21% to 14% of the national gain. With people immobile, it keeps 79–94% from local services and 13–14% from finance and chemicals.
+- **Not done:** agglomeration, less elastic consumer demand (T6 says it's needed), and a pass-through switch.
+
 ### T2. Domar weights and tradability: where is the national leverage? (quick, data only)
 
 **Question.** Which sectors carry the most national gain per 1% productivity gain, and how tradable are they?
@@ -283,6 +296,13 @@ Plot Domar weight against tradability, sized by employment and coloured by found
 
 **Expected.** A large share of manufacturing's embodied labour sits in logistics, wholesale, business services and utilities. So "tradable productivity" partly *is* productivity in non-tradable inputs, and the flow model's lens 3 (chain GVA per worker) is the right way to report it.
 
+**Done, national version (14 November 2026).** Script `15_t3_chain_labour.R`; results in section 10 of [tradeable_jobs_round2.qmd](tradeable_jobs_round2.qmd).
+
+- **As expected, about half the jobs behind manufactured final products are in other groups:** 49% for electronics, machinery and vehicles, 56% food and drink, 63% chemicals and pharmaceuticals.
+- **Most jobs embodied in exports are in services:** professional 19%, support 15%, wholesale 10%.
+- **Chain GVA per job compresses the gaps between sectors.** Chemicals £201k → £119k, admin and support £40k → £61k.
+- **The regional version is not done.** It needs regional coefficients, which the payments can't supply (T4).
+
 ### T4. Tradability within Great Britain, measured from payments
 
 **Question.** Can the payment flows give a business-to-business tradability measure by sector that isn't built from geographic concentration (sparsity)?
@@ -306,6 +326,18 @@ Plot Domar weight against tradability, sized by employment and coloured by found
 - Rerun the round 1 UK regression with a "business-to-business tradability bias" alongside sparsity bias.
 - This also closes the round 1 open item: "trade between GB places by sector".
 
+**Done (14 November 2026): mostly a negative result.** Script `14_t4_payment_tradability.R`; results in section 9 of [tradeable_jobs_round2.qmd](tradeable_jobs_round2.qmd). The regional data were re-downloaded from ONS into this repo's pipeline.
+
+- **The payment measure is stable but not valid yet.**
+    - It is stable internally: 0.76 against the raw version, 0.90 without London, 0.79 between 2019 and 2024.
+    - It fails the Scottish check: r = 0.02 against Scotland's rest-of-UK sales shares.
+    - The published payments, without intermediaries, cover £459bn against £1,456bn of domestic intermediate sales (median division 16%). 73% of monthly cells are suppressed.
+- **It is unrelated to sparsity** (r = 0.08), and adds nothing beside sparsity bias in round 1's regression (t = −0.08).
+- **ONS interregional trade estimates for 2019 exist, but only for eight industry groups.** Across the six comparable groups (wholesale and retail are valued at sales), trade between regions is unrelated to sparsity. Real estate and professional services, the sparsest group, trade the least.
+- **The Northern Ireland tables were not used.** The Scottish check was decisive enough.
+- **"Trade between GB places by sector" stays open.** It needs finer official estimates.
+- **For T5:** the payments' coverage problem applies there too. Regional coefficient matrices built from them would rest on about a sixth of business-to-business sales. T5 should use them only for ratios within a sector, with that caveat in front.
+
 ### T5. Local multipliers and leakage by sector type
 
 **Question.** Does spending injected into local foundational sectors recirculate more locally than spending injected into tradables, as community wealth building assumes?
@@ -320,6 +352,14 @@ Plot Domar weight against tradability, sized by employment and coloured by found
 
 **Expected.** Your Yorkshire note's finding, that local services employ locally but buy nationally, generalised across regions with uncertainty. If foundational multipliers aren't bigger, the demand-side version of the hypothesis weakens. The supply-side version, through prices and costs, stands or falls on T1.
 
+**Done, limited version (14 November 2026).** Script `18_t5_local_sourcing.R`; section 13 of [tradeable_jobs_round2.qmd](tradeable_jobs_round2.qmd).
+
+- **No multipliers.** Given T4's coverage problem, the payments are used only for a ratio within each buying industry: the share of its business spending paid to its own region, against no home bias.
+- **Everyday services don't buy more locally than tradables.** The home-bias index is 1.72 for everyday services against 1.90 for tradable and basic sectors. Retail keeps 28% in its own region.
+- **The local buyers are agriculture, ordinary manufacturing, construction and transport.** The ranking holds without London.
+- **This matches the Yorkshire note, now for all regions.** The demand-side case for the foundational economy is weak for everyday services.
+- **Not done:** the household round (Type II) and the "pound walking" comparison.
+
 ### T6. Do productivity gains cost the improving sector jobs?
 
 **Question.** For each sector group, is the effective elasticity E_j above or below 1? That is, does productivity growth in the sector cut its own employment?
@@ -331,6 +371,13 @@ Plot Domar weight against tradability, sized by employment and coloured by found
 
 **Why it matters.** If productivity in retail, hospitality or care cuts their own jobs, the gain arrives as cheaper goods and services plus displaced workers. With immobile people, those displaced workers are exactly who the hypothesis is meant to help. That's the honest trade-off to show.
 
+**Done (14 November 2026).** Script `17_t6_own_jobs.R` (data) and Model F's E1 runs; section 12 of [tradeable_jobs_round2.qmd](tradeable_jobs_round2.qmd).
+
+- **Data.** ONS productivity by industry division, 1997–2019, stacked five-year differences: hours fall 0.24 log points per log point of output per hour.
+    - Business-to-business industries −0.54, local services −0.34, tradables −0.14.
+    - Division bias is a caveat.
+- **Literature elasticity ranges were not used.** Model F stands in for them.
+
 ### T7. Re-run round 1's claims with supply chains
 
 Run T1's Model F against the round 1 claims, to see which change once sectors are linked:
@@ -341,11 +388,22 @@ Run T1's Model F against the round 1 claims, to see which change once sectors ar
 
 Then add supply chains to Model A (Venables's cities). Tradables buy a share of their inputs from the local or national non-tradable sector, and the test is whether that changes the lock-in edge E.
 
+**Done in Model F (14 November 2026)**, except Model A with supply chains.
+
+- **C9 holds with supply chains.** A local-services gain lowers the lagging place's nominal wage (retail −0.34%) while its real income rises.
+- **C8's lever fails.** Better local inputs raise the place's tradables' unit costs slightly (+0.02% to +0.44%), because wages and rents rise more than input prices fall.
+- **C13 was not run separately.**
+
 ### T8. Measurement-lens check (runs inside T1, T5 and T7)
 
 For every experiment, show where the official lens (workplace GVA per worker) and the real-income lens disagree in sign. Use both public-service output conventions, as the flow model does.
 
 **Expected.** Productivity in non-tradables looks neutral or negative on the official lens and positive on the real lens. Making that visible is probably the most useful single output for policy.
+
+**Done in Model F (14 November 2026).**
+
+- **Nationally, the lenses agree in sign in all 36 group experiments.** But the official lens shows a fifth to a third of the real gain for retail, hospitality and construction.
+- **Locally, with people mobile, they disagree in sign in 8 of 18 group experiments.** Improving local services lowers a place's measured GVA per worker but raises its real income. With people immobile, 1 of 18 disagree.
 
 ### T9. Local against national: when do they align? (runs across T1, T5 and T7)
 
@@ -359,6 +417,10 @@ For every experiment, show where the official lens (workplace GVA per worker) an
 - **The "where GVA is booked" flow model, converted to R** (step F0 in section 8; demand-driven output with unemployment): run the slack cases. Inward investment, local procurement and productivity proxies, in a slack place and in a tight one, with local and national accounts side by side.
 
 **Output.** A map of the conditions under which each proxy is aligned, local more than national, or local less than national, checked against the predictions in section 3.
+
+**Model F half done (14 November 2026). The flow-model half needs F0.** See the T1 note and section 11 of the report.
+
+- **Mobility is the switch.** With people mobile, local gains leak whatever the group. With people immobile, local and national align for local services and diverge for nationally traded business services.
 
 ### T10. Break-even: how cheap must broad catch-up be?
 
@@ -375,6 +437,13 @@ Evidence on the cost of a point of productivity is thin (section 7). So don't as
 - a short statement of what each would need to be true.
 
 That's more defensible than claiming a cost we don't know.
+
+**Done (14 November 2026).** `19_t10_breakeven.R`; section 14 of the report. A point is the employment-weighted mean log productivity rise; the ratio is the gain per point against the frontier push (P1).
+
+- **National, Model F's closure:** long tail 0.66, upstream 0.74, local services 0.40 (people mobile; the immobile figures are similar).
+- **National, Rice and Venables's closure:** 1.08, 1.19 and 1.04. Every alternative beats the frontier push at equal cost per point.
+- **Local, for the lagging place, people immobile:** catch-up groups 1.35, local services 1.43. With people mobile, 0.88 and 0.67.
+- **The evidence (section 7) can't settle it.** What would need to be true: tail points at about two-thirds the cost of frontier points (Model F closure), or at any cost up to parity (Rice and Venables's closure).
 
 ### T11. Ground the models in firm-level data
 
@@ -393,12 +462,32 @@ That's more defensible than claiming a cost we don't know.
 - **The export script lives in this repo:** `code/tradeable_jobs/`, numbered with round 2.
 - **It reads the Companies House report outputs read-only:** the Parquet and RDS files under `companieshouseopen/local/reports/*/data/`, not the 20 GB database.
 - **It writes aggregate tables to `local/tradeable_jobs/companieshouse/`.** That folder is gitignored (checked: the `local/` rule in `.gitignore` covers it).
-- **So nothing from the private firm data is committed.** Each table records the Companies House build date it came from. The pipeline rebuilds on this machine, or anywhere the Companies House outputs exist.
+- **So nothing from the private firm data is committed.** Each table records the Companies House build date it came from. The pipeline rebuilds on this machine, or anywhere the Companies House outputs exist. *Clarified 14 November 2026 (decision 9): Companies House data is open data, so aggregates at any useful level may be committed; the firm-level tables still live in `local/` because they are large and rebuilt from the source project.*
 
 **Two parts.**
 
 - **T11a (early): the descriptive exports.** They give the real-data "big blocks" arithmetic, an early result on the hypothesis itself, and ranges for Model F's settings.
 - **T11b (after Model F): the checks.** Model F's physical productivity draws aren't observable, so the check compares what the model produces with what the data measures: revenue productivity by place and sector, its spread, and the decomposition. In practice, choose the settings so the model reproduces those moments.
+
+**T11a done (14 November 2026).** Script `13_t11a_firm_aggregates.R`; results in section 8 of [tradeable_jobs_round2.qmd](tradeable_jobs_round2.qmd). The pooled numbers reproduce the Companies House reports (decomposition, responsiveness 0.042, pass-through 0.22).
+
+- **The long tail has several times the room of the frontier.**
+    - Firms below their SIC division and size band's median closing half the gap: about 4.3% of GDP, scaled by each group's value-added share.
+    - The top decile gaining 10%: 0.9%.
+    - The top decile would need about 46% to match. This is room, not cost; T10 still has to price it.
+- **The tail has room inside the frontier sectors too.** Professional services and ICT have the largest tail gains, so "tail against frontier" is a within-sector split, not a sector choice.
+- **Jobs moved into the lowest-productivity group.** Among firms present in 2019 and 2024, moves between groups took £1.6k per job off, against £1.8k within groups. Most of it is hospitality's share rising, partly its post-pandemic recovery.
+- **Model F settings:**
+    - responsiveness 0.03–0.065 by group;
+    - pass-through to pay 0.11–0.39 by group, highest in labour-intensive services;
+    - within-group log spread 0.42–0.79;
+    - place-by-group spread in revenue productivity about 0.05 log points, the target moment for T11b.
+
+**T11b done (14 November 2026).** `20_t11b_moments.R`; section 15 of the report.
+
+- **Model F's revenue-productivity spreads match the firms':** place by sector 0.037 against 0.052, sector 0.32 against 0.31, place 0.075 (mobile) or 0.134 (immobile) against 0.090.
+- **Physical spread of 0.2 shows up as about a third as much in revenue productivity.**
+- **The mobile benchmark fits better.**
 
 ## 6. Policy proxy options: "improving productivity" at different levels
 
@@ -491,7 +580,6 @@ All of these are physical productivity changes (W8). The policy cost of a percen
 | 10 | T10: break-even cost ratios, with the evidence table in section 7 | Steps 5 and 9 | Small |
 | 11 | Write-up: round 2 report and a short note on the hypothesis, nationally and locally | All | Medium |
 
-
 **F0: converting the flow model to R** (Dan's decision).
 
 - **Source.** The TypeScript engine in `modelling_demand/build/src/engine/` (about 2,400 lines across 23 files). The pieces are:
@@ -537,8 +625,32 @@ All of these are physical productivity changes (W8). The policy cost of a percen
 7. **The flow model gets converted to R** (step F0), validated against the TypeScript build's recorded results, then extended for T9.
 
 8. **The firm-level tables are stored locally** in `local/tradeable_jobs/companieshouse/` (gitignored), made by an export script in this repo. Nothing from the private data is committed.
+9. **Companies House data is open data** (Dan, 14 November 2026, before the overnight commit): include whatever level of aggregation helps in committed outputs and reports.
 
 **Still open.**
 
 - Nothing blocking.
 - Whether any of the evaluations in section 7 publish enough cost and effect detail to turn into a cost per point. Bloom et al. and RSA are the likeliest.
+
+## 10. Log
+
+**14 November 2026, overnight (Dan asked for all stages to be worked through in order).**
+
+- **Done:**
+    - T2, T11a, T4, T3 (national), T1 (Model F) with T7 (partly), T8 and T9 (model half);
+    - T6, T5 (limited), T10, T11b.
+- **Results:** in [tradeable_jobs_round2.qmd](tradeable_jobs_round2.qmd), sections 1–16.
+- **T4 is mostly negative.**
+    - The payment flows cover a median 16% of a division's intermediate sales and fail the Scottish check.
+    - ONS's interregional trade estimates exist only for eight groups.
+    - So T3's regional version and T5's multipliers were not built.
+- **The trade closure was found and changed in Model F.** Rice and Venables's closure (fixed import price, a demand shifter q balancing trade) makes export-sector gains leak abroad almost entirely. Model F holds foreign demand fixed, and both are reported.
+- **Mistakes caught along the way:**
+    - a repeated `summarise()` ordering bug (totals computed before the weighted means that need them; fixed in T2, T11a and T5);
+    - the Scottish column match missing a header with a line break;
+    - a local break-even ratio averaged over groups with tiny denominators (now pooled).
+- **Not done:**
+    - F0, the flow model in R (about 240 KB of TypeScript in 58 files), and with it the slack half of T9;
+    - Model A with supply chains;
+    - agglomeration and less elastic demand in Model F;
+    - the household round of T5.

@@ -1,0 +1,21 @@
+group,group_name,foundational,limit,own_share,index,index_noLondon,spend_bn
+admin_support,Administrative and support services,Business services,Catch-up,0.3050862908908096,1.3223770253773421,2.1374440695254697,18.626068
+agri_fish,"Agriculture, forestry and fishing",Material foundational,Squeezed supplier,0.4820461276479332,4.0716460636499505,4.121956830158071,2.3101979999999998
+arts_personal,"Arts, recreation and personal services",Everyday services,Limited by local demand,0.39896814375473794,1.6664604543623673,2.8619490087265556,11.861536000000001
+chem_pharma,"Fuels, chemicals and pharmaceuticals",Tradable or basic,Tradable frontier,0.29156162207354264,2.2811923861699723,2.4806250774685905,2.324013
+construction,Construction,Material foundational,Catch-up,0.3422918517292532,2.4853478601047536,3.239224362953183,43.647396
+finance,Finance and insurance,Tradable or basic,Tradable frontier,0.3397313482737258,0.9507786768622376,1.3627990688164433,2.03386
+food_drink,"Food, drink and tobacco",Material foundational,Squeezed supplier,0.2875290689632915,2.2766611156345085,2.8882447496890857,13.556125000000002
+hospitality,Accommodation and food service,Everyday services,Limited by local demand,0.3718780886675103,2.101595904907646,3.3243108728301802,13.588991
+info_comms,Information and communication,Tradable or basic,Tradable frontier,0.3949145551860125,1.3009587814965504,1.9208794976674275,26.549300000000002
+light_mfg,"Textiles, wood, paper, printing, furniture",Tradable or basic,Catch-up,0.33855270734369325,2.6513666422681452,3.0179320814022086,7.059595
+machinery_vehicles,"Electronics, machinery, vehicles and repair",Tradable or basic,Tradable frontier,0.3117608787217797,2.4031130788766855,2.5592186698010058,8.238330000000001
+metals_minerals,"Plastics, minerals and metal products",Tradable or basic,Catch-up,0.32432557021133984,3.0839381138237134,3.259235685582407,6.4211279999999995
+mining,"Mining, oil and gas",Tradable or basic,Tradable frontier,0.4185079028432551,1.869646306775814,3.17609222119011,1.605941
+professional,"Professional, scientific and technical",Business services,Tradable frontier,0.3959324581445854,1.6504481270446538,2.1441415347942585,32.994178
+public_providential,"Public administration, education, health, care",Providential (held fixed),Held fixed,0.34398267561247464,2.2534536683350783,3.122537971196447,25.414808999999998
+real_estate,Real estate (actual rents and fees),Housing,Land rent,0.4121085004499983,1.9420276824032707,3.9406647373327446,12.338935
+retail,Retail,Everyday services,Limited by local demand,0.2841791099310487,1.6483970893873827,2.1795095830759617,60.977568
+transport,"Transport, storage and post",Material foundational,Catch-up,0.3710070379243172,2.2836091153744995,2.8830925390103066,11.795097
+utilities,"Energy, water and waste",Material foundational,Catch-up,0.41095603519684915,2.238524564108205,3.309219884173966,3.8389800000000003
+wholesale_motor,Wholesale and motor trades,Material foundational,Catch-up,0.23646861576374156,1.685067018974405,1.8654541944098635,59.558005

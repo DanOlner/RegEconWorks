@@ -1,0 +1,22 @@
+group,own_gva_per_job,chain_gva_per_job,chain_multiplier,share_jobs_outside_group,group_name,foundational,limit
+admin_support,40125.471782634784,60817.83349382028,1.6411391609725818,0.2454724065081445,Administrative and support services,Business services,Catch-up
+agri_fish,56548.21357455894,61774.575038511546,1.950028044415259,0.39103034952758176,"Agriculture, forestry and fishing",Material foundational,Squeezed supplier
+arts_personal,44656.17384895381,47690.59493976227,1.2900884566067887,0.18837537520991576,"Arts, recreation and personal services",Everyday services,Limited by local demand
+chem_pharma,200874.3893149513,118890.44289322801,2.840921777108481,0.63116729636482,"Fuels, chemicals and pharmaceuticals",Tradable or basic,Tradable frontier
+construction,84904.29192192596,74657.20694537612,2.574818374862102,0.42074020699834336,Construction,Material foundational,Catch-up
+excluded,Inf,672558.2201607758,Inf,NA,"Left out: imputed rent, households as employers",Left out,Left out
+finance,143222.59776729453,102620.52739842927,2.4122412852115587,0.463423697093292,Finance and insurance,Tradable or basic,Tradable frontier
+food_drink,66546.10062099173,65048.925759545156,2.729287657467906,0.5630675787396027,"Food, drink and tobacco",Material foundational,Squeezed supplier
+hospitality,34267.71488089198,41329.641553223446,1.307323213090789,0.2172016768288324,Accommodation and food service,Everyday services,Limited by local demand
+info_comms,92157.27614944213,83309.89686718943,1.781642330806974,0.3463113208122228,Information and communication,Tradable or basic,Tradable frontier
+light_mfg,58093.27072327405,61964.11991169363,1.492135591803256,0.30046943302252493,"Textiles, wood, paper, printing, furniture",Tradable or basic,Catch-up
+machinery_vehicles,86350.53499910819,71280.34529887389,2.1157380063818216,0.48676169626516386,"Electronics, machinery, vehicles and repair",Tradable or basic,Tradable frontier
+metals_minerals,58333.981613773074,60349.236105665106,1.5219818136420222,0.31085842975588907,"Plastics, minerals and metal products",Tradable or basic,Catch-up
+mining,382094.27707144857,185043.48647061523,6.6302217162387285,0.7641969840459653,"Mining, oil and gas",Tradable or basic,Tradable frontier
+professional,62205.373935448086,63649.46202842743,1.528925186206183,0.23416673929094134,"Professional, scientific and technical",Business services,Tradable frontier
+public_providential,45054.71987499954,47888.294688727045,1.336876850061493,0.18719989766107825,"Public administration, education, health, care",Providential (held fixed),Held fixed
+real_estate,178208.02314942394,109426.58720294737,2.077634717911474,0.4993388792236806,Real estate (actual rents and fees),Housing,Land rent
+retail,33072.34943520622,39656.91415449378,1.2203266132847452,0.1763155408657453,Retail,Everyday services,Limited by local demand
+transport,53577.04053223752,64411.14430170681,1.943336984154352,0.3320391551200176,"Transport, storage and post",Material foundational,Catch-up
+utilities,159283.27459781888,107820.37378536722,2.743632517965773,0.5010700166686186,"Energy, water and waste",Material foundational,Catch-up
+wholesale_motor,70998.79023237024,67319.16638707048,1.6416288432428292,0.3427919889517017,Wholesale and motor trades,Material foundational,Catch-up

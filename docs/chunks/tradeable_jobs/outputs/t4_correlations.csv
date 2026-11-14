@@ -1,0 +1,14 @@
+pair,r,n
+index with SK (all divisions),0.08165313732792384,83
+index with SK (B2B share 30%+),0.005042038968270263,52
+index with export share (B2B 30%+),0.3393914577804185,52
+index with B2B share,-0.015900408558264523,83
+"index, stripped against raw",0.7605784275233198,85
+"index, with and without London",0.8983557250974707,83
+"index, 2019 against 2024",0.7949039763403424,82
+Scotland: payments RUK share against IO RUK share,0.023528973257038996,76
+"Scotland: same, Spearman",0.12542038202878167,76
+6 groups: interregional share with payment index,0.411618881566289,6
+6 groups: interregional share with SK,0.14317551476816615,6
+6 groups: interregional share with international export share,0.5279808945370081,6
+"6 groups: Spearman, interregional share with SK",0.028571428571428574,6

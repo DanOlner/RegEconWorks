@@ -624,6 +624,18 @@ This is step 8 with the open BRES and ASHE data. It ties the chunk to the repo's
 
 ## Log
 
+**14 November 2026, overnight: a caveat on the RV2023 engine's trade closure, found in round 2.**
+
+- **The closure.** The engine follows RV2023: the import price is fixed at 1, and a foreign-demand shifter q balances trade at every step.
+- **What round 2 found (Model F, `functions_modelF.R`).** Under that closure, a productivity gain in an export sector is absorbed by weaker foreign demand for all UK exports, so little of it reaches residents as cheaper imports.
+    - In Model F, a 5% gain in machinery gives 0.01 of its Hulten gain.
+    - With foreign demand held fixed instead, it gives 1.17.
+    - The two closures rank tradable against non-tradable gains in opposite orders.
+- **What it means for round 1.**
+    - The headline engine results (Model D: wages and utility against tradable and non-tradable advantage, the sparsity R²) compare places within one equilibrium, so a common price level cancels and they don't depend on the closure.
+    - The Table 1 comparative statics compare equilibria, but against RV2023's own eq. (13), which assumes the same closure, so they are consistent with the paper.
+    - No round 1 number changes. Any future comparison of national gains between equilibria should report both closures, as round 2 does.
+
 **14 November 2026, later: BRES download fixed.**
 
 - **The bug.** The first BRES download paged through Nomis with `recordoffset`, and Nomis returned some pages twice and skipped others. 2015 had 50,000 duplicated rows; 2017 and 2019 were each missing 25,000. I found it in round 2, when 2019 employment summed to 13.3m against Nomis's 30.1m.

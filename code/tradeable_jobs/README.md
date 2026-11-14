@@ -15,7 +15,7 @@ Rscript code/tradeable_jobs/00_run_all.R                # everything, from scrat
 python3 -I code/tradeable_jobs/get_papers.py           # optional: the papers themselves, as readable markdown
 ```
 
-**Time.** A full rebuild takes about 15 minutes. Rendering on its own reuses the cache.
+**Time.** A full rebuild takes about 40 minutes: round 1 about 15, Model F's experiments about 20. Rendering on its own reuses the cache.
 
 **Requirements.**
 
@@ -28,6 +28,8 @@ python3 -I code/tradeable_jobs/get_papers.py           # optional: the papers th
 - **Cache:** `local/tradeable_jobs/cache/`. Results are keyed on the md5 of the script and its function files. `options(tj.refresh = TRUE)` reruns everything.
 - **Papers:** `local/tradeable_jobs/papers_raw/` and `papers_md/`. They're copyright, so they aren't committed.
 - **Outputs (CSV):** `docs/chunks/tradeable_jobs/outputs/`.
+- **More downloads for round 2:** the ONS payment flows by region (`data_raw/payments/`, about 180 MB zipped), Scotland's supply–use tables (`data_raw/scotland_io/`), the ONS interregional trade estimates (`data_raw/interregional/`) and ONS labour productivity by industry division (`data_raw/ons_productivity/`).
+- **Firm-level aggregates (T11a):** `local/tradeable_jobs/companieshouse/` (gitignored). The firm data come from the companieshouseopen project's report outputs, read in place; set `options(tj.ch_reports = '<path>')` if they aren't at `~/Code/companieshouseopen/local/reports`.
 
 ## Scripts
 
@@ -52,5 +54,17 @@ python3 -I code/tradeable_jobs/get_papers.py           # optional: the papers th
 | `11_synthesis.R` | Claims against both benchmarks, verdicts by version |
 | `functions_io.R` | Round 2: the 2019 input–output analytical tables (product table, Leontief and Ghosh inverses, imports), CPA to SIC links, BRES employment by product, the 19 sector groups |
 | `12_t2_domar_tradability.R` | T2: Domar weights against tradability; where each product's gain lands; the sector groups and input coefficients for Model F |
-| `00_run_all.R` | Clears the cache, runs 01–12, renders both reports |
+| `functions_ch.R` | Round 2: reading the Companies House report outputs (read-only), SIC division to sector group, the Melitz–Polanec decomposition, clustered regressions |
+| `13_t11a_firm_aggregates.R` | T11a: spread of GVA per job by group, long tail against frontier, the 2019–24 decomposition, responsiveness, pass-through to pay, place after sector. Writes aggregates only, to the gitignored `local/tradeable_jobs/companieshouse/`; does nothing if the Companies House outputs aren't on the machine |
+| `functions_payments.R` | Round 2: the ONS industry-to-industry payment flows by region (download, yearly sums, where each industry's business income comes from) |
+| `14_t4_payment_tradability.R` | T4: a payment-based measure of tradability within the UK, checked against Scotland's input–output tables and ONS interregional trade estimates; round 1's regression with it |
+| `15_t3_chain_labour.R` | T3: jobs and value added embodied along each product's UK supply chain; chain GVA per job; the jobs behind exports |
+| `functions_modelF.R` | Model F: the Rice and Venables engine with intermediate inputs between sectors, fixed-price inputs, a choice of trade closure; calibration from T2's groups; outcomes on the real and official lenses |
+| `16_modelF.R` | T1 with T7, T8 and T9 (model half): checks (round 1 engine, Hulten), national and local productivity experiments by group, the policy proxies, with and without supply chains, mobile and immobile labour |
+| `16b_modelF_closure.R` | The national experiments under Rice and Venables's own trade closure, against Model F's |
+| `17_t6_own_jobs.R` | T6: hours growth against output-per-hour growth across UK industries, 1997–2019 (ONS, experimental) |
+| `18_t5_local_sourcing.R` | T5 (limited): the share of each industry's business spending paid to its own region, from the payment flows |
+| `19_t10_breakeven.R` | T10: break-even cost ratios per point of productivity against a frontier push, national and for the lagging place |
+| `20_t11b_moments.R` | T11b: Model F's spread of revenue productivity by sector, place and place by sector, against the firm data |
+| `00_run_all.R` | Clears the cache, runs 01–20, renders both reports |
 | `get_papers.py` | Downloads and converts the three papers to readable markdown |

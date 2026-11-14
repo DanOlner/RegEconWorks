@@ -172,3 +172,17 @@ io_group_labels <- tribble(
   'public_providential', 'Public administration, education, health, care', 'Providential (held fixed)', 'Held fixed',
   'arts_personal', 'Arts, recreation and personal services', 'Everyday services', 'Limited by local demand',
   'excluded', 'Left out: imputed rent, households as employers', 'Left out', 'Left out')
+
+# SIC 2007 division (2-digit, integer) to T2's sector groups, through the same rules as the products
+io_section_sic2 <- function(sic2) {
+  cut(sic2, c(0, 3, 9, 33, 35, 39, 43, 47, 53, 56, 63, 66, 68, 75, 82, 84, 85, 88, 93, 96, 98, 99),
+      labels = c('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U'))
+}
+io_group_sic2 <- function(sic2) {
+  sec <- as.character(io_section_sic2(sic2))
+  out <- rep(NA_character_, length(sic2))
+  ok <- !is.na(sec) & !sec %in% c('T', 'U')
+  out[ok] <- io_groups(paste0('CPA_', sec[ok], sprintf('%02d', sic2[ok])))
+  out[!is.na(sec) & sec == 'T'] <- 'excluded'                      # households as employers
+  out
+}
