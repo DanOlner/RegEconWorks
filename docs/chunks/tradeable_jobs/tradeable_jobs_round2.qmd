@@ -1,0 +1,324 @@
+---
+title: "Tradeable jobs, round 2: where the national gain from productivity sits"
+subtitle: "Working note, test T2: Domar weights against tradability in the 2019 UK input–output tables"
+author: "Drafted by Claude Code (Claude Opus 5.5) for Dan Olner"
+date: 2026-11-14
+date-format: "D MMMM YYYY"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    output-file: tradeable_jobs_round2.html
+    embed-resources: true
+    fig-width: 8
+    fig-height: 5
+    fig-dpi: 150
+execute:
+  echo: false
+  message: false
+  warning: false
+---
+
+```{r}
+#| label: setup
+
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(knitr)
+  library(ggrepel)
+})
+options(scipen = 999)
+
+# The scripts use paths relative to the project root; this file lives in docs/chunks/tradeable_jobs/
+knitr::opts_knit$set(root.dir = normalizePath('../../..'))
+
+# Colours as in round 1: reference categorical palette in fixed order, ink and grid greys
+cat_cols <- c('#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4')
+ink <- '#0b0b0b'; ink_2 <- '#52514e'; muted <- '#898781'; grid_col <- '#e1e0d9'; surface <- '#fcfcfb'
+
+theme_note <- function() {
+  theme_minimal(base_size = 11) +
+    theme(plot.background = element_rect(fill = surface, colour = NA),
+          panel.grid.major = element_line(colour = grid_col, linewidth = 0.3),
+          panel.grid.minor = element_blank(),
+          axis.text = element_text(colour = ink_2), axis.title = element_text(colour = ink_2),
+          plot.title = element_text(colour = ink, face = 'bold', size = 12),
+          plot.subtitle = element_text(colour = ink_2, size = 10),
+          plot.caption = element_text(colour = muted, size = 8, hjust = 0),
+          strip.text = element_text(colour = ink, face = 'bold', hjust = 0),
+          legend.position = 'top', legend.justification = 'left',
+          legend.text = element_text(colour = ink_2), legend.title = element_text(colour = ink_2))
+}
+num <- function(x, digits = 0) format(round(x, digits), big.mark = ',', nsmall = digits, scientific = FALSE)
+pct <- function(x, digits = 0) paste0(num(100 * x, digits), '%')
+
+found_levels <- c('Tradable or basic', 'Business services', 'Material foundational', 'Everyday services', 'Housing',
+                  'Providential (held fixed)')
+found_cols <- setNames(c(cat_cols, muted), found_levels)
+```
+
+```{r}
+#| label: run-analysis
+#| include: false
+
+# Cached in local/tradeable_jobs/cache/. Needs round 1's outputs/uk_sectors.csv (09_uk_sparsity.R).
+for (s in c('12_t2_domar_tradability.R')) source(file.path('code/tradeable_jobs', s))
+```
+
+```{r}
+#| label: key-numbers
+
+pr <- t2_products %>% mutate(market = !group %in% c('public_providential', 'excluded'))
+mk <- pr %>% filter(market)
+lev_total <- sum(mk$domar_net)
+lev_by <- function(var) mk %>% group_by(class = .data[[var]]) %>%
+  summarise(lev = sum(domar_net), va = sum(va_share), jobs = sum(employees),
+            exports_embodied = sum(dest_exports * output) / sum(output), n = n(), .groups = 'drop') %>%
+  mutate(lev_share = lev / lev_total, job_share = jobs / sum(jobs))
+reach_tab <- lev_by('reach'); limit_tab <- lev_by('limit'); found_tab <- lev_by('foundational')
+rs <- function(cls, col = 'lev_share') reach_tab[[col]][reach_tab$class == cls]
+ls_ <- function(cls, col = 'lev_share') limit_tab[[col]][limit_tab$class == cls]
+fs <- function(cls, col = 'lev_share') found_tab[[col]][found_tab$class == cls]
+
+gr <- t2_groups %>% filter(!group %in% c('excluded'))
+g <- function(id, col) gr[[col]][gr$group == id]
+gm <- gr %>% filter(group != 'public_providential') %>% arrange(desc(domar_net))
+ratio <- gm %>% mutate(r = domar / va_share) %>% arrange(desc(r))
+```
+
+## In brief
+
+- **The question.** The tradables-first argument says a place, or a country, does best by raising productivity in the sectors that sell outside it. Hulten's theorem gives the national, first-order answer to "where does a 1% productivity gain do the most good?" It is the sector's *Domar weight*: its gross output as a share of GDP, whoever buys it.
+- **Most of the leverage is outside the exported products.**
+    - These shares are of the market economy's leverage: Domar weights net of each product's sales to itself, with public administration, education, health, care and imputed rent left out.
+    - Products that export a quarter or more of their output carry `r pct(rs('International'))` of it.
+    - The rest is in products sold mainly to other businesses (`r pct(rs('Business to business'))`), to households (`r pct(rs('Households'))`), to investment (construction, `r pct(rs('Investment'))`), or to a mix (`r pct(rs('Mixed'))`).
+- **The big weights sit on both sides of the tradable line.**
+    - Construction has the largest weight of any market group (`r pct(g('construction', 'domar_net'), 1)` of GDP).
+    - Professional services, finance and wholesale come next, at 11–13% each. Finance and professional services are tradable by any measure.
+- **Business-to-business sectors reach exporters through the supply chain.** Transport exports `r pct(g('transport', 'export_share'))` of its output directly, but `r pct(g('transport', 'dest_exports'))` of a productivity gain there ends up in cheaper exports. For administrative and support services the figures are `r pct(g('admin_support', 'export_share'))` and `r pct(g('admin_support', 'dest_exports'))`.
+- **A correction to our own plan (W4).**
+    - A sector's Domar weight exceeds its value-added share because it *buys* a lot of inputs, not because it sells to other businesses.
+    - To first order, who the buyers are doesn't change the national total. It changes where the gain lands.
+    - So the sectors with the most leverage per £ of value added are manufacturing and utilities, which are input-heavy, not business services.
+- **Jobs and leverage differ (W7).** Everyday services (retail, hospitality, personal services) hold `r pct(fs('Everyday services', 'job_share'))` of market-sector employees but `r pct(fs('Everyday services'))` of the leverage. For the frontier tradables it is the other way round: `r pct(ls_('Tradable frontier', 'job_share'))` of employees, `r pct(ls_('Tradable frontier'))` of the leverage.
+- **What it can't say.** This is first order, national and at an equal percentage gain. It says nothing about:
+    - which places gain (T9);
+    - what a point of productivity costs in each sector (W7, T10);
+    - second-order effects, or markups (W8).
+- **For Model F.** It fixes 19 sector groups, their input coefficients and their final demand (section 6).
+
+## 1. What was done
+
+- **Data.** The ONS input–output analytical tables for 2019, product by product: 105 products, £ million at basic prices. Only domestic flows are in the inter-product block; imports are a separate table.
+- **Domar weight.** Gross output over total GVA (£`r num(t2$gdp / 1000)`bn). The weights sum to `r num(sum(pr$domar), 2)`, not 1, because output counts intermediate sales.
+    - The *net* weight leaves out sales within the product or group.
+    - Construction sells `r pct(g('construction', 'within_group'))` of its output to construction, and utilities `r pct(g('utilities', 'within_group'))` to utilities.
+    - Net and gross give the same gain for the same physical change. They differ in what "1%" means, and the net weight matches how sector productivity is usually measured.
+- **Where a gain lands.**
+    - A 1% cost fall in product *j* lowers the price of each final product *k* by $L_{jk}$%, where $L$ is the Leontief inverse.
+    - So final buyers of *k* gain $L_{jk} F_k$, and summed over *k* that is exactly *j*'s output.
+    - Splitting final demand *F* by buyer (households, government, investment, exports) gives the share of *j*'s gain that lands on each. The export share of this is *j*'s **embodied export share**.
+- **Linkages.**
+    - Upstreamness: the row sums of the Ghosh inverse, Antràs et al.'s (2012) measure without its open-economy correction. 1 means everything goes to final demand; higher means further from it.
+    - The backward linkage: the column sums of the Leontief inverse.
+- **Market reach.** Each product is classed by its sales:
+    - **International:** exports at least 25% of total use;
+    - otherwise by the biggest buyer, when it takes at least half: business to business, households, government or investment;
+    - **Mixed:** everything else.
+- **Employment.**
+    - BRES 2019 employees by SIC 3-digit group, shared across the products each group links to, in proportion to GVA.
+    - Sparsity (round 1's sector skewness SK) follows the same shares.
+
+## 2. Where the leverage sits
+
+```{r}
+#| label: tbl-reach
+#| tbl-cap: "The market economy's national leverage, by market reach and by what limits productivity. Leverage is the Domar weight net of within-product sales, so the national first-order gain from a 1% gain in every product in the class, as % of GDP. Public administration, education, health, care and imputed rent are left out."
+
+bind_rows(
+  reach_tab %>% mutate(dim = 'Market reach (from the tables)'),
+  limit_tab %>% mutate(dim = 'What limits productivity (hand-assigned)')) %>%
+  group_by(dim) %>% arrange(desc(lev), .by_group = TRUE) %>% ungroup() %>%
+  transmute(` ` = dim, Class = class, Products = n,
+            `Leverage, % of GDP` = num(100 * lev, 1), `Share of leverage` = pct(lev_share),
+            `Value added, % of GDP` = num(100 * va, 1), `Share of employees` = pct(job_share),
+            `Gain landing on exports` = pct(exports_embodied)) %>%
+  mutate(` ` = ifelse(duplicated(` `), '', ` `)) %>%
+  kable(align = 'llrrrrrr')
+```
+
+- **The international products carry about a third of the leverage** (`r pct(rs('International'))`), and `r pct(rs('International', 'job_share'))` of market-sector employees. The products that export less than a quarter of their output carry the other `r pct(1 - rs('International'))`.
+- **The hand-assigned types split the same way.**
+    - The tradable frontier (`r pct(ls_('Tradable frontier'))`) and catch-up (`r pct(ls_('Catch-up'))`) carry almost equal leverage. Catch-up is ordinary manufacturing, distribution, construction, transport, utilities and support services.
+    - Local-demand services carry `r pct(ls_('Limited by local demand'))`.
+- **The expectation in the plan was partly right.** Construction does top the market groups. But the next three are professional services, finance and wholesale, and two of those are tradable. Wholesale is also more exported than its label suggests (`r pct(g('wholesale_motor', 'export_share'))` of its output), because margins on exported goods count as wholesale exports.
+
+```{r}
+#| label: fig-domar
+#| fig-height: 6.2
+#| fig-cap: "Domar weight (net of each product's sales to itself) against exports, for 103 products. Left: exports as a share of the product's sales. Right: the share of a productivity gain in the product that ends up in cheaper exports, directly or through the supply chain. Points are sized by BRES employees. Imputed rent and households as employers are left out."
+
+d <- pr %>% filter(group != 'excluded') %>%
+  mutate(foundational = factor(foundational, levels = found_levels),
+         short = recode(cpa, 'CPA_F41, F42 & F43' = 'Construction', CPA_G46 = 'Wholesale', CPA_G47 = 'Retail',
+                        CPA_L68BXL683 = 'Real estate (rents)', CPA_I56 = 'Restaurants and bars', CPA_K64 = 'Banking',
+                        CPA_J62 = 'Computer services', CPA_K66 = 'Auxiliary finance', CPA_M70 = 'Head offices, consulting',
+                        .default = str_trunc(name, 24))) %>%
+  select(cpa, short, foundational, domar_net, employees, `Exports as a share of sales` = export_share,
+         `Share of the gain landing on exports` = dest_exports) %>%
+  pivot_longer(c(`Exports as a share of sales`, `Share of the gain landing on exports`), names_to = 'measure', values_to = 'x')
+# label the largest market products; the providential ones (held fixed) are drawn underneath, unlabelled
+lab <- d %>% filter(foundational != 'Providential (held fixed)') %>% group_by(measure) %>%
+  slice_max(domar_net, n = 8) %>% ungroup()
+d <- d %>% arrange(foundational != 'Providential (held fixed)', desc(employees))
+
+ggplot(d, aes(x, domar_net)) +
+  geom_point(aes(size = employees, fill = foundational), shape = 21, colour = surface, stroke = 0.5, alpha = 0.9) +
+  geom_text_repel(data = lab, aes(label = short), size = 2.7, colour = ink_2, min.segment.length = 0.2,
+                  segment.colour = muted, segment.size = 0.3, box.padding = 0.35, seed = 1, max.overlaps = 30) +
+  facet_wrap(~ measure) +
+  scale_x_continuous(labels = scales::percent, limits = c(0, 1)) +
+  scale_y_log10(labels = function(v) paste0(v * 100, '%'), breaks = c(0.0003, 0.001, 0.003, 0.01, 0.03, 0.1)) +
+  scale_fill_manual(values = found_cols, drop = FALSE, name = NULL) +
+  scale_size_area(max_size = 11, labels = scales::comma, name = 'Employees', breaks = c(2e5, 1e6, 2e6)) +
+  guides(fill = guide_legend(override.aes = list(size = 4), nrow = 3, order = 1),
+         size = guide_legend(order = 2, override.aes = list(fill = muted, colour = surface))) +
+  labs(x = NULL, y = 'Domar weight, net (log scale)') +
+  theme_note() + theme(legend.box = 'horizontal')
+```
+
+- **Counting the supply chain shifts the business-to-business products right.**
+    - At the group level, each of these gains 14 to 21 percentage points of reach into exports: wholesale (`r pct(g('wholesale_motor', 'export_share'))` to `r pct(g('wholesale_motor', 'dest_exports'))`), transport, finance, professional and support services.
+    - Construction and retail stay at about 5%.
+- **A caveat on the right-hand panel.**
+    - A cost fall that lands on exports helps UK residents only if export prices are set abroad. Then the gain shows up as higher margins and wages.
+    - If exporters pass it on in lower prices, part of the gain goes to foreign buyers.
+    - Neither the tables nor Hulten's theorem settle which.
+
+## 3. Leverage against value added and jobs
+
+```{r}
+#| label: fig-groups
+#| fig-height: 6.4
+#| fig-cap: "The 19 sector groups: leverage (Domar weight net of within-group sales, % of GDP), value added (% of GDP) and employees (% of all GB employees). Groups are ordered by leverage. The providential group is held fixed in Model F."
+
+d <- gr %>% mutate(group_name = fct_reorder(group_name, domar_net)) %>%
+  transmute(group_name, `Leverage (net Domar weight)` = domar_net, `Value added share` = va_share, `Share of employees` = emp_share) %>%
+  pivot_longer(-group_name) %>%
+  mutate(name = factor(name, levels = c('Leverage (net Domar weight)', 'Value added share', 'Share of employees')))
+
+ggplot(d, aes(value, group_name)) +
+  geom_line(aes(group = group_name), colour = grid_col, linewidth = 1.2) +
+  geom_point(aes(fill = name), shape = 21, colour = surface, stroke = 0.6, size = 3) +
+  scale_fill_manual(values = cat_cols[1:3], name = NULL) +
+  scale_x_continuous(labels = scales::percent, expand = expansion(mult = c(0.01, 0.04))) +
+  labs(x = NULL, y = NULL) + theme_note()
+```
+
+- **Leverage per £ of value added varies by a factor of two.** The ratio of gross Domar weight to value added share is highest in the input-heavy groups:
+    - `r paste0(str_to_lower(ratio$group_name[1:3]), ' (', num(ratio$domar[1:3] / ratio$va_share[1:3], 1), ')', collapse = ', ')`.
+    - It is lowest in `r paste0(str_to_lower(tail(ratio$group_name, 3)), ' (', num(tail(ratio$domar / ratio$va_share, 3), 1), ')', collapse = ', ')`.
+- **This is the W4 correction.** Gross output is value added plus purchased inputs, so the Domar weight rewards *buying* from others.
+    - Two sectors with the same output and value added have the same weight, whether they sell to households or to other firms.
+    - Upstream position matters for where a gain lands and whose costs fall (section 4), not for the national total, to first order.
+- **What "1%" means changes the ranking.**
+    - If a policy raises *gross-output* productivity by 1%, the national gain is the Domar weight.
+    - If it raises *value added per worker* by 1%, with inputs unchanged, the gain is the value-added share.
+    - The plan's policy proxies should say which they mean. Section 6's coefficients let Model F do either.
+- **Employment is a poor guide to leverage.**
+    - Retail and hospitality have about twice the share of employees that they have of value added.
+    - Finance, utilities, real estate and chemicals have the opposite: two to three times more value added than employees.
+
+## 4. Where a gain lands
+
+```{r}
+#| label: fig-dest
+#| fig-height: 6
+#| fig-cap: "Where a 1% productivity gain in each group ends up: the share of the price fall that reaches each type of final buyer, directly or through the supply chain. Groups are ordered by the share landing on exports."
+
+d <- gr %>% mutate(group_name = fct_reorder(group_name, dest_exports)) %>%
+  select(group_name, Households = dest_households, `Government and NPISH` = dest_government,
+         Investment = dest_investment, Exports = dest_exports) %>%
+  pivot_longer(-group_name) %>%
+  mutate(name = factor(name, levels = c('Households', 'Government and NPISH', 'Investment', 'Exports')))
+
+ggplot(d, aes(value, group_name, fill = name)) +
+  geom_col(width = 0.75, colour = surface, linewidth = 0.5, position = position_stack(reverse = TRUE)) +
+  scale_fill_manual(values = cat_cols[1:4], name = NULL) +
+  scale_x_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.03))) +
+  labs(x = NULL, y = NULL) + theme_note()
+```
+
+- **Households take most of the gain from the everyday sectors:** retail, hospitality, personal services and real estate (69–88%). They also take most of it from food and drink, and from utilities (about 62–65%).
+- **Investment takes most of construction's gain** (`r pct(g('construction', 'dest_investment'))`). Cheaper building makes housing and infrastructure cheaper.
+- **The business-to-business groups spread their gains across all four buyers.** About 35–45% of their gain reaches exports.
+- **What this means for local and national strategy** (section 3 of the plan):
+    - a gain in a business-to-business sector is passed to buyers across the country, so a place that pays for it keeps only part (T9 will measure how much);
+    - a gain in everyday services lands on local households, so the place keeps it, unless rents absorb it (W6).
+
+## 5. What this changes in the plan
+
+- **W4 is reworded.** The Domar weight counts gross output however it is sold. Upstream position is kept as an axis, but for incidence and for local against national, not for the size of the national gain.
+- **T2's expectation was half right.** Construction, wholesale and business services carry large weights, but so do finance and the tradable professional services. The tradable/non-tradable line doesn't separate high and low leverage.
+- **The hypothesis survives T2, at first order and nationally.**
+    - Two-thirds of the market leverage is outside the exported products, with about the same share of jobs.
+    - A strategy that targets only tradables leaves most of the national first-order gain on the table, unless points of productivity are much cheaper to buy there. T10 asks how much cheaper.
+- **Round 1's point about sparsity recurs.** At the group level, real estate is as sparse as professional services (SK `r num(g('real_estate', 'SK'), 1)` against `r num(g('professional', 'SK'), 1)`) but exports `r pct(g('real_estate', 'export_share'))`. Sparsity picks up London's concentration, not tradability.
+
+## 6. Sector groups for Model F
+
+The groups follow the plan's three axes:
+
+- **tradability**, from the tables;
+- **upstream position**, from the tables;
+- **what limits productivity**, assigned by hand.
+
+The foundational type follows the typology in the `modelling_demand` notes, with business services split out. Two products are left out: imputed rent of owner-occupiers, and households as employers.
+
+```{r}
+#| label: tbl-groups
+#| tbl-cap: "Proposed sector groups. Leverage: net Domar weight, % of GDP. GVA per job: £ thousand, UK GVA over GB employees, so about 3% high everywhere, and high for groups with many self-employed. B2B: share of sales to other businesses. Exports: direct share of sales; embodied: share of a gain landing on exports. Upstream: Ghosh row sums (1 = all to final demand)."
+
+gr %>% arrange(desc(domar_net)) %>%
+  transmute(Group = group_name, `Foundational type` = foundational, `What limits productivity` = limit,
+            Leverage = num(100 * domar_net, 1), `Value added` = num(100 * va_share, 1),
+            Employees = pct(emp_share, 1), `GVA per job` = num(gva_per_job / 1000),
+            B2B = pct(b2b_share), Exports = pct(export_share), Embodied = pct(dest_exports),
+            Households = pct(household_share), Upstream = num(upstreamness, 2), SK = num(SK, 1)) %>%
+  kable(align = 'lllrrrrrrrrrr')
+```
+
+- **For Model F, the script also writes:**
+    - each group's inputs from every other group per £ of output, domestic and imported (`outputs/t2_group_coefficients.csv`);
+    - each group's cost shares: compensation, surplus, taxes;
+    - final demand by buyer (`outputs/t2_group_final_demand.csv`).
+- **These give $\gamma_{ks}$ and the labour and land shares directly.** Land isn't in the tables. Part of gross operating surplus will have to stand for it, as a choice to argue with.
+- **Loose fits to revisit:**
+    - Utilities are "catch-up" here, but they are regulated networks, where productivity is set by regulation and investment more than by firm practice.
+    - Professional services mix tradable frontier firms with local ones: accountants, solicitors, vets. A finer split would need the firm data (T11a).
+    - Agriculture is a squeezed supplier with a high export share for some products.
+
+## 7. Checks and caveats
+
+```{r}
+#| label: tbl-checks
+t2_checks %>% mutate(value = ifelse(abs(value) < 1e-6, format(value, digits = 2, scientific = TRUE), num(value))) %>%
+  rename(Check = check, Value = value) %>% kable(align = 'lr')
+```
+
+- **The tables add up.**
+    - The Leontief inverse computed here matches the ONS's own to rounding error.
+    - Output equals the Leontief inverse times final demand.
+    - Every product's gain shares sum to one.
+- **Employment.**
+    - BRES covers Great Britain and the tables the UK, so GVA per job is about 3% too high.
+    - BRES leaves out the self-employed and farm agriculture. That makes GVA per job high for construction, agriculture and personal services, and their shares of jobs low.
+    - Products share their SIC groups' employees in proportion to GVA, which assumes equal GVA per job within a group.
+- **Hulten's theorem is first order.**
+    - With large shocks, or with inputs that are hard to substitute, network position adds to the Domar weight (Baqaee and Farhi 2019).
+    - With markups, the right weights are cost-based rather than sales-based.
+    - Neither is likely to reverse the split between exported and other products, but Model F will show second-order effects directly.
+- **Imputed rent is left out.** It is 11% of GDP by Domar weight, with no employees, and it isn't a productivity target.
+
+*Code: `code/tradeable_jobs/functions_io.R` and `12_t2_domar_tradability.R`. Outputs: `docs/chunks/tradeable_jobs/outputs/t2_*.csv`. Plan: [tradeable_jobs_further_tests_plan.md](tradeable_jobs_further_tests_plan.md).*

@@ -1,8 +1,8 @@
 statistic,rebuild,paper
-"cor(sector sparsity SK_s, sector mean earnings w_s)",0.4664941068088989,0.46
-"cor(area sparsity bias, area earnings)",0.8581789648713067,0.86
-"cor(area sparsity bias, area earnings), excluding London",0.7175552206750374,0.74
-"cor(sector sparsity SK_s, export share)",0.32903522021149734,NA
-"Spearman cor(sector sparsity SK_s, export share)",0.3765259942759956,NA
-"cor(SK_s with London, SK_s without London)",0.7975466824268616,NA
-"cor(area sparsity bias, export-share bias)",0.6183151843797203,NA
+"cor(sector sparsity SK_s, sector mean earnings w_s)",0.46370018487572306,0.46
+"cor(area sparsity bias, area earnings)",0.8574001897360012,0.86
+"cor(area sparsity bias, area earnings), excluding London",0.7242663576577851,0.74
+"cor(sector sparsity SK_s, export share)",0.33559494238570825,NA
+"Spearman cor(sector sparsity SK_s, export share)",0.3835796353511703,NA
+"cor(SK_s with London, SK_s without London)",0.8292802700743707,NA
+"cor(area sparsity bias, export-share bias)",0.6362563386151541,NA

@@ -28,10 +28,12 @@ All of this was tested against both definitions of "plain Ricardian" and all thr
 - **The policy shorthand is right in nominal terms and wrong in real terms in both benchmarks.**
     - With immobile labour, real income responds about equally to productivity in tradables (0.32) and non-tradables (0.29).
     - With mobile labour, utility is equalised.
-- **The UK replication matches the paper.** R² 0.735 against 0.74, and 65% of the effect through the area differential against 65%.
-    - But sparsity correlates only 0.33 with exports as a share of output, and an export-based measure adds nothing beside it (t = −0.3).
+- **The UK replication matches the paper.** R² 0.73 against 0.74, and 65% of the effect through the area differential against 65%.
+    - But sparsity correlates only 0.34 with exports as a share of output, and an export-based measure adds nothing beside it (t = −0.8).
     - The 1971–91 test (C12) is not rebuilt.
 - **Leverage (C8).** Lagging UK areas are 5–9% cheaper in unit costs for the same jobs. That is enough against modest clusters, but not against strong ones or Venables's calibrated 23% gap.
+
+**Next round:** [tradeable_jobs_further_tests_plan.md](tradeable_jobs_further_tests_plan.md) adds supply chains, production chains and the payment-flows data, and tests whether productivity outside tradables is the better bet.
 
 ## 1. The papers
 
@@ -287,7 +289,7 @@ One assumption runs through all three papers: full employment, with perfect or n
 - **Item 9:** sd 0.2 reproduces the paper's correlations and wage range; variance 0.2 doesn't.
 - **Item 10:** Table 1 is only partly reproduced. Wages match under every reading, but place 1's population and rent don't.
 - **Item 12:** the rebuild uses the domestic-currency value of exports.
-- **Item 14:** R² falls from 0.73 to 0.53 when London is left out of sector sparsity.
+- **Item 14:** R² falls from 0.73 to 0.59 when London is left out of sector sparsity.
 
 New items, found while rebuilding:
 
@@ -621,6 +623,17 @@ This is step 8 with the open BRES and ASHE data. It ties the chunk to the repo's
 5. **Language: R.**
 
 ## Log
+
+**14 November 2026, later: BRES download fixed.**
+
+- **The bug.** The first BRES download paged through Nomis with `recordoffset`, and Nomis returned some pages twice and skipped others. 2015 had 50,000 duplicated rows; 2017 and 2019 were each missing 25,000. I found it in round 2, when 2019 employment summed to 13.3m against Nomis's 30.1m.
+- **The fix.** `uk_bres()` now asks for 130 SIC groups at a time, so no query needs paging. It stops if any query hits the row limit, and checks for duplicated keys, the number of rows per year, and each year's total against Nomis's own. Every year now has 45,864 rows and totals 28.7m (2015) to 30.1m (2019).
+- **What changed.** Scripts 09–11 were rerun. The findings stand; some numbers moved:
+    - R² for area earnings on sparsity bias 0.735 → 0.733, still 65% through the area differential;
+    - the coefficient 2.44 → 2.68, the area differential 1.60 → 1.74;
+    - R² with London left out of sector sparsity 0.53 → 0.59;
+    - sparsity vs export share 0.33 → 0.34; the export-based measure beside sparsity t −0.3 → −0.8;
+    - the cost saving in lagging areas (5–9%) and the variance shares are unchanged.
 
 **14 November 2026.**
 

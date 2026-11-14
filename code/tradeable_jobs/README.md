@@ -4,6 +4,7 @@ Code for the tradeable jobs chunk.
 
 - **The plan** (model equations, claims, steps): [tradeable_jobs_plan.md](../../docs/chunks/tradeable_jobs/tradeable_jobs_plan.md).
 - **The results:** [tradeable_jobs_firstlook.qmd](../../docs/chunks/tradeable_jobs/tradeable_jobs_firstlook.qmd).
+- **Round 2** (supply chains, production chains, payment flows): the plan is [tradeable_jobs_further_tests_plan.md](../../docs/chunks/tradeable_jobs/tradeable_jobs_further_tests_plan.md) and the results so far are in [tradeable_jobs_round2.qmd](../../docs/chunks/tradeable_jobs/tradeable_jobs_round2.qmd).
 
 ## How to run
 
@@ -49,5 +50,7 @@ python3 -I code/tradeable_jobs/get_papers.py           # optional: the papers th
 | `09_uk_sparsity.R` | Model E: UK replication of RV2023 section 4, plus export shares and London checks |
 | `10_leverage.R` | Cost advantage of lagging areas against cluster premiums (C8) |
 | `11_synthesis.R` | Claims against both benchmarks, verdicts by version |
-| `00_run_all.R` | Clears the cache, runs 01–11, renders the report |
+| `functions_io.R` | Round 2: the 2019 input–output analytical tables (product table, Leontief and Ghosh inverses, imports), CPA to SIC links, BRES employment by product, the 19 sector groups |
+| `12_t2_domar_tradability.R` | T2: Domar weights against tradability; where each product's gain lands; the sector groups and input coefficients for Model F |
+| `00_run_all.R` | Clears the cache, runs 01–12, renders both reports |
 | `get_papers.py` | Downloads and converts the three papers to readable markdown |

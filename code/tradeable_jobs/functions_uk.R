@@ -9,28 +9,46 @@ suppressPackageStartupMessages(suppressWarnings(library(readxl)))
 uk_years <- 2015:2019
 ons_file <- function(path) paste0('https://www.ons.gov.uk/file?uri=', path)
 
-# BRES: employees (employment_status 1), count, every SIC 3-digit group, NUTS 2016 level 3, by year
+# BRES: employees (employment_status 1), count, every SIC 3-digit group, NUTS 2016 level 3, by year.
+# The first version paged through one big query with recordoffset. Nomis returned some pages twice and
+# skipped others (2015 had 50,000 duplicated rows; 2017 and 2019 were each 25,000 rows short), which
+# distorted round 1's employment shares. Now each request is one year and about half the SIC groups,
+# under the 25,000-row limit, so nothing pages; and the result is checked before it's used.
 uk_bres <- function(years = uk_years) {
-  dest <- file.path(tj_raw_dir, 'bres_nuts3_sic3_2015_2019.csv')
+  dest <- file.path(tj_raw_dir, 'bres_nuts3_sic3_2015_2019_v2.csv')
   if (!file.exists(dest)) {
     defs <- jsonlite::fromJSON('https://www.nomisweb.co.uk/api/v01/dataset/NM_189_1/industry.def.sdmx.json')
     codes <- defs$structure$codelists$codelist$code[[1]]
-    sic3 <- codes[grepl('^\\d{3} :', codes$description$value), ]
-    ids <- sic3$value
-    pages <- list(); offset <- 0
-    repeat {
+    ids <- codes$value[grepl('^\\d{3} :', codes$description$value)]
+    chunks <- split(ids, ceiling(seq_along(ids) / 130))      # 168 areas x 130 groups = 21,840 rows
+    parts <- list()
+    for (y in years) for (ch in chunks) {
       url <- paste0('https://www.nomisweb.co.uk/api/v01/dataset/NM_189_1.data.csv?geography=TYPE437',
-                    '&date=', paste(years, collapse = ','), '&industry=', paste(ids, collapse = ','),
+                    '&date=', y, '&industry=', paste(ch, collapse = ','),
                     '&employment_status=1&measure=1&measures=20100',
                     '&select=date,geography_code,geography_name,industry_name,obs_value,obs_status',
-                    '&recordoffset=', offset, '&recordlimit=25000')
-      page <- read_csv(url, show_col_types = FALSE, col_types = cols(.default = 'c'))
-      pages[[length(pages) + 1]] <- page
-      if (nrow(page) < 25000) break
-      offset <- offset + 25000
+                    '&recordlimit=25000')
+      part <- read_csv(url, show_col_types = FALSE, col_types = cols(.default = 'c'))
+      if (nrow(part) >= 25000) stop('BRES request hit the 25,000-row limit; make the chunks smaller')
+      parts[[length(parts) + 1]] <- part
       Sys.sleep(1)
     }
-    write_csv(bind_rows(pages), dest)
+    out <- bind_rows(parts)
+    # Checks: one row per year, area and group; every area and group present; totals match Nomis's
+    # own all-industry total for the same geography (allowing for rounding of the group figures)
+    key <- paste(out$DATE, out$GEOGRAPHY_CODE, out$INDUSTRY_NAME)
+    if (any(duplicated(key))) stop('BRES download has duplicated rows')
+    n_areas <- length(unique(out$GEOGRAPHY_CODE))
+    per_year <- table(out$DATE)
+    if (any(per_year != n_areas * length(ids))) stop('BRES download is missing rows: ', paste(per_year, collapse = ' '))
+    for (y in years) {
+      tot <- read_csv(paste0('https://www.nomisweb.co.uk/api/v01/dataset/NM_189_1.data.csv?geography=TYPE437',
+                             '&date=', y, '&industry=37748736&employment_status=1&measure=1&measures=20100',
+                             '&select=obs_value'), show_col_types = FALSE)
+      ours <- sum(as.numeric(out$OBS_VALUE[out$DATE == y]), na.rm = TRUE)
+      if (abs(ours / sum(tot$OBS_VALUE) - 1) > 0.02) stop('BRES ', y, ': groups sum to ', ours, ' against a total of ', sum(tot$OBS_VALUE))
+    }
+    write_csv(out, dest)
   }
   read_csv(dest, show_col_types = FALSE, col_types = cols(.default = 'c')) %>%
     transmute(year = as.integer(DATE), nuts3 = GEOGRAPHY_CODE, nuts3_name = GEOGRAPHY_NAME,

@@ -1,0 +1,9 @@
+check,value
+max |L - ONS Leontief|,1.9984014443252818e-15
+max |output - L x final demand|,4.0745362639427185e-10
+max |shares to buyers - 1|,1.3322676295501878e-15
+total output £m,3824433
+total GVA £m,2000157.0000000005
+total exports £m,592939
+BRES employees allocated,30052030
+products with SK,103
