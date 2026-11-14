@@ -1,0 +1,4 @@
+equilibrium,methods,hits,stable,interior,max_real_eigen,welfare,x
+1,"brute force, hill climb",10,TRUE,FALSE,NA,2.0589046312085943,0.000 0.500 0.500 0.000
+2,"brute force, hill climb",13,TRUE,FALSE,NA,2.0589046312165973,0.500 0.000 0.000 0.500
+3,"brute force, residual search",49,FALSE,TRUE,4.579722764717966,1.8593398755544113,0.250 0.250 0.250 0.250

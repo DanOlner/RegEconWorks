@@ -25,9 +25,10 @@
 # With G = 0, gC = gM = 0 and gT = 1 - gL this is Model C/D.
 
 mf_spec <- function(N, S, a, t_s, gL, gT, G, gC = rep(0, S), gM = rep(0, S), sigma = 10, eta = 1, alpha = 0.25,
-                    beta0 = 0.1875, beta_s = NULL, vartheta = 50, mobility = c('frechet', 'immobile'),
+                    beta0 = 0.1875, beta_s = NULL, vartheta = 50, mobility = c('frechet', 'immobile', 'fixed'),
                     rent = c('national', 'local'), L = N, L_i = NULL, kappa = 0, exports = TRUE, sectors = NULL,
-                    phi = rep(1, S), q_fixed = NULL, eps_c = 1, eps_i = 1, sigma_x = NULL, P_ref = NULL, sigma_s = NULL) {
+                    phi = rep(1, S), q_fixed = NULL, eps_c = 1, eps_i = 1, sigma_x = NULL, P_ref = NULL, sigma_s = NULL,
+                    L_fixed = NULL) {
   mobility <- match.arg(mobility); rent <- match.arg(rent)
   if (is.null(beta_s)) beta_s <- rep((1 - alpha - beta0) / S, S)
   G <- as.matrix(G)
@@ -35,12 +36,15 @@ mf_spec <- function(N, S, a, t_s, gL, gT, G, gC = rep(0, S), gM = rep(0, S), sig
             abs(alpha + beta0 + sum(beta_s) - 1) < 1e-9,
             max(abs(gL + gT + colSums(G) + gC + gM - 1)) < 1e-9, all(colSums(G) < 1))
   if (mobility == 'immobile' && is.null(L_i)) L_i <- rep(L / N, N)
+  # 'fixed': employment in every place-sector is given (L_fixed, N x S) and only wages, prices and rents adjust.
+  # The equilibrium solvers in functions_solvers.R wrap this inner problem in their own search over allocations.
+  if (mobility == 'fixed') stopifnot(!is.null(L_fixed), all(dim(L_fixed) == c(N, S)), all(L_fixed > 0))
   if (is.null(sigma_s)) sigma_s <- rep(sigma, S)
   list(N = N, S = S, a = a, t_s = t_s, tau = t_s^(1 - sigma_s), sigma_s = sigma_s, gL = gL, gT = gT, G = G, gC = gC, gM = gM,
        sigma = sigma, eta = eta, alpha = alpha, beta0 = beta0, beta_s = beta_s, vartheta = vartheta,
        mobility = mobility, rent = rent, L = L, L_i = L_i, kappa = kappa, exports = exports, sectors = sectors, phi = phi,
        q_fixed = q_fixed, eps_c = eps_c, eps_i = eps_i, sigma_x = if (is.null(sigma_x)) sigma else sigma_x,
-       P_ref = if (is.null(P_ref)) rep(1, S) else P_ref)
+       P_ref = if (is.null(P_ref)) rep(1, S) else P_ref, L_fixed = L_fixed)
 }
 
 # Evaluate at given wages. Prices solve their own fixed point (each sector's cost depends on the local
@@ -65,7 +69,8 @@ mf_evaluate <- function(w, state, sp, passes = 8) {
   r <- state$r; M <- state$M; rebate <- state$rebate; Ls <- state$Ls; lp <- state$log_p; rev <- state$rev
   mu <- 1 / (1 + sp$vartheta * sp$alpha / (1 + sp$eta))
   for (k in seq_len(passes)) {
-    a_eff <- if (sp$kappa > 0) sp$a * (pmax(Ls, 1e-12) / matrix(colMeans(Ls), N, S, byrow = TRUE))^sp$kappa else sp$a
+    Lk <- if (sp$mobility == 'fixed') sp$L_fixed else Ls
+    a_eff <- if (sp$kappa > 0) sp$a * (pmax(Lk, 1e-12) / matrix(colMeans(Lk), N, S, byrow = TRUE))^sp$kappa else sp$a
     base <- gL_m * log(w) + gT_m * log(r) - log(a_eff)
     for (j in 1:60) {                                       # prices: a contraction, since inputs < 100% of cost
       pp <- exp((1 - sig) * lp)
@@ -111,13 +116,13 @@ mf_evaluate <- function(w, state, sp, passes = 8) {
     } else y <- w + rent_val / pmax(rowSums(Ls), 1e-12)
     log_u <- log(y) - log_e
     lu <- sp$vartheta * log_u
-    log_Ls <- if (sp$mobility == 'frechet') {
+    log_Ls <- if (sp$mobility == 'fixed') log(sp$L_fixed) else if (sp$mobility == 'frechet') {
       log(sp$L) + lu - (max(lu) + log(sum(exp(lu - max(lu)))))
     } else {
       mx <- apply(lu, 1, max)
       log(sp$L_i) + lu - (mx + log(rowSums(exp(lu - mx))))
     }
-    Ls <- if (sp$rent == 'local') exp((1 - mu) * log(Ls) + mu * log_Ls) else exp(log_Ls)
+    Ls <- if (sp$mobility == 'fixed') sp$L_fixed else if (sp$rent == 'local') exp((1 - mu) * log(Ls) + mu * log_Ls) else exp(log_Ls)
     M <- M^(1 - mu) * rowSums(y * Ls)^mu
   }
   Ld <- gL_m * rev / w
@@ -131,7 +136,8 @@ mf_solve <- function(sp, start = NULL, damp = 0.7, tol = 1e-8, max_iter = 4000, 
   el_m <- matrix(1 + sp$gL * (E_s - 1), N, S, byrow = TRUE)
   w <- if (is.null(start)) matrix(1, N, S) else start$w
   state <- if (is.null(start)) {
-    Ls0 <- if (sp$mobility == 'frechet') matrix(sp$L / (N * S), N, S) else matrix(sp$L_i / S, N, S)
+    Ls0 <- if (sp$mobility == 'fixed') sp$L_fixed else if (sp$mobility == 'frechet') matrix(sp$L / (N * S), N, S) else
+      matrix(sp$L_i / S, N, S)
     list(r = rep(1, N), M = rowSums(Ls0), rebate = 0, Ls = Ls0, log_p = matrix(0, N, S),
          rev = matrix(sum(Ls0) / (N * S * mean(sp$gL)), N, S))
   } else start[c('r', 'M', 'rebate', 'Ls', 'log_p', 'rev')]
@@ -143,7 +149,7 @@ mf_solve <- function(sp, start = NULL, damp = 0.7, tol = 1e-8, max_iter = 4000, 
     if (verbose && it %% 100 == 0) message('iter ', it, ' max log gap ', signif(err, 3))
     if (!is.finite(err)) stop('mf_solve diverged at iteration ', it)
     if (err < tol) break
-    slope <- el_m + sp$vartheta * w / ev$y * pmax(1 - sp$kappa * (el_m - 1) / mean(sp$gL), 0.05)
+    slope <- if (sp$mobility == 'fixed') el_m else el_m + sp$vartheta * w / ev$y * pmax(1 - sp$kappa * (el_m - 1) / mean(sp$gL), 0.05)
     w <- w * exp(pmax(pmin(damp * gap / slope, 0.2), -0.2))
   }
   ev$w <- w; ev$iterations <- it; ev$max_gap <- err

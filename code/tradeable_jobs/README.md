@@ -74,5 +74,7 @@ python3 -I code/tradeable_jobs/get_papers.py           # optional: the papers th
 | `24_modelF_local_sigma.R` | Model F with an elasticity of 3 between places for local services (trade costs moved to keep their cross-place share) |
 | `25_modelA_supply_chains.R` | T7: Venables's city model with tradables buying non-tradable inputs; the equilibrium range as the input share and non-tradable productivity rise |
 | `26_modelF_agglomeration.R` | Model F with agglomeration elasticities 0.02 and 0.03, on the best-calibrated setting |
-| `00_run_all.R` | Clears the cache, runs 01–26, renders both reports |
+| `functions_solvers.R` | Equilibrium search when there may be several equilibria (strong agglomeration): Model F split into an inner solve with labour fixed and an outer best-response map; hill climbing (adaptive or fixed-step), residual search (Nelder–Mead then Newton), brute force on a grid, continuation along a parameter; clustering and stability (perturbation test, eigenvalues for interior equilibria) |
+| `27_solvers.R` | The solvers on a two-place, two-sector case with a known answer (one unstable symmetric, two stable specialised equilibria), a scan of where multiple equilibria start, and continuation and multi-start search on the full Model F with agglomeration up to 0.3 |
+| `00_run_all.R` | Clears the cache, runs 01–27, renders both reports |
 | `get_papers.py` | Downloads and converts the three papers to readable markdown |

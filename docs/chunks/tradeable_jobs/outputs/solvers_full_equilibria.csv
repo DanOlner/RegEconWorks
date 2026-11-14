@@ -1,0 +1,9 @@
+equilibrium,methods,hits,stable,interior,max_real_eigen,welfare,gva_per_worker,max_share_gap,biggest_move,kappa,starts,converged
+1,"continuation, hill climb",9,TRUE,TRUE,NA,2.9181315768934635,1.8081957354148095,0,"place 1, agri_fish: +0.000",0.1,8,8
+1,"continuation, hill climb",7,TRUE,TRUE,NA,3.373992941152236,1.849204335362592,0,"place 1, agri_fish: +0.000",0.2,8,8
+2,hill climb,1,TRUE,TRUE,NA,3.373303392621336,1.849807881952688,0.01594792467938282,"place 4, light_mfg: -0.016",0.2,8,8
+3,hill climb,1,TRUE,TRUE,NA,3.3656745712828924,1.8489838758632338,0.017296202717304796,"place 6, wholesale_motor: -0.017",0.2,8,8
+1,"continuation, hill climb",6,TRUE,TRUE,NA,4.00444070158784,1.93503945521834,0,"place 1, agri_fish: +0.000",0.3,8,8
+2,hill climb,1,TRUE,TRUE,NA,4.0206716644340155,1.937962061975126,0.026953607971305336,"place 11, finance: -0.027",0.3,8,8
+3,hill climb,1,TRUE,TRUE,NA,4.011460510962301,1.9401455488728678,0.0267890402243949,"place 11, finance: -0.027",0.3,8,8
+4,hill climb,1,TRUE,TRUE,NA,4.004717163580557,1.9317118175072456,0.002068689048793355,"place 3, mining: +0.002",0.3,8,8

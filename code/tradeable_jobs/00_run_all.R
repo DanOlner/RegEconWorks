@@ -43,7 +43,8 @@ scripts <- c(
   '23_t9_flow_slack.R',          # T9: demand and productivity policies in the flow model; base, slack and tight economies
   '24_modelF_local_sigma.R',     # Model F with an elasticity of 3 between places for local services
   '25_modelA_supply_chains.R',   # T7: supply chains in Venables's city model (Model A)
-  '26_modelF_agglomeration.R'    # Model F with agglomeration (0.02, 0.03)
+  '26_modelF_agglomeration.R',   # Model F with agglomeration (0.02, 0.03)
+  '27_solvers.R'                 # equilibrium solvers for multiple equilibria: test case, bifurcation scan, full model
 )
 for (s in scripts) {
   message('== ', s)

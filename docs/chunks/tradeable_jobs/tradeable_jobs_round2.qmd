@@ -141,7 +141,12 @@ ratio <- gm %>% mutate(r = domar / va_share) %>% arrange(desc(r))
 - **With wages that respond to unemployment and price-elastic exports (section 17),** the flow model can be tight. A place's own procurement then crowds out other places (it gets 130% of the national gain), and its everyday-services productivity no longer pays it.
 - **In Venables's city model (section 11),** supply chains shift the equilibrium range towards fewer tradable cities. Cheaper non-tradable inputs raise real income but are no escape from lock-in.
 - **Weak agglomeration in Model F (section 16)** tilts the comparison slightly towards the frontier push and leaves local shares unchanged.
-- **What isn't done (section 18):** strong agglomeration, the flow model's lenses, and regional coefficients.
+- **New solvers find multiple equilibria (section 18).**
+    - Hill climbing, residual search, brute force and continuation.
+    - On a test case they find what theory predicts, where the model's own solver settles on an unstable equilibrium.
+    - On the full Model F they solve agglomeration up to 0.3, where the old solver failed above 0.02, and find up to four stable equilibria.
+    - The long-tail proxy's value then depends on which equilibrium the economy starts in.
+- **What isn't done (section 19):** the flow model's lenses, and regional coefficients.
 
 ## 1. What was done
 
@@ -858,7 +863,7 @@ agl <- function(k, mob, type) ag_e2_type$mean_gain_share[ag_e2_type$kappa == k &
     - upstream `r num(agb('P3', 0), 2)` to `r num(agb('P3', 0.03), 2)`;
     - local services `r num(agb('^P4 local', 0), 2)` to `r num(agb('^P4 local', 0.03), 2)`.
 - **How much of a local gain stays local doesn't change.** With people immobile, the lagging place keeps on average `r pct(agl(0.03, 'immobile', 'local services'))` of the gain from its local services and `r pct(agl(0.03, 'immobile', 'other groups'))` from other groups, as without agglomeration.
-- **What it doesn't test.** Agglomeration strong enough to create the multiple equilibria and lock-in of round 1's Model A (0.15 there) is beyond Model F's solver. Model F's results hold for the weak agglomeration that empirical estimates usually find (a few per cent).
+- **What it doesn't test.** Agglomeration strong enough to create multiple equilibria is beyond Model F's own solver. Section 18's new solvers handle it.
 
 ## 17. The flow model in R, and local against national when the economy is slack (F0, T9)
 
@@ -956,12 +961,100 @@ t9f %>% filter(grepl('Extended', version), place == 'all', !grepl('Base', econom
     - whether they stay local depends on mobility: little stays when people move, most stays from local services when they don't.
 - **The hypothesis holds in both models in one form.** Productivity in local everyday services raises real incomes where it happens, and the official lens hides it. But how much that is worth to a place depends on whether the jobs it frees are taken up (Model F) or lost (flow model).
 
-## 18. What is not done yet
+## 18. Solving with strong agglomeration: multiple equilibria
+
+```{r}
+#| label: sv-setup
+source('code/tradeable_jobs/27_solvers.R')
+fb <- function(m, col) sv_test$found_by[[col]][sv_test$found_by$method == m]
+bif <- sv_bifurcation %>% group_by(vartheta) %>% summarise(first_unstable = min(kappa[sym_max_real_eigen > 0]), .groups = 'drop')
+fp <- sv_full$direct %>% left_join(sv_full$continuation, by = 'kappa')
+fm <- sv_full$multi
+fpol <- sv_full$policies
+```
+
+**The solvers before this section.** Each model had one solver:
+
+- Venables's cities: a grid scan of the non-tradable price, then root-finding.
+- Model B: Newton's method from fresh starts.
+- Rice and Venables and Model F: damped wage adjustment from a single start.
+- DFS: root-finding.
+- The flow model: fixed-point iteration.
+
+Only the first two looked for more than one solution. With agglomeration, Model F can have several equilibria, and its solver finds at most one: the one near its start.
+
+**What was added** (`functions_solvers.R`).
+
+- **The split.** Model F is split into an inner problem and an outer map.
+    - Inner: wages, prices and rents with labour fixed in every place-sector, which stays well behaved however strong agglomeration is.
+    - Outer: the allocation workers would choose given the resulting utilities. Equilibria are the fixed points of that map.
+- **Four ways to search:**
+    - **hill climbing:** damped moves towards higher utility, from many random starts. It finds stable equilibria, the ones an economy would settle into.
+    - **residual search:** minimise the gap between an allocation and the one it implies (Nelder–Mead, then Newton). It finds unstable equilibria too.
+    - **brute force:** evaluate that gap on a grid over every allocation, and polish every local minimum. It misses nothing coarser than the grid, but only works for small problems.
+    - **continuation:** raise a parameter in small steps, each solved from the last step's equilibrium.
+- **Stability.** Each equilibrium is tested by perturbing it and checking that hill climbing returns. Interior equilibria also get the eigenvalue test.
+- **Corners.** Agglomeration in Rice and Venables's form, productivity proportional to (employment)^κ, sends productivity to zero as a place-sector empties. So strong agglomeration gives corner equilibria with complete specialisation, which the search judges in shares rather than logs.
+
+**A test with a known answer.** Two identical places and two identical tradable sectors, with agglomeration 0.3 and mobility 50. Theory says there are three equilibria:
+
+- each place half of each sector, unstable;
+- two mirror-image equilibria with each place specialised, stable.
+
+```{r}
+#| label: tbl-sv-test
+#| tbl-cap: "The test case's equilibria and which methods found them. Shares are place 1 sector 1, place 2 sector 1, place 1 sector 2, place 2 sector 2."
+sv_test$equilibria %>% transmute(`Shares of workers` = x, `Found by` = methods, Stable = ifelse(stable, 'yes', 'no'),
+                                 `Largest eigenvalue` = ifelse(is.na(max_real_eigen), '', num(max_real_eigen, 2)), Welfare = num(welfare, 3)) %>%
+  kable(align = 'llrrr')
+```
+
+- **The model's own solver gets this wrong.**
+    - From its default (even) start it reports convergence at the symmetric equilibrium, which is unstable.
+    - From `r sum(sv_test$direct$start != 'default (even)')` asymmetric starts it fails every time.
+- **Each new method sees part of the picture.**
+    - Hill climbing finds both stable equilibria (`r fb('Hill climb', 'converged')` of `r fb('Hill climb', 'starts')` starts converge).
+    - Residual search finds only the unstable one, because Newton's method can't reach corners.
+    - Brute force over `r num(sv_test$grid_points)` grid points finds all three.
+- **Specialisation is better.** Welfare is `r pct(max(sv_test$equilibria$welfare) / min(sv_test$equilibria$welfare) - 1, 1)` higher in a specialised equilibrium than in the symmetric one.
+- **Where multiple equilibria start.** The symmetric equilibrium becomes unstable at agglomeration of about `r paste0(bif$first_unstable, ' (mobility ', bif$vartheta, ')', collapse = ', ')`. The more mobile people are, the weaker the agglomeration needed.
+
+**The full Model F with strong agglomeration.** This uses the best-calibrated setting (demand fitted to T6, elasticity 3 between places for local services), one productivity draw, people mobile, with agglomeration raised from 0 to 0.3.
+
+- **The model's own solver fails from agglomeration `r min(fp$kappa[!fp$direct_converged])`.**
+    - Continuation solves every step to 0.3, in `r min(fp$iterations)`–`r max(fp$iterations)` iterations a step.
+    - Welfare rises with agglomeration, from `r num(fp$welfare[fp$kappa == min(fp$kappa)], 2)` to `r num(fp$welfare[fp$kappa == 0.3], 2)`.
+- **Multiple equilibria appear between 0.1 and 0.2.** From eight scrambled starts each:
+    - at 0.1, every start returns to the continuation equilibrium;
+    - at 0.2 there are `r sum(fm$kappa == 0.2)` stable equilibria, at 0.3 `r sum(fm$kappa == 0.3)`.
+- **They differ in where activity sits, not much in welfare.**
+    - At 0.3 the largest difference is `r pct(max(fm$max_share_gap[fm$kappa == 0.3]), 1)` of all workers in one place-sector (finance leaving place 11), a large move for a cell that holds well under 1% of workers on average.
+    - Welfare across them differs by under `r pct(max(fm$welfare[fm$kappa == 0.3]) / min(fm$welfare[fm$kappa == 0.3]) - 1, 1)`.
+    - Continuation's equilibrium is not the best of them.
+
+```{r}
+#| label: tbl-sv-policies
+#| tbl-cap: "Full Model F, agglomeration 0.3: break-even cost ratios against the frontier push (P1), national welfare per point, starting from each of the four equilibria found. The economy adjusts from that equilibrium by hill climbing."
+fpol %>% transmute(eq = paste('Equilibrium', eq), proxy, v = num(breakeven, 2)) %>% filter(!grepl('^P1', proxy)) %>%
+  pivot_wider(names_from = eq, values_from = v) %>% rename(Proxy = proxy) %>% kable(align = 'lrrrr')
+```
+
+- **Which equilibrium the economy is in changes the answer for the long tail.**
+    - From two of the four, the long-tail proxy tips the economy into another equilibrium, moving `r pct(max(fpol$moved[fpol$proxy == 'P2 long tail']), 1)` of workers.
+    - It gains from the move: break-even `r num(max(fpol$breakeven[fpol$proxy == 'P2 long tail']), 2)`.
+    - From the other two, where that move has already happened, it is `r num(min(fpol$breakeven[fpol$proxy == 'P2 long tail']), 2)`.
+- **The upstream and local-services proxies hardly depend on the starting point** (`r num(min(fpol$breakeven[fpol$proxy == 'P3 upstream']), 2)`–`r num(max(fpol$breakeven[fpol$proxy == 'P3 upstream']), 2)` and `r num(min(fpol$breakeven[fpol$proxy == 'P4 local services']), 2)`–`r num(max(fpol$breakeven[fpol$proxy == 'P4 local services']), 2)`).
+- **What this means.**
+    - With strong agglomeration, policy can shift an economy between equilibria, and a policy's measured effect then depends on the history it starts from.
+    - Here that matters for broad catch-up more than for the frontier push, the reverse of the usual cluster argument.
+    - One productivity draw and agglomeration far stronger than estimates suggest make this an illustration, not a finding about the UK.
+
+## 19. What is not done yet
 
 - **The flow model's lenses** beyond the standard results rows (chains, booking, measurement), and its calibration routine. The model itself is ported and validated (section 17).
 - **Calibrating the flow model's extensions.** The export elasticity and wage curve are set from Model F and the literature, not fitted to the flow model's own economy.
 - **Model F extensions.**
-    - Agglomeration strong enough for multiple equilibria (Model F solves only weak agglomeration, section 16).
+    - Policy experiments over many productivity draws with strong agglomeration (section 18 uses one), and the equilibrium-switching they can cause.
     - A pass-through switch calibrated on T11a, so that firms keep part of a gain instead of passing it all to prices.
     - Equal-cost (rather than equal-percentage) proxies once T10's ratios have been argued over.
 - **The regional version of T3, and T5's local multipliers.** Both need regional input–output coefficients that the payment flows can't supply.
@@ -978,4 +1071,4 @@ t9f %>% filter(grepl('Extended', version), place == 'all', !grepl('Base', econom
 - **Firm data (section 8):** Companies House accounts (open data), as processed in the companieshouseopen project's report outputs; read in place, with the aggregate tables kept in the gitignored `local/` folder because they are rebuilt from that project.
 - **The models:** Rice and Venables (2023), as rebuilt in round 1 ([tradeable_jobs_firstlook.qmd](tradeable_jobs_firstlook.qmd)); the "where GVA is booked" flow model (modelling_demand, model spec v1), ported from its TypeScript build (modelling repo, commit 70c3804).
 
-*Code: `code/tradeable_jobs/functions_io.R`, `functions_ch.R`, `functions_payments.R`, `functions_modelF.R` and `functions_flow.R` (with its inputs in `flow_model/`), and scripts `12` to `23`. Outputs: `docs/chunks/tradeable_jobs/outputs/` (`t2_*` to `t11b_*` and `mf_*`); T11a's tables stay in the gitignored `local/tradeable_jobs/companieshouse/`. Plan and log: [tradeable_jobs_further_tests_plan.md](tradeable_jobs_further_tests_plan.md).*
+*Code: `code/tradeable_jobs/functions_io.R`, `functions_ch.R`, `functions_payments.R`, `functions_modelF.R`, `functions_solvers.R` and `functions_flow.R` (with its inputs in `flow_model/`), and scripts `12` to `27`. Outputs: `docs/chunks/tradeable_jobs/outputs/` (`t2_*` to `t11b_*` and `mf_*`); T11a's tables stay in the gitignored `local/tradeable_jobs/companieshouse/`. Plan and log: [tradeable_jobs_further_tests_plan.md](tradeable_jobs_further_tests_plan.md).*

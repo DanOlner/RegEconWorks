@@ -2331,7 +2331,8 @@ window.Quarto = {
   <li><a href="#does-model-f-look-like-uk-firms-t11b" id="toc-does-model-f-look-like-uk-firms-t11b" class="nav-link" data-scroll-target="#does-model-f-look-like-uk-firms-t11b">15. Does Model F look like UK firms? (T11b)</a></li>
   <li><a href="#model-f-with-demand-calibrated-to-t6" id="toc-model-f-with-demand-calibrated-to-t6" class="nav-link" data-scroll-target="#model-f-with-demand-calibrated-to-t6">16. Model F with demand calibrated to T6</a></li>
   <li><a href="#the-flow-model-in-r-and-local-against-national-when-the-economy-is-slack-f0-t9" id="toc-the-flow-model-in-r-and-local-against-national-when-the-economy-is-slack-f0-t9" class="nav-link" data-scroll-target="#the-flow-model-in-r-and-local-against-national-when-the-economy-is-slack-f0-t9">17. The flow model in R, and local against national when the economy is slack (F0, T9)</a></li>
-  <li><a href="#what-is-not-done-yet" id="toc-what-is-not-done-yet" class="nav-link" data-scroll-target="#what-is-not-done-yet">18. What is not done yet</a></li>
+  <li><a href="#solving-with-strong-agglomeration-multiple-equilibria" id="toc-solving-with-strong-agglomeration-multiple-equilibria" class="nav-link" data-scroll-target="#solving-with-strong-agglomeration-multiple-equilibria">18. Solving with strong agglomeration: multiple equilibria</a></li>
+  <li><a href="#what-is-not-done-yet" id="toc-what-is-not-done-yet" class="nav-link" data-scroll-target="#what-is-not-done-yet">19. What is not done yet</a></li>
   <li><a href="#sources" id="toc-sources" class="nav-link" data-scroll-target="#sources">Sources</a></li>
   </ul>
 </nav>
@@ -2437,7 +2438,14 @@ window.Quarto = {
 <li><strong>With wages that respond to unemployment and price-elastic exports (section 17),</strong> the flow model can be tight. A place’s own procurement then crowds out other places (it gets 130% of the national gain), and its everyday-services productivity no longer pays it.</li>
 <li><strong>In Venables’s city model (section 11),</strong> supply chains shift the equilibrium range towards fewer tradable cities. Cheaper non-tradable inputs raise real income but are no escape from lock-in.</li>
 <li><strong>Weak agglomeration in Model F (section 16)</strong> tilts the comparison slightly towards the frontier push and leaves local shares unchanged.</li>
-<li><strong>What isn’t done (section 18):</strong> strong agglomeration, the flow model’s lenses, and regional coefficients.</li>
+<li><strong>New solvers find multiple equilibria (section 18).</strong>
+<ul>
+<li>Hill climbing, residual search, brute force and continuation.</li>
+<li>On a test case they find what theory predicts, where the model’s own solver settles on an unstable equilibrium.</li>
+<li>On the full Model F they solve agglomeration up to 0.3, where the old solver failed above 0.02, and find up to four stable equilibria.</li>
+<li>The long-tail proxy’s value then depends on which equilibrium the economy starts in.</li>
+</ul></li>
+<li><strong>What isn’t done (section 19):</strong> the flow model’s lenses, and regional coefficients.</li>
 </ul>
 </section>
 <section id="what-was-done" class="level2">
@@ -4381,7 +4389,7 @@ Table 11: Break-even cost ratios against the frontier push (P1), national real 
 <li>local services 0.64 to 0.63.</li>
 </ul></li>
 <li><strong>How much of a local gain stays local doesn’t change.</strong> With people immobile, the lagging place keeps on average 87% of the gain from its local services and 37% from other groups, as without agglomeration.</li>
-<li><strong>What it doesn’t test.</strong> Agglomeration strong enough to create the multiple equilibria and lock-in of round 1’s Model A (0.15 there) is beyond Model F’s solver. Model F’s results hold for the weak agglomeration that empirical estimates usually find (a few per cent).</li>
+<li><strong>What it doesn’t test.</strong> Agglomeration strong enough to create multiple equilibria is beyond Model F’s own solver. Section 18’s new solvers handle it.</li>
 </ul>
 </section>
 <section id="the-flow-model-in-r-and-local-against-national-when-the-economy-is-slack-f0-t9" class="level2">
@@ -4673,14 +4681,205 @@ Table 13: Extended flow model (price-elastic exports, wage curve): each policy�
 <li><strong>The hypothesis holds in both models in one form.</strong> Productivity in local everyday services raises real incomes where it happens, and the official lens hides it. But how much that is worth to a place depends on whether the jobs it frees are taken up (Model F) or lost (flow model).</li>
 </ul>
 </section>
+<section id="solving-with-strong-agglomeration-multiple-equilibria" class="level2">
+<h2 class="anchored" data-anchor-id="solving-with-strong-agglomeration-multiple-equilibria">18. Solving with strong agglomeration: multiple equilibria</h2>
+<p><strong>The solvers before this section.</strong> Each model had one solver:</p>
+<ul>
+<li>Venables’s cities: a grid scan of the non-tradable price, then root-finding.</li>
+<li>Model B: Newton’s method from fresh starts.</li>
+<li>Rice and Venables and Model F: damped wage adjustment from a single start.</li>
+<li>DFS: root-finding.</li>
+<li>The flow model: fixed-point iteration.</li>
+</ul>
+<p>Only the first two looked for more than one solution. With agglomeration, Model F can have several equilibria, and its solver finds at most one: the one near its start.</p>
+<p><strong>What was added</strong> (<code>functions_solvers.R</code>).</p>
+<ul>
+<li><strong>The split.</strong> Model F is split into an inner problem and an outer map.
+<ul>
+<li>Inner: wages, prices and rents with labour fixed in every place-sector, which stays well behaved however strong agglomeration is.</li>
+<li>Outer: the allocation workers would choose given the resulting utilities. Equilibria are the fixed points of that map.</li>
+</ul></li>
+<li><strong>Four ways to search:</strong>
+<ul>
+<li><strong>hill climbing:</strong> damped moves towards higher utility, from many random starts. It finds stable equilibria, the ones an economy would settle into.</li>
+<li><strong>residual search:</strong> minimise the gap between an allocation and the one it implies (Nelder–Mead, then Newton). It finds unstable equilibria too.</li>
+<li><strong>brute force:</strong> evaluate that gap on a grid over every allocation, and polish every local minimum. It misses nothing coarser than the grid, but only works for small problems.</li>
+<li><strong>continuation:</strong> raise a parameter in small steps, each solved from the last step’s equilibrium.</li>
+</ul></li>
+<li><strong>Stability.</strong> Each equilibrium is tested by perturbing it and checking that hill climbing returns. Interior equilibria also get the eigenvalue test.</li>
+<li><strong>Corners.</strong> Agglomeration in Rice and Venables’s form, productivity proportional to (employment)^κ, sends productivity to zero as a place-sector empties. So strong agglomeration gives corner equilibria with complete specialisation, which the search judges in shares rather than logs.</li>
+</ul>
+<p><strong>A test with a known answer.</strong> Two identical places and two identical tradable sectors, with agglomeration 0.3 and mobility 50. Theory says there are three equilibria:</p>
+<ul>
+<li>each place half of each sector, unstable;</li>
+<li>two mirror-image equilibria with each place specialised, stable.</li>
+</ul>
+<div class="cell">
+<div id="tbl-sv-test" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-sv-test-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 14: The test case’s equilibria and which methods found them. Shares are place 1 sector 1, place 2 sector 1, place 1 sector 2, place 2 sector 2.
+</figcaption>
+<div aria-describedby="tbl-sv-test-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 33%">
+<col style="width: 8%">
+<col style="width: 21%">
+<col style="width: 9%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Shares of workers</th>
+<th style="text-align: left;">Found by</th>
+<th style="text-align: right;">Stable</th>
+<th style="text-align: right;">Largest eigenvalue</th>
+<th style="text-align: right;">Welfare</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">0.000 0.500 0.500 0.000</td>
+<td style="text-align: left;">brute force, hill climb</td>
+<td style="text-align: right;">yes</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">2.059</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">0.500 0.000 0.000 0.500</td>
+<td style="text-align: left;">brute force, hill climb</td>
+<td style="text-align: right;">yes</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">2.059</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">0.250 0.250 0.250 0.250</td>
+<td style="text-align: left;">brute force, residual search</td>
+<td style="text-align: right;">no</td>
+<td style="text-align: right;">4.58</td>
+<td style="text-align: right;">1.859</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<ul>
+<li><strong>The model’s own solver gets this wrong.</strong>
+<ul>
+<li>From its default (even) start it reports convergence at the symmetric equilibrium, which is unstable.</li>
+<li>From 6 asymmetric starts it fails every time.</li>
+</ul></li>
+<li><strong>Each new method sees part of the picture.</strong>
+<ul>
+<li>Hill climbing finds both stable equilibria (13 of 24 starts converge).</li>
+<li>Residual search finds only the unstable one, because Newton’s method can’t reach corners.</li>
+<li>Brute force over 1,771 grid points finds all three.</li>
+</ul></li>
+<li><strong>Specialisation is better.</strong> Welfare is 10.7% higher in a specialised equilibrium than in the symmetric one.</li>
+<li><strong>Where multiple equilibria start.</strong> The symmetric equilibrium becomes unstable at agglomeration of about 0.3 (mobility 10), 0.2 (mobility 50), 0.15 (mobility 200). The more mobile people are, the weaker the agglomeration needed.</li>
+</ul>
+<p><strong>The full Model F with strong agglomeration.</strong> This uses the best-calibrated setting (demand fitted to T6, elasticity 3 between places for local services), one productivity draw, people mobile, with agglomeration raised from 0 to 0.3.</p>
+<ul>
+<li><strong>The model’s own solver fails from agglomeration 0.04.</strong>
+<ul>
+<li>Continuation solves every step to 0.3, in 35–226 iterations a step.</li>
+<li>Welfare rises with agglomeration, from 2.74 to 4.00.</li>
+</ul></li>
+<li><strong>Multiple equilibria appear between 0.1 and 0.2.</strong> From eight scrambled starts each:
+<ul>
+<li>at 0.1, every start returns to the continuation equilibrium;</li>
+<li>at 0.2 there are 3 stable equilibria, at 0.3 4.</li>
+</ul></li>
+<li><strong>They differ in where activity sits, not much in welfare.</strong>
+<ul>
+<li>At 0.3 the largest difference is 2.7% of all workers in one place-sector (finance leaving place 11), a large move for a cell that holds well under 1% of workers on average.</li>
+<li>Welfare across them differs by under 0.4%.</li>
+<li>Continuation’s equilibrium is not the best of them.</li>
+</ul></li>
+</ul>
+<div class="cell">
+<div id="tbl-sv-policies" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-sv-policies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 15: Full Model F, agglomeration 0.3: break-even cost ratios against the frontier push (P1), national welfare per point, starting from each of the four equilibria found. The economy adjusts from that equilibrium by hill climbing.
+</figcaption>
+<div aria-describedby="tbl-sv-policies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 24%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 18%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Proxy</th>
+<th style="text-align: right;">Equilibrium 1</th>
+<th style="text-align: right;">Equilibrium 2</th>
+<th style="text-align: right;">Equilibrium 3</th>
+<th style="text-align: right;">Equilibrium 4</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">P2 long tail</td>
+<td style="text-align: right;">0.90</td>
+<td style="text-align: right;">0.75</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">0.93</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">P3 upstream</td>
+<td style="text-align: right;">0.95</td>
+<td style="text-align: right;">0.92</td>
+<td style="text-align: right;">0.94</td>
+<td style="text-align: right;">0.95</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">P4 local services</td>
+<td style="text-align: right;">0.68</td>
+<td style="text-align: right;">0.67</td>
+<td style="text-align: right;">0.67</td>
+<td style="text-align: right;">0.68</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<ul>
+<li><strong>Which equilibrium the economy is in changes the answer for the long tail.</strong>
+<ul>
+<li>From two of the four, the long-tail proxy tips the economy into another equilibrium, moving 2.6% of workers.</li>
+<li>It gains from the move: break-even 0.93.</li>
+<li>From the other two, where that move has already happened, it is 0.74.</li>
+</ul></li>
+<li><strong>The upstream and local-services proxies hardly depend on the starting point</strong> (0.92–0.95 and 0.67–0.68).</li>
+<li><strong>What this means.</strong>
+<ul>
+<li>With strong agglomeration, policy can shift an economy between equilibria, and a policy’s measured effect then depends on the history it starts from.</li>
+<li>Here that matters for broad catch-up more than for the frontier push, the reverse of the usual cluster argument.</li>
+<li>One productivity draw and agglomeration far stronger than estimates suggest make this an illustration, not a finding about the UK.</li>
+</ul></li>
+</ul>
+</section>
 <section id="what-is-not-done-yet" class="level2">
-<h2 class="anchored" data-anchor-id="what-is-not-done-yet">18. What is not done yet</h2>
+<h2 class="anchored" data-anchor-id="what-is-not-done-yet">19. What is not done yet</h2>
 <ul>
 <li><strong>The flow model’s lenses</strong> beyond the standard results rows (chains, booking, measurement), and its calibration routine. The model itself is ported and validated (section 17).</li>
 <li><strong>Calibrating the flow model’s extensions.</strong> The export elasticity and wage curve are set from Model F and the literature, not fitted to the flow model’s own economy.</li>
 <li><strong>Model F extensions.</strong>
 <ul>
-<li>Agglomeration strong enough for multiple equilibria (Model F solves only weak agglomeration, section 16).</li>
+<li>Policy experiments over many productivity draws with strong agglomeration (section 18 uses one), and the equilibrium-switching they can cause.</li>
 <li>A pass-through switch calibrated on T11a, so that firms keep part of a gain instead of passing it all to prices.</li>
 <li>Equal-cost (rather than equal-percentage) proxies once T10’s ratios have been argued over.</li>
 </ul></li>
@@ -4700,7 +4899,7 @@ Table 13: Extended flow model (price-elastic exports, wage curve): each policy�
 <li><strong>Firm data (section 8):</strong> Companies House accounts (open data), as processed in the companieshouseopen project’s report outputs; read in place, with the aggregate tables kept in the gitignored <code>local/</code> folder because they are rebuilt from that project.</li>
 <li><strong>The models:</strong> Rice and Venables (2023), as rebuilt in round 1 (<a href="tradeable_jobs_firstlook.qmd">tradeable_jobs_firstlook.qmd</a>); the “where GVA is booked” flow model (modelling_demand, model spec v1), ported from its TypeScript build (modelling repo, commit 70c3804).</li>
 </ul>
-<p><em>Code: <code>code/tradeable_jobs/functions_io.R</code>, <code>functions_ch.R</code>, <code>functions_payments.R</code>, <code>functions_modelF.R</code> and <code>functions_flow.R</code> (with its inputs in <code>flow_model/</code>), and scripts <code>12</code> to <code>23</code>. Outputs: <code>docs/chunks/tradeable_jobs/outputs/</code> (<code>t2_*</code> to <code>t11b_*</code> and <code>mf_*</code>); T11a’s tables stay in the gitignored <code>local/tradeable_jobs/companieshouse/</code>. Plan and log: <a href="tradeable_jobs_further_tests_plan.md">tradeable_jobs_further_tests_plan.md</a>.</em></p>
+<p><em>Code: <code>code/tradeable_jobs/functions_io.R</code>, <code>functions_ch.R</code>, <code>functions_payments.R</code>, <code>functions_modelF.R</code>, <code>functions_solvers.R</code> and <code>functions_flow.R</code> (with its inputs in <code>flow_model/</code>), and scripts <code>12</code> to <code>27</code>. Outputs: <code>docs/chunks/tradeable_jobs/outputs/</code> (<code>t2_*</code> to <code>t11b_*</code> and <code>mf_*</code>); T11a’s tables stay in the gitignored <code>local/tradeable_jobs/companieshouse/</code>. Plan and log: <a href="tradeable_jobs_further_tests_plan.md">tradeable_jobs_further_tests_plan.md</a>.</em></p>
 </section>
 
 </main>

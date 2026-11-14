@@ -1,0 +1,4 @@
+method,starts,converged,equilibria_found,stable_found,unstable_found
+Hill climb,24,13,2,2,0
+Residual search,24,15,1,0,1
+Brute force,49,44,3,2,1

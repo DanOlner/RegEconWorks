@@ -682,7 +682,21 @@ All of these are physical productivity changes (W8). The policy cost of a percen
         - E falls from 28.9% to 22.2% of cities, and X from 50% to 37.2%, as γ goes from 0 to 0.3.
         - Raising non-tradable productivity 10% widens the range at both ends (E lower, X higher) and raises real income about 7%. It is not an escape from lock-in, matching Model F's verdict on C8.
         - Round 1's Model A results are unchanged.
+- **Solvers for multiple equilibria** (Dan asked; `functions_solvers.R`, `27_solvers.R`; section 18 of the report).
+    - **Before this,** each model had one solver: a grid scan and root-finding (Model A), Newton (B), damped wage adjustment from one start (C/D, F), root-finding (DFS), fixed-point iteration (flow model).
+    - **Added:**
+        - Model F split into an inner problem with labour fixed and an outer best-response map;
+        - hill climbing (adaptive, or fixed-step for large problems), residual search (Nelder–Mead then Newton), brute force on a grid, and continuation;
+        - stability by perturbation, plus eigenvalues for interior equilibria.
+    - **Test case** (two places, two sectors, agglomeration 0.3): three equilibria, as theory says.
+        - The model's own solver settles on the unstable symmetric one, or fails from asymmetric starts.
+        - Hill climbing finds the two stable ones, residual search the unstable one, brute force all three.
+        - Multiple equilibria start at agglomeration of about 0.3, 0.2 and 0.15 for mobility 10, 50 and 200.
+    - **Full Model F:** the old solver fails from 0.04; continuation solves to 0.3.
+        - Unique at 0.1; three stable equilibria at 0.2, four at 0.3, differing by up to 2.7% of workers (finance leaving place 11) but under 1% in welfare.
+        - The long-tail proxy's break-even is 0.90–0.93 from equilibria where it tips the economy into another, and 0.74–0.75 from the others. Upstream and local services barely depend on the starting point.
+    - **Mistakes caught:** a tolerance passed through `...` was taken by the clustering function's own argument (renamed); warm-started inner solves gave inconsistent welfare levels (outcomes now use fresh starts); the fixed-step hill climb was needed because the adaptive one stalls at high mobility.
 - **Not done:**
     - the flow model's lenses beyond the standard rows, and its calibration routine;
-    - agglomeration strong enough for multiple equilibria in Model F;
+    - policy experiments over many draws with strong agglomeration (section 18 uses one);
     - the household round of T5.
