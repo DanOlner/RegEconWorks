@@ -639,64 +639,99 @@ All of these are physical productivity changes (W8). The policy cost of a percen
 
 ## 10. Log
 
-**14 November 2026, overnight (Dan asked for all stages to be worked through in order).**
+Entries are in time order. Each names the commit it went into; all are on `master`.
+
+**14 November 2026, overnight: T2 to T11b** (Dan asked for every stage to be worked through in order; commit `77a128f`, 08:16, after T2 itself went into `bc81fec` at 02:37 with the round 1 BRES fix).
 
 - **Done:**
     - T2, T11a, T4, T3 (national), T1 (Model F) with T7 (partly), T8 and T9 (model half);
-    - T6, T5 (limited), T10, T11b.
-- **Results:** in [tradeable_jobs_round2.qmd](tradeable_jobs_round2.qmd), sections 1–16.
+    - T6, T5 (limited), T10 and T11b.
+- **Results:** sections 1–15 of [tradeable_jobs_round2.qmd](tradeable_jobs_round2.qmd).
 - **T4 is mostly negative.**
     - The payment flows cover a median 16% of a division's intermediate sales and fail the Scottish check.
     - ONS's interregional trade estimates exist only for eight groups.
     - So T3's regional version and T5's multipliers were not built.
-- **The trade closure was found and changed in Model F.** Rice and Venables's closure (fixed import price, a demand shifter q balancing trade) makes export-sector gains leak abroad almost entirely. Model F holds foreign demand fixed, and both are reported.
-- **Mistakes caught along the way:**
-    - a repeated `summarise()` ordering bug (totals computed before the weighted means that need them; fixed in T2, T11a and T5);
+- **The trade closure was found and changed in Model F.** Rice and Venables's closure (fixed import price, a demand shifter q balancing trade) makes export-sector gains leak abroad almost entirely. Model F holds foreign demand fixed, and both are reported. Round 1's plan log notes why round 1's results don't depend on it.
+- **Mistakes caught:**
+    - a repeated `summarise()` ordering bug: totals computed before the weighted means that need them (fixed in T2, T11a and T5);
     - the Scottish column match missing a header with a line break;
-    - a local break-even ratio averaged over groups with tiny denominators (now pooled).
-- **Later the same day:**
-    - committed the overnight work (decision 9: Companies House is open data);
-    - refactored Model F's experiments into `mf_run_draw()`, run in parallel (identical results, 1 minute instead of 20);
-    - calibrated Model F's demand to T6 (see the T6 note).
-- **F0 done.**
-    - The flow model's engine is ported to R (`functions_flow.R`), with inputs exported from the TypeScript as JSON (`code/tradeable_jobs/flow_model/`).
-    - It matches the TypeScript's own output on all 27,016 standard rows across the baseline and ten experiments (`22_flow_model.R`): relative differences of 1e-10 or less. The original was run with Node 26's type stripping, with one class patched in a scratch copy.
-- **T9's slack half done** (`23_t9_flow_slack.R`; section 17 of the report).
+    - a local break-even ratio averaged over groups with tiny denominators (now pooled);
+    - the report, sources and open decisions checked against the summary to Dan: the data sources weren't linked, the closure caveat wasn't in round 1's log, and the Companies House question wasn't logged. All three were added.
+
+**14 November 2026, morning: demand calibrated to T6, F0 and T9's slack half** (commit `c1a4134`, 08:45).
+
+- **Decision 9.** Companies House data is open data, so the aggregates stay in the report. The overnight work was committed first.
+- **Refactor.** Model F's experiments moved into `mf_run_draw()`, run in parallel: identical results, 1 minute instead of 20.
+- **Demand calibrated to T6** (`21_modelF_demand.R`; section 16 and the T6 note).
+    - Best fit: households' substitution 0.5, firms' 0.2, export demand 2.
+    - National gains fall to 0.65–0.76 of Hulten in every group.
+    - Break-even ratios narrow; upstream is about level with the frontier push under either closure.
+- **F0: the flow model's engine is ported to R** (`functions_flow.R`), with inputs exported from the TypeScript as JSON (`code/tradeable_jobs/flow_model/`).
+    - It matches the TypeScript's own output on all 27,016 standard rows across the baseline and ten experiments (`22_flow_model.R`): relative differences of 1e-10 or less.
+    - The original was run with Node 26's type stripping, with one class patched in a scratch copy, not in the modelling repo.
+- **T9's slack half** (`23_t9_flow_slack.R`; section 17).
     - Demand policies raise local and national incomes. Town-only procurement keeps 74% of the real gain in the town, inward investment 79%.
     - Productivity gains with demand unchanged cost jobs and GDP.
     - Everyday-services productivity still raises real income through prices (the town keeps 99%). Exporters' productivity loses income, because the model's exports are fixed quantities.
-    - Slack and base barely differ: wages and prices don't respond to unemployment, so the flow model is the demand-constrained case and Model F the full-employment one.
-- **After the second commit (same day):**
-    - **The flow model got two optional extensions** (both off for the port's check, which still matches):
-        - export quantities that respond to price (elasticity 2);
-        - a wage curve on local unemployment (elasticity 0.1), with partial adjustment of 30% a period. Without it, a tight economy cycles (a cobweb).
-    - **With them, T9 has a tight economy** (exports +20%, unemployment about 0.9%):
-        - Town-only procurement then gives the town 130% of the national real gain. That is crowding-out of other places, C13 appearing only when labour is tight.
-        - The town's everyday-services productivity no longer pays the town: freed workers push local wages down.
-        - Business-service productivity pays (+0.55% to +0.70%) once exports respond to price.
-    - **Model F's local services got an elasticity of 3 between places** (`24_modelF_local_sigma.R`), with trade costs moved to keep their cross-place share.
-        - The section 16 quirk goes: retail jobs −1.6% when the lagging place alone improves, not +11.6%. With people immobile the place keeps 75–95% of the gain.
-        - National results and break-even ratios barely change (long tail 0.78, upstream 0.91, local services 0.64).
-    - **Model F with agglomeration** 0.02 and 0.03 (`26_modelF_agglomeration.R`; section 16). It solves, and tilts the break-even ratios slightly towards the frontier push (long tail 0.78 → 0.74, upstream 0.91 → 0.90, local services 0.64 → 0.63). Local shares are unchanged.
-    - **Model A with supply chains** (`25_modelA_supply_chains.R`; section 11 of the report). Tradables buy γ of the non-tradable per unit of output.
-        - E falls from 28.9% to 22.2% of cities, and X from 50% to 37.2%, as γ goes from 0 to 0.3.
-        - Raising non-tradable productivity 10% widens the range at both ends (E lower, X higher) and raises real income about 7%. It is not an escape from lock-in, matching Model F's verdict on C8.
-        - Round 1's Model A results are unchanged.
-- **Solvers for multiple equilibria** (Dan asked; `functions_solvers.R`, `27_solvers.R`; section 18 of the report).
-    - **Before this,** each model had one solver: a grid scan and root-finding (Model A), Newton (B), damped wage adjustment from one start (C/D, F), root-finding (DFS), fixed-point iteration (flow model).
-    - **Added:**
-        - Model F split into an inner problem with labour fixed and an outer best-response map;
-        - hill climbing (adaptive, or fixed-step for large problems), residual search (Nelder–Mead then Newton), brute force on a grid, and continuation;
-        - stability by perturbation, plus eigenvalues for interior equilibria.
-    - **Test case** (two places, two sectors, agglomeration 0.3): three equilibria, as theory says.
-        - The model's own solver settles on the unstable symmetric one, or fails from asymmetric starts.
-        - Hill climbing finds the two stable ones, residual search the unstable one, brute force all three.
-        - Multiple equilibria start at agglomeration of about 0.3, 0.2 and 0.15 for mobility 10, 50 and 200.
-    - **Full Model F:** the old solver fails from 0.04; continuation solves to 0.3.
-        - Unique at 0.1; three stable equilibria at 0.2, four at 0.3, differing by up to 2.7% of workers (finance leaving place 11) but under 1% in welfare.
-        - The long-tail proxy's break-even is 0.90–0.93 from equilibria where it tips the economy into another, and 0.74–0.75 from the others. Upstream and local services barely depend on the starting point.
-    - **Mistakes caught:** a tolerance passed through `...` was taken by the clustering function's own argument (renamed); warm-started inner solves gave inconsistent welfare levels (outcomes now use fresh starts); the fixed-step hill climb was needed because the adaptive one stalls at high mobility.
-- **Not done:**
-    - the flow model's lenses beyond the standard rows, and its calibration routine;
-    - policy experiments over many draws with strong agglomeration (section 18 uses one);
-    - the household round of T5.
+    - Slack and base barely differ: wages and prices don't respond to unemployment.
+- **Mistakes caught:**
+    - the report's T6 bullet was drafted before the results and said Model F agreed with the data on job losses. It doesn't, because Cobb–Douglas demand gives none, and the bullet was corrected;
+    - after the refactor, T10's local break-even joined a share the runs now carried themselves, duplicating a column (simplified);
+    - tiny differences printed as long decimals in the report (now scientific notation).
+
+**14 November 2026, morning: a tight flow model, local services, Model A and agglomeration** (commit `6585d4f`, 09:45).
+
+- **The flow model got two optional extensions,** both off for the port's check, which still matches:
+    - export quantities that respond to price (elasticity 2);
+    - a wage curve on local unemployment (elasticity 0.1), moving 30% of the way each period.
+- **With them, T9 has a tight economy** (exports +20%, unemployment about 0.9%):
+    - Town-only procurement then gives the town 130% of the national real gain. That is crowding-out of other places, C13 appearing only when labour is tight.
+    - The town's everyday-services productivity no longer pays the town: freed workers push local wages down.
+    - Business-service productivity pays (+0.55% to +0.70%) once exports respond to price.
+- **Model F's local services got an elasticity of 3 between places** (`24_modelF_local_sigma.R`), with trade costs moved to keep their cross-place share.
+    - The section 16 quirk goes: retail jobs −1.6% when the lagging place alone improves, not +11.6%. With people immobile, the place keeps 75–95% of the gain.
+    - National results and break-even ratios barely change (long tail 0.78, upstream 0.91, local services 0.64).
+- **Model F with agglomeration** 0.02 and 0.03 (`26_modelF_agglomeration.R`; section 16). It solves, and tilts the break-even ratios slightly towards the frontier push (long tail 0.78 → 0.74). Local shares are unchanged.
+- **Model A with supply chains** (`25_modelA_supply_chains.R`; section 11). Tradables buy γ of the non-tradable per unit of output.
+    - E falls from 28.9% to 22.2% of cities, and X from 50% to 37.2%, as γ goes from 0 to 0.3.
+    - Raising non-tradable productivity 10% widens the range at both ends and raises real income about 7%. It is not an escape from lock-in, matching Model F's verdict on C8.
+    - Round 1's Model A results are unchanged.
+- **Mistakes caught:**
+    - the wage curve's first version cycled in a tight economy (a cobweb: high wages cut exports, then jobs, then wages), fixed with partial adjustment;
+    - its 1% unemployment floor then pinned the tight economy, so no policy could move wages (the floor is now 0.5%);
+    - two report lookups matched both "P4 local services" and "P4 with P9", printing an NA (patterns anchored).
+
+**14 November 2026, late morning: solvers for multiple equilibria** (Dan asked; commit `e72a75d`, 11:20; `functions_solvers.R`, `27_solvers.R`; section 18).
+
+- **Before this,** each model had one solver:
+    - a grid scan and root-finding (Model A);
+    - Newton (B);
+    - damped wage adjustment from one start (C/D, F);
+    - root-finding (DFS);
+    - fixed-point iteration (flow model).
+- **Added:**
+    - a fixed-labour mode in Model F, and the model split into that inner problem and an outer best-response map;
+    - hill climbing (adaptive, or fixed-step for large problems), residual search (Nelder–Mead then Newton), brute force on a grid, and continuation;
+    - stability by perturbation, plus eigenvalues for interior equilibria.
+- **Test case** (two places, two sectors, agglomeration 0.3): three equilibria, as theory says.
+    - The model's own solver settles on the unstable symmetric one, or fails from asymmetric starts.
+    - Hill climbing finds the two stable ones, residual search the unstable one, brute force all three.
+    - Multiple equilibria start at agglomeration of about 0.3, 0.2 and 0.15 for mobility 10, 50 and 200.
+- **Full Model F:** the old solver fails from 0.04; continuation solves to 0.3.
+    - Unique at 0.1; three stable equilibria at 0.2 and four at 0.3. They differ by up to 2.7% of workers (finance leaving place 11) but under 1% in welfare.
+    - The long-tail proxy's break-even is 0.90–0.93 from equilibria where it tips the economy into another, and 0.74–0.75 from the others. Upstream and local services barely depend on the starting point.
+- **Mistakes caught:**
+    - the first stable equilibria sat at corners (complete specialisation), which the log-share search could never reach (now judged in shares, with a floor);
+    - a tolerance passed through `...` was taken by the clustering function's own argument, which split one equilibrium in two and wrongly marked some unstable (renamed);
+    - warm-started inner solves gave inconsistent welfare levels (outcomes now use fresh starts);
+    - the adaptive hill climb stalls at high mobility (a fixed-step version for large problems).
+
+**Status after these entries.** Five round 2 commits are on `master` but not pushed: `bc81fec`, `77a128f`, `c1a4134`, `6585d4f` and `e72a75d`.
+
+**Not done:**
+
+- the flow model's lenses beyond the standard rows, and its calibration routine;
+- calibrating the flow model's export elasticity and wage curve to its own economy;
+- policy experiments over many productivity draws with strong agglomeration (section 18 uses one);
+- regional input–output coefficients, needed for T3's regional version and T5's multipliers;
+- the household round of T5.
