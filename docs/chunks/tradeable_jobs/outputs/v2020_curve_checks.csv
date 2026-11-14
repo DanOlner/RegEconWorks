@@ -1,0 +1,7 @@
+statement,holds,note
+wN rises with the share of type-T cities,TRUE,whole range solved (10% to 90%)
+wT = pT q(LT) falls with the share of type-T cities,TRUE,"over the figures' range, 20% to 80%; it turns up again above 84%, outside the equilibrium set"
+"Inside the equilibrium set, wT > wN and type-T cities are larger",TRUE,
+Total real rent is smallest where cities are the same size (point X),TRUE,
+Total real income per worker U falls with the number of type-T cities across the set,TRUE,U is 1.44% higher at E than at X
+"Workers' utility relative to rents falls as type-T cities become fewer, throughout the set",FALSE,holds from E to 48.0% of cities; the ratio dips slightly between there and X. Workers' utility itself peaks at 41.0%

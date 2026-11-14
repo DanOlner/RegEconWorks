@@ -1,0 +1,4 @@
+source,slope,Tmin_pct,Tmax_pct,q_gap_at_Tmin_pct,pop_ratio_T_to_N_Tmin,rent_ratio_T_to_N_Tmin,U_Tmin_vs_Tmax_pct
+"solved, slope 0.015 (2020 appendix)",0.015,48.3362718165937,50,1.5397752653872443,1.0526315789473684,1.10803324099723,0.008081201418241868
+"solved, slope 0.15 (2018 appendix)",0.15,28.854692759025717,50,23.28203913853857,2,4,1.4468234067952501
+"reported in Venables (2018), section 2",NA,NA,50,25,2.03,4.1,1.4

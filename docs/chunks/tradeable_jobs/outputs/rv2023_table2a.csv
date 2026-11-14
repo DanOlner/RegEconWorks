@@ -1,0 +1,5 @@
+case,R2_SD,t_SD,R2_SK,t_SK,wage_range_ppt,cor_t_SD,cor_t_SK,source,runs,all_converged
+Shocks the same size in every sector (cols 1-2),0.45,15.8,0.17,7.6,21.7,-0.958,-0.908,paper,NA,NA
+Shocks divided by t_s (cols 3-4),0.83,39.4,0.29,11.45,22.9,NA,NA,paper,NA,NA
+Shocks divided by t_s (cols 3-4),0.7467725064581026,30.41287290006043,0.0615843212213035,3.3026834533603733,22.742218710321392,-0.930304255068973,-0.8819491430063265,rebuild,20,TRUE
+Shocks the same size in every sector (cols 1-2),0.33968996427569426,12.490610724102993,0.059080497538967366,3.9272807140768005,21.405285334856625,-0.9584766840705157,-0.897003592837196,rebuild,20,TRUE

@@ -1,0 +1,12 @@
+variant,C2_range_of_equilibria,C3_lost_tradables_not_replaced,C4_all_N_cities_lose,C6_fewer_T_cities_lower_real_income
+Base case (papers' parameters),TRUE,TRUE,TRUE,FALSE
+No agglomeration (q flat),FALSE,FALSE,FALSE,FALSE
+Half the agglomeration (slope 0.075),TRUE,TRUE,TRUE,FALSE
+Agglomeration in non-tradables too (slope 0.15),TRUE,TRUE,TRUE,FALSE
+Agglomeration used up above the size at X,TRUE,TRUE,FALSE,TRUE
+Smaller non-tradable sector (theta 0.3),TRUE,TRUE,TRUE,FALSE
+Small non-tradable sector (theta 0.1),TRUE,TRUE,TRUE,FALSE
+Immobile labour (city sizes fixed),TRUE,FALSE,FALSE,TRUE
+Lower urban costs (b 0.2),TRUE,TRUE,TRUE,FALSE
+Higher urban costs (b 0.6),TRUE,TRUE,TRUE,FALSE
+Much higher urban costs (b 1.2),TRUE,TRUE,TRUE,TRUE

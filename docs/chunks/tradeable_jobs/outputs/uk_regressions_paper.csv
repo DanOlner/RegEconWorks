@@ -1,0 +1,9 @@
+measure,sample,model,coef,t,adj_r2
+"Sparsity bias (skewness, as paper)",All,Mean hourly earnings,2.718,10.06,0.7413
+"Sparsity bias (skewness, as paper)",All,Sector differential,0.9552,14.42,0.8177
+"Sparsity bias (skewness, as paper)",All,Area differential,1.7628,7.69,0.5939
+"Sparsity bias (skewness, as paper)",All,Sector differential (alternative decomposition),0.7164,11.37,0.7305
+"Sparsity bias (skewness, as paper)",All,Area differential (alternative decomposition),2.0016,8.4,0.6325
+"Sparsity bias (skewness, as paper)",Excluding London,Mean hourly earnings,1.9144,11.82,0.5387
+"Sparsity bias (skewness, as paper)",Excluding London,Sector differential,0.9742,17.54,0.7144
+"Sparsity bias (skewness, as paper)",Excluding London,Area differential,0.9402,6.94,0.2752

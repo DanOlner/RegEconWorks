@@ -1,0 +1,462 @@
+---
+title: "Tradeable jobs: does the argument add anything to Ricardo?"
+subtitle: "Working note: Venables (2018, 2020) and Rice and Venables (2023) rebuilt in R, tested against Ricardian benchmarks, and replicated on UK data"
+author: "Drafted by Claude Code (Claude Opus 5.5) for Dan Olner"
+date: 2026-11-14
+date-format: "D MMMM YYYY"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    output-file: tradeable_jobs_firstlook.html
+    embed-resources: true
+    fig-width: 8
+    fig-height: 5
+    fig-dpi: 150
+execute:
+  echo: false
+  message: false
+  warning: false
+---
+
+```{r}
+#| label: setup
+
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(knitr)
+})
+options(scipen = 999)
+
+# The scripts use paths relative to the project root; this file lives in docs/chunks/tradeable_jobs/
+knitr::opts_knit$set(root.dir = normalizePath('../../..'))
+
+# Colours as in the other chunks: reference categorical palette in fixed order, ink and grid greys
+cat_cols <- c('#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4')
+ink <- '#0b0b0b'; ink_2 <- '#52514e'; muted <- '#898781'; grid_col <- '#e1e0d9'; surface <- '#fcfcfb'
+
+theme_note <- function() {
+  theme_minimal(base_size = 11) +
+    theme(plot.background = element_rect(fill = surface, colour = NA),
+          panel.grid.major = element_line(colour = grid_col, linewidth = 0.3),
+          panel.grid.minor = element_blank(),
+          axis.text = element_text(colour = ink_2), axis.title = element_text(colour = ink_2),
+          plot.title = element_text(colour = ink, face = 'bold', size = 12),
+          plot.subtitle = element_text(colour = ink_2, size = 10),
+          plot.caption = element_text(colour = muted, size = 8, hjust = 0),
+          strip.text = element_text(colour = ink, face = 'bold', hjust = 0),
+          legend.position = 'top', legend.justification = 'left',
+          legend.text = element_text(colour = ink_2), legend.title = element_text(colour = ink_2))
+}
+num <- function(x, digits = 0) format(round(x, digits), big.mark = ',', nsmall = digits, scientific = FALSE)
+```
+
+```{r}
+#| label: run-analysis
+#| include: false
+
+# Each script caches its results in local/tradeable_jobs/cache/ and downloads data once into
+# local/tradeable_jobs/data_raw/. code/tradeable_jobs/00_run_all.R rebuilds everything from scratch.
+for (s in c('01_v2020_parameter_check.R', '02_v2020_curves.R', '03_v2020_shocks.R', '04_v2020_ablations.R',
+            '05_v2018_two_sector.R', '06_rv2023_table1.R', '07_rv2023_simulations.R', '08_ricardian_benchmarks.R',
+            '09_uk_sparsity.R', '10_leverage.R', '11_synthesis.R')) {
+  source(file.path('code/tradeable_jobs', s))
+}
+```
+
+```{r}
+#| label: key-numbers
+
+ab <- function(pattern) v2020_ablations[grepl(pattern, v2020_ablations$variant, fixed = TRUE), ][1, ]
+ab_base <- ab('Base case'); ab_none <- ab('No agglomeration'); ab_immob <- ab('Immobile labour'); ab_sat <- ab('used up')
+bmr <- function(pattern) bm_rv_summary[grepl(pattern, bm_rv_summary$variant, fixed = TRUE), ][1, ]
+bm_r3 <- bmr('RV2023 as published'); bm_nar <- bmr('Immobile labour, no land'); bm_flat <- bmr('No variation in tradability')
+uk_main <- uk_table4 %>% filter(measure == 'Sparsity bias (skewness, as paper)', sample == 'All')
+uk_w <- uk_main %>% filter(model == 'Mean hourly earnings')
+uk_ad <- uk_main %>% filter(model == 'Area differential')
+uk_tb <- uk_table4 %>% filter(measure == 'Export-share bias (input-output tables)', sample == 'All', model == 'Mean hourly earnings')
+uk_nolon <- uk_table4 %>% filter(measure == 'Sparsity bias, sector skewness computed without London', sample == 'All', model == 'Mean hourly earnings')
+cor_of <- function(pattern) uk_correlations$rebuild[grepl(pattern, uk_correlations$statistic, fixed = TRUE)][1]
+horse_tb <- uk_horse_race %>% filter(outcome == 'w_i', term == 'TB_exports')
+pc_015 <- param_check[2, ]
+dfs_b <- dfs_results[1, ]; dfs_i <- dfs_results[2, ]
+t2_c12 <- rv_table2a %>% filter(grepl('same size', case))
+fis_x <- v2020_fiscal %>% filter(direction == 'expansion', financing == 'external')
+```
+
+## Summary
+
+**The question.** Does the tradeable jobs argument add anything to plain Ricardian trade theory, or is it just a restatement of comparative advantage?
+
+**How it was tested.**
+
+- **Three versions of the argument:**
+    - Venables (2020, with the 2018 paper's fuller model), where "tradable" means internationally traded and subject to agglomeration;
+    - Rice and Venables (2023), where tradability is a continuum of trade costs between places within Great Britain;
+    - the policy shorthand: places prosper by having tradable jobs.
+- **Two definitions of "plain Ricardian":**
+    - narrow: labour immobile between the places that trade (Ricardo, Dornbusch–Fischer–Samuelson, Eaton–Kortum);
+    - broad: adds Ricardo inside a country, where labour moves and land doesn't.
+- **The work:** all four models are rebuilt in R and checked against the papers' published numbers, then switched off one ingredient at a time. The UK evidence in Rice and Venables is replicated from open BRES, ASHE and input-output data.
+
+```{r}
+#| label: tbl-verdicts
+#| tbl-cap: "Verdicts: each version of the argument against each definition of plain Ricardian theory"
+
+verdicts %>% select(Version = version, Benchmark = benchmark, Verdict = verdict, Why = why) %>% kable()
+```
+
+**What the argument adds, and what it doesn't.**
+
+- **Its central premise is Ricardo's own.** Venables argues against "everywhere has a comparative advantage". But Ricardo said comparative advantage governs trade between countries and not within them, because capital moves "from one province to another in the same country" (*Principles*, "On Foreign Trade").
+- **Its distinctive dynamics need increasing returns.** The range of equilibria, the lock-in after a shock, and the claim that a country can have too few tradable places all need localisation economies with coordination failure, as the trade literature has had since Graham (1923).
+    - Switch agglomeration off in the rebuilt 2020 model and none of these survive: the set of equilibria collapses to a point, and a city that loses its tradable sector is replaced at once.
+    - In the 2020 version, "tradeable jobs" could fairly be read as "jobs with increasing returns".
+- **Rice and Venables (2023) is a Ricardian model with land and mobile labour.** That is the broad benchmark itself. What it adds is the link from *where* comparative advantage lies to *nominal* wages and measured productivity:
+    - a productivity advantage in tradables raises local nominal wages;
+    - one in non-tradables can lower them.
+
+    That sign reversal needs mobile labour; with immobile labour it disappears.
+- **Tradable jobs don't make places better off in real terms in any benchmark.**
+    - With immobile labour, local real income responds about equally to productivity in tradables (`r num(bm_nar$utility_on_tradable_advantage, 2)`) and non-tradables (`r num(bm_nar$utility_on_nontradable_advantage, 2)`).
+    - With mobile labour, utility is equalised.
+    - The real-income version of "places prosper through tradable jobs" needs increasing returns or people who can't move. Those are claims about agglomeration and labour markets, not about tradability.
+- **The UK evidence replicates closely but doesn't identify tradability.**
+    - Area earnings regressed on sparsity bias give R² `r num(uk_w$adj_r2, 2)`, against 0.74 in the paper, with `r num(100 * uk_ad$coef / uk_w$coef)`% of the effect through the area differential (paper 65%).
+    - But sector sparsity correlates only `r num(cor_of("export share)"), 2)` with the share of output actually exported. A measure of tradability built from exports adds nothing beside sparsity (t = `r num(horse_tb$t, 1)`).
+    - Whatever sparsity picks up, it isn't measured tradability.
+
+**Problems found in the papers on the way.**
+
+- **The agglomeration slopes don't reproduce the figures.**
+    - V2020's appendix gives 0.015. The 2018 value, 0.15, reproduces the 2018 paper's numbers.
+    - The 2018 two-sector model's stated 0.1 gives an equilibrium set a fraction of the size of its Figures 4 and 5; 0.3 matches.
+- **C6 doesn't hold at the papers' own parameters.** With the papers' linear agglomeration, *fewer* tradable cities raise aggregate real income (+`r num(ab_base$U_E_vs_X_pct, 2)`%), which is the 2018 paper's own example. The "too few tradable places" loss appears only if agglomeration runs out at the margin.
+- **Rice and Venables's simulation draws** reproduce the published correlations only if the "variance 0.2" in the text is read as a standard deviation.
+- **The skewness measure is a weak proxy even in their own model.** It is their main empirical measure, but its R² varies from about 0 to 0.3 between simulation runs.
+
+## 1. What was tested
+
+The plan, with the model equations and the full list of claims, is in [tradeable_jobs_plan.md](tradeable_jobs_plan.md). Section 5 of the plan records the decisions:
+
+- test both definitions of "plain Ricardian";
+- test all three versions of the argument;
+- include the UK replication.
+
+The models, all in `code/tradeable_jobs/`:
+
+| Model | What it is | Rebuilt from |
+|---|---|---|
+| A | One factor; cities make tradables (world price, localisation economies) or non-tradables (national price); mobile labour; linear city | Venables (2020); Venables (2018) section 2 |
+| B | Two tradable sectors and the non-tradable, two skill types, Cobb-Douglas | Venables (2018) section 3 |
+| C | Many places and sectors, Ricardian productivity by place and sector, Armington trade costs, land, Fréchet labour mobility | Rice and Venables (2023) sections 2–3 |
+| D | Model C with switches (immobile labour, no land, equal trade costs, agglomeration), plus Dornbusch–Fischer–Samuelson | The benchmarks in plan part 3 |
+| E | The UK test: 163 ITL3 areas, 251 SIC 3-digit sectors, 2015–2019 | Rice and Venables (2023) section 4 |
+
+Two things about the papers shape everything below:
+
+- **"Tradable" means different things.** In Venables (2018, 2020), non-tradables are traded freely *within* the country at a national price, and tradables are by assumption the only sectors with agglomeration economies. In Rice and Venables (2023), tradability is a trade cost between places, and there's no agglomeration at all.
+- **Everyone ends up with the same utility.** Every model assumes full employment and near-perfect mobility. So in all of them "left behind" means landowners, and (outside the models) people who can't move.
+
+## 2. The rebuilt models, and how well they match
+
+### Model A: the 2020 model, and which slope Venables used
+
+```{r}
+#| label: tbl-param
+#| tbl-cap: "Solving the 2020 model at the two published agglomeration slopes"
+
+param_check %>%
+  transmute(Source = source, `Tmin (% of cities)` = num(Tmin_pct, 1), `Tmax` = num(Tmax_pct, 1),
+            `Productivity gap at Tmin` = paste0(num(q_gap_at_Tmin_pct, 1), '%'),
+            `Population ratio T:N` = num(pop_ratio_T_to_N_Tmin, 2), `Rent ratio T:N` = num(rent_ratio_T_to_N_Tmin, 2),
+            `Real income, Tmin vs Tmax` = paste0(num(U_Tmin_vs_Tmax_pct, 2), '%')) %>%
+  mutate(across(everything(), ~ ifelse(grepl('^\\s*NA%?\\s*$', .x), '', .x))) %>% kable()
+```
+
+**Which slope.** The 2020 appendix's 0.015 makes the set of equilibria almost vanish (48% to 50% of cities). The 2018 paper's 0.15 reproduces what that paper reports. All results below use 0.15.
+
+```{r}
+#| label: fig-model-a
+#| fig-cap: "Model A: wages in each type of city as the share of tradable (type-T) cities varies. Any share between E and X is an equilibrium: type-N cities can't attract a lone tradable firm (wN is above what it could pay, pT q(0)), and type-T cities pay more than non-tradable firms could."
+
+E <- v2020_bounds_base[['E']] / 100; X <- v2020_bounds_base[['X']] / 100
+d <- v2020_curve_data %>% filter(share_T >= 0.15, share_T <= 0.8) %>%
+  select(share_T, `wT: tradable firms in type-T cities` = wT, `wN: non-tradable firms` = wN,
+         `pT q(0): a lone tradable firm in a type-N city` = wTN) %>%
+  pivot_longer(-share_T)
+ggplot(d, aes(share_T, value, colour = name)) +
+  annotate('rect', xmin = E, xmax = X, ymin = -Inf, ymax = Inf, fill = cat_cols[1], alpha = 0.07) +
+  geom_line(linewidth = 0.9) +
+  annotate('text', x = E, y = 1.42, label = 'E', colour = ink_2, hjust = 1.4) +
+  annotate('text', x = X, y = 1.42, label = 'X', colour = ink_2, hjust = -0.6) +
+  scale_colour_manual(values = cat_cols[c(1, 2, 4)], name = NULL) +
+  scale_x_continuous(labels = scales::percent) + coord_cartesian(ylim = c(0.9, 1.45)) +
+  labs(x = 'Share of cities that are type-T', y = 'Nominal wage') +
+  guides(colour = guide_legend(ncol = 1)) + theme_note()
+```
+
+**Checks against the 2018 paper's statements** (`02_v2020_curves.R`). Five of the six hold. The exception is the statement that workers' utility relative to rents falls "throughout the equilibrium range". It holds from E up to `r num(as.numeric(sub('.*to ([0-9.]+)%.*', '\\1', v2020_curve_checks$note[6])), 1)`% of cities, then dips slightly before X. Workers' utility itself peaks inside the set, not at X.
+
+**Shocks** (`03_v2020_shocks.R`). These reproduce the 2020 paper's lists:
+
+- **Import competition.** Hit cities switch to non-tradables, and every non-tradable city loses wages, people and rent. Remaining tradable cities grow and the rent share rises. A shock large enough to pass E brings in new tradables, which returns the economy to E.
+- **An export boom in one sector.** It pushes old-sector cities into non-tradables once that sector's price is `r num(100 * (v2020_boom_summary$first_O_exit_at_pW[v2020_boom_summary$boom == 'new sector only'] - 1))`% higher. Beyond about +12%, the remaining old-sector cities convert to the new sector instead: the "Seattle" route the paper mentions.
+- **Fiscal contraction.** With the paper's financing (a surplus sent abroad), regime 2 starts at G = `r num(v2020_fiscal_regimes$cities_start_switching_at_G[v2020_fiscal_regimes$direction == 'contraction' & v2020_fiscal_regimes$financing == 'external'], 1)`. With a balanced budget, no city switches by G = −25. The two regimes depend on how the fiscal change is financed, which the paper doesn't specify.
+
+### Model B: the 2018 paper's two-sector model
+
+```{r}
+#| label: tbl-model-b
+#| tbl-cap: "Trade shock (pB/pA from 1 to 0.8), starting from S: rebuild against the paper"
+
+mb_compare %>% transmute(Source = source, `Type-A cities (%)` = num(MA_end, 1), `Type-B` = num(MB_end, 1), `Type-N` = num(MN_end, 1),
+                         `Rent, A` = paste0(num(rent_A_pct), '%'), `Rent, B` = paste0(num(rent_B_pct), '%'), `Rent, N` = paste0(num(rent_N_pct), '%'),
+                         `Total rent` = paste0(num(total_rent_pct, 1), '%'), `Real income` = paste0(num(real_income_pct, 1), '%')) %>% kable()
+```
+
+```{r}
+#| label: fig-lozenge
+#| fig-cap: "Model B: the equilibrium set (cells where no lone firm would gain by switching sector) before and after the trade shock, at the stated agglomeration slope (0.1) and at 0.3. The line is the path from S as pB/pA falls. With strong agglomeration the same city counts can have more than one solution for city sizes; each cell is solved from equal-sized cities."
+#| fig-height: 4.5
+
+lz <- mb_lozenge %>% mutate(inside = max_gap <= 1e-9) %>% filter(inside) %>%
+  mutate(when = ifelse(pB == 1, 'Before (pB/pA = 1)', 'After (pB/pA = 0.8)'), slope = paste('Agglomeration slope', slope))
+pth <- mb_paths %>% filter(start == 'S') %>% mutate(slope = paste('Agglomeration slope', slope))
+ggplot(lz, aes(MB, MA)) +
+  geom_tile(aes(fill = when), alpha = 0.45, width = 1, height = 1) +
+  geom_path(data = pth, colour = ink, linewidth = 0.7) +
+  geom_point(data = pth %>% group_by(slope) %>% slice(c(1, n())), colour = ink, size = 1.8) +
+  facet_wrap(~ slope) + coord_equal() +
+  scale_fill_manual(values = c('Before (pB/pA = 1)' = cat_cols[1], 'After (pB/pA = 0.8)' = cat_cols[2]),
+                    breaks = c('Before (pB/pA = 1)', 'After (pB/pA = 0.8)'), name = NULL) +
+  labs(x = 'Type-B cities (% of all)', y = 'Type-A cities (%)') + theme_note()
+```
+
+**Equilibrium set.** At the stated slope, 0.1, the set is a small diamond around S (a third of cities of each type). A slope of 0.3 reproduces the extent of the paper's Figures 4 and 5.
+
+**The shock path.**
+
+- **At slope 0.3** the path from S runs as the paper describes: horizontal, with type-B cities becoming type-N. The paper's rent changes are larger than the rebuild's.
+- **At slope 0.1** the B cities switch to *A* instead. New tradables replace lost ones because the agglomeration advantage is too small to lock them out.
+
+**One discrepancy I can't resolve.** The paper's mobility conditions (9) make w − r the same in every city type. On the exit-B boundary, that makes B and N cities identical in size and rent. The paper's Figure 6 shows them different.
+
+**What does match.** With coordination failure the skill premium rises less (`r num(mb_compare$skill_premium_end[mb_compare$source == 'rebuild, slope 0.3'], 2)`) than without (`r num(mb_no_cf$skill_premium[mb_no_cf$slope == 0.3], 2)`), as section 3.3 says.
+
+### Model C: Rice and Venables (2023)
+
+The demand elasticities in Table 1 follow exactly from equation (11). Table 1 itself is only partly reproduced:
+
+```{r}
+#| label: tbl-rv-table1
+#| tbl-cap: "Rice and Venables (2023) Table 1: place outcomes relative to the rest of the economy. Place i has a 50% productivity advantage in sector i; sector 1 is the most tradable, sector 9 the least."
+
+bind_rows(rv_table1_paper, rv_table1) %>% filter(variant %in% c('Reported in RV2023 Table 1', 'Central reading (alpha 0.25, eta 1)', 'Land elasticity 2')) %>%
+  transmute(Source = variant, Place = place, Wage = num(wage, 3), Rent = num(rent, 3), Employment = num(employment, 3),
+            `Own-sector share` = ifelse(is.na(own_sector_share), '', num(own_sector_share, 2)), `CV of sector employment` = num(cv_sector_emp, 2)) %>% kable()
+```
+
+**Which parts match.**
+
+- **Wages match closely**, under every reading of the parameters.
+- **Place 1's population and rent come out lower** at the stated parameters. A land elasticity of 2 matches the wages and place 1's population, but not the rest.
+- **The table's coefficient of variation looks wrong.** Its own footnote says half of place 1's workers are in sector 1, as in the rebuild. Any standard coefficient of variation across nine sectors is then above 1.2, not 0.39.
+
+**Comparative statics.** Equation (13) agrees with finite differences of the full model in sign and roughly in size: 0.20 against 0.18 for the most tradable sector, and −0.046 against −0.042 for the least.
+
+```{r}
+#| label: tbl-rv-table2
+#| tbl-cap: "Rice and Venables (2023) Table 2a: area wages regressed on sparsity bias, mean of 20 simulation runs"
+
+bind_rows(rv_table2a_paper %>% mutate(source = 'Paper'), rv_table2a %>% mutate(source = 'Rebuild')) %>%
+  transmute(Source = source, Case = case, `R², SD measure` = num(R2_SD, 2), `R², skewness measure` = num(R2_SK, 2),
+            `Wage range (points)` = num(wage_range_ppt, 1), `cor(t_s, SD_s)` = num(cor_t_SD, 3), `cor(t_s, SK_s)` = num(cor_t_SK, 3)) %>%
+  mutate(across(everything(), ~ ifelse(grepl('^\\s*NA\\s*$', .x), '', .x))) %>% kable()
+```
+
+**What the simulations show.** The wage range and the correlations between trade costs and sparsity match the paper. The R² for the skewness measure is lower on average. Run to run, it ranges from about 0 to 0.3, so the measure the paper uses on UK data is the noisier tradability proxy in its own model.
+
+## 3. Which ingredient each claim needs
+
+### Agglomeration does the work in the 2020 model
+
+```{r}
+#| label: fig-ablations
+#| fig-cap: "Model A: the range of equilibria (E to X, share of type-T cities) as ingredients are switched off or changed. A single point means one equilibrium: lost tradable cities are replaced at once."
+#| fig-height: 5
+
+d <- v2020_ablations %>% mutate(variant = fct_rev(fct_inorder(variant)))
+ggplot(d, aes(y = variant)) +
+  geom_segment(aes(x = E / 100, xend = X / 100, yend = variant), linewidth = 2.2, colour = cat_cols[1], lineend = 'round') +
+  geom_point(aes(x = E / 100), colour = cat_cols[1], size = 2) + geom_point(aes(x = X / 100), colour = cat_cols[1], size = 2) +
+  scale_x_continuous(labels = scales::percent) +
+  labs(x = 'Share of cities that are type-T in equilibrium', y = NULL) + theme_note()
+```
+
+```{r}
+#| label: tbl-ablation-claims
+#| tbl-cap: "Model A: which claims survive each change (import shock of 5 cities from X; real income at E against X)"
+
+v2020_ablations %>% left_join(v2020_ablation_claims, by = 'variant') %>%
+  transmute(Variant = variant, `Set width (points)` = num(width, 1), `Lost cities replaced (of 5)` = num(re_entered_of_5, 1),
+            `Type-N wage change` = paste0(num(wN_change_pct, 1), '%'), `Hit-city utility gap` = paste0(num(hit_city_u_gap_pct, 1), '%'),
+            `Real income, E vs X` = paste0(num(U_E_vs_X_pct, 2), '%')) %>% kable()
+```
+
+**What the ablations show.**
+
+- **No agglomeration.** The set collapses to one point, and the 5 lost cities are replaced by new tradables straight away. The left-behind story needs increasing returns.
+- **Immobile labour.** The set *narrows* to `r num(ab_immob$width, 1)` points: with fixed city sizes, tradable cities can't grow into strong clusters. A shock past it is partly replaced. But workers in hit cities end up `r num(-ab_immob$hit_city_u_gap_pct, 0)`% worse off in real terms. Mobility both deepens the lock-in and removes the real-income gap, so in the papers' world "left behind" is about places and landowners, not mobile people.
+- **Agglomeration that runs out** above the size of a city at X. This is the only case where fewer tradable cities lower aggregate real income (`r num(ab_sat$U_E_vs_X_pct, 2)`%), as V2020 claims. With the papers' linear agglomeration it goes the other way.
+- **Agglomeration in non-tradables too.** The set widens on both sides: there is lock-in in both directions.
+
+### The benchmarks
+
+```{r}
+#| label: fig-benchmarks
+#| fig-cap: "The Rice and Venables engine with switches (5 runs each, 300 places, 50 sectors). How a place's nominal wage and its workers' utility respond to Ricardian advantage in the most tradable third of sectors and in the least tradable third."
+#| fig-height: 5.5
+
+keep <- c('RV2023 as published (R3: Ricardian, trade costs vary, land, mobile labour)', 'Perfect mobility (vartheta = 1000)',
+          'No land (alpha ~ 0, gamma = 1)', 'No variation in tradability (every t_s = 2.5)',
+          'Immobile labour, land kept (R0-R2 plus land)', 'Immobile labour, no land (R0-R2: plain Ricardian)')
+d <- bm_rv_summary %>% filter(variant %in% keep) %>%
+  select(variant, wage_on_tradable_advantage, wage_on_nontradable_advantage, utility_on_tradable_advantage, utility_on_nontradable_advantage) %>%
+  pivot_longer(-variant) %>%
+  mutate(outcome = ifelse(grepl('^wage', name), 'Nominal wage', 'Utility (real)'),
+         advantage = ifelse(grepl('nontradable', name), 'Advantage in least tradable sectors', 'Advantage in most tradable sectors'),
+         variant = factor(str_wrap(variant, 34), levels = rev(str_wrap(keep, 34))))
+ggplot(d, aes(value, variant, colour = advantage)) +
+  geom_vline(xintercept = 0, colour = muted, linewidth = 0.3) + geom_point(size = 2.6) +
+  facet_wrap(~ outcome) + scale_colour_manual(values = cat_cols[1:2], name = NULL) +
+  scale_x_continuous(breaks = c(-0.4, 0, 0.4)) +
+  labs(x = 'Response to mean productivity advantage (log points)', y = NULL) +
+  guides(colour = guide_legend(ncol = 1)) + theme_note()
+```
+
+**What the benchmarks show.**
+
+- **The nominal-wage result (C9) needs two things.** Tradability has to vary across sectors: with equal trade costs both responses are about `r num(bm_flat$wage_on_tradable_advantage, 2)`. And labour has to be mobile: with immobile labour a non-tradable advantage no longer lowers wages (`r num(bm_nar$wage_on_nontradable_advantage, 2)`).
+- **Land isn't essential to the sign.** Without land, local non-traded goods prices and imperfect mobility do the same job.
+- **Real income responds equally to both kinds of advantage when labour is immobile.** With mobile labour, utility barely moves at all.
+
+**Dornbusch–Fischer–Samuelson** (`08_ricardian_benchmarks.R`). This covers Venables's experiments between two countries.
+
+- **Import competition** in the home country's best exports lowers its relative wage `r num(100 * (1 - dfs_i$omega), 1)`%. It also *raises* the share of non-traded goods from `r num(100 * dfs_b$nontraded_share)`% to `r num(100 * dfs_i$nontraded_share)`%.
+- **So the shift to non-tradables after import competition is already Ricardian.** What Ricardo doesn't give is the persistence: reverse the shock and DFS returns exactly to where it started.
+- **The Rice and Venables engine with mild agglomeration** behaves the same way: a sector cut by 20% in its main place comes back in full when the cut is reversed.
+- **Stronger agglomeration** (elasticity 0.04 or more) creates corners the solver can't handle. Lock-in is shown in Model A.
+
+## 4. The UK evidence
+
+```{r}
+#| label: tbl-uk
+#| tbl-cap: "UK replication of Rice and Venables (2023) section 4: area mean hourly earnings, 2015-2019, 2015 prices"
+
+uk_table4 %>% filter(measure == 'Sparsity bias (skewness, as paper)', model %in% c('Mean hourly earnings', 'Sector differential', 'Area differential')) %>%
+  left_join(uk_table4_paper %>% select(measure, sample, model, paper_coef = coef, paper_r2 = adj_r2), by = c('measure', 'sample', 'model')) %>%
+  transmute(Sample = sample, Outcome = model, Coefficient = num(coef, 2), t = num(t, 1), `R²` = num(adj_r2, 2),
+            `Paper coefficient` = num(paper_coef, 2), `Paper R²` = num(paper_r2, 2)) %>% kable()
+```
+
+**The replication matches the paper closely.**
+
+- **Correlations:** sparsity bias and area earnings correlate `r num(cor_of('cor(area sparsity bias, area earnings)'), 3)` (paper 0.86), and sector sparsity and sector earnings `r num(cor_of('cor(sector sparsity SK_s, sector mean earnings w_s)'), 2)` (paper 0.46).
+- **Variance:** sector mix explains `r num(100 * uk_variance$sector_share[1])`% of the variance in area earnings and the area differential `r num(100 * uk_variance$area_share[1])`% (paper 11% and 52%).
+- **Rankings:** the most and least sparse sectors, and the highest and lowest areas, are the paper's.
+- **The one difference:** sparsity bias is lower on average (mean `r num(mean(uk_areas$SB), 2)` against 0.96), but with a similar spread.
+- **Sample:** 251 sectors against the paper's 259.
+
+```{r}
+#| label: fig-uk
+#| fig-cap: "UK, 163 ITL3 areas: mean hourly earnings against sparsity bias (left) and against an export-share version built from the 2019 input-output tables (right)"
+#| fig-height: 4.5
+
+d <- uk_areas %>% select(area, london, w_i, `Sparsity bias (skewness, as Rice and Venables)` = SB, `Export-share bias (exports / output)` = TB_exports) %>%
+  pivot_longer(-c(area, london, w_i)) %>%
+  mutate(group = ifelse(london, 'London', 'Rest of GB'),
+         name = factor(name, levels = c('Sparsity bias (skewness, as Rice and Venables)', 'Export-share bias (exports / output)')))
+ggplot(d, aes(value, w_i)) +
+  geom_smooth(method = 'lm', se = FALSE, colour = muted, linewidth = 0.5) +
+  geom_point(aes(colour = group), size = 1.6, alpha = 0.8) +
+  facet_wrap(~ name, scales = 'free_x') + scale_colour_manual(values = cat_cols[c(2, 1)], name = NULL) +
+  labs(x = NULL, y = 'Mean gross hourly earnings (£, 2015 prices)') + theme_note()
+```
+
+**The tests the paper doesn't run** (step 8 of the plan):
+
+- **Measured tradability.** Exports as a share of output by product, from the 2019 input-output tables, correlate only `r num(cor_of("export share)"), 2)` with sector sparsity.
+    - An area's export-share bias explains less of earnings (R² `r num(uk_tb$adj_r2, 2)`).
+    - It adds nothing when entered with sparsity bias (coefficient `r num(horse_tb$coef, 2)`, t = `r num(horse_tb$t, 1)`).
+    - A caveat: exports measure trade with other countries. Rice and Venables's tradability also covers trade between GB places, which the input-output tables don't record. That gap is between the two versions of the argument.
+- **London.** Sector sparsity computed without London's areas correlates `r num(cor_of('cor(SK_s with London'), 2)` with the original, and R² falls from `r num(uk_w$adj_r2, 2)` to `r num(uk_nolon$adj_r2, 2)`. The result holds, but London's concentration of high-wage sectors carries a good part of it.
+- **Other measures.** The location-quotient and standard-deviation versions behave as in the paper's Appendix 3. The Krugman specialisation index adds a little.
+
+```{r}
+#| label: fig-sectors
+#| fig-cap: "UK sectors: sparsity (skewness of location across ITL3 areas) against the share of output exported. Labelled: a few of the most and least sparse sectors."
+#| fig-height: 4.5
+
+lab <- uk_sectors %>% filter(sic3 %in% c('061', '601', '652', '244', '471', '852', '641', '303'))
+ggplot(uk_sectors, aes(export_share, SK)) +
+  geom_point(colour = cat_cols[1], alpha = 0.6, size = 1.5) +
+  geom_point(data = lab, colour = cat_cols[2], size = 2) +
+  ggrepel::geom_text_repel(data = lab, aes(label = str_trunc(sector_name, 34)), size = 2.7, colour = ink_2,
+                           min.segment.length = 0, segment.colour = muted, box.padding = 0.4, seed = 1) +
+  scale_x_continuous(labels = scales::percent, expand = expansion(mult = c(0.02, 0.35))) +
+  labs(x = 'Exports as a share of output (2019 input-output tables)', y = 'Sector sparsity (skewness)') + theme_note()
+```
+
+So the UK result is real and robust. But it says high-wage places host geographically concentrated sectors. It doesn't show that tradability, as opposed to agglomeration, sorting or the location of head offices, is what links the two. The 1971–1991 test (C12) isn't rebuilt here.
+
+## 5. How far can costs fall? (C8)
+
+```{r}
+#| label: fig-leverage
+#| fig-cap: "The cost advantage of the cheapest UK areas (band: bottom-quartile ITL3 areas, labour share 50-90%, property share 5-10%) against the productivity premium an established cluster has over a lone entrant, for a range of agglomeration elasticities and cluster sizes. Dashed line: the premium in Venables's own calibration at E."
+#| fig-height: 4
+
+ggplot(lev_premium, aes(elasticity, cluster_premium_pct, colour = factor(cluster_size_ratio))) +
+  annotate('rect', xmin = -Inf, xmax = Inf, ymin = min(lev_cost_saving$unit_cost_saving_pct), ymax = max(lev_cost_saving$unit_cost_saving_pct),
+           fill = cat_cols[3], alpha = 0.18) +
+  geom_hline(yintercept = param_check$q_gap_at_Tmin_pct[2], linetype = 'dashed', colour = muted) +
+  annotate('text', x = 0.02, y = mean(range(lev_cost_saving$unit_cost_saving_pct)), label = 'Cost saving in the cheapest UK areas',
+           hjust = 0, vjust = 0.5, size = 3, colour = ink_2) +
+  annotate('text', x = 0.08, y = param_check$q_gap_at_Tmin_pct[2], label = 'Venables calibration, gap at E',
+           hjust = 1, vjust = -0.6, size = 3, colour = ink_2) +
+  geom_line(linewidth = 0.8) + geom_point(size = 2) +
+  scale_colour_manual(values = cat_cols[c(1, 2, 4)], name = 'Cluster size relative to entrant') +
+  labs(x = 'Agglomeration elasticity', y = 'Productivity premium / cost saving (%)') + theme_note()
+```
+
+**How much cheaper lagging places are.** Bottom-quartile areas pay `r num(-lev_uk_summary$bottom_quartile_mean_same_sector_gap_pct, 1)`% less than average for the same jobs: this is the area differential, with sector mix removed. With property costs added (using Rice and Venables's rent–earnings elasticity), a firm moving there cuts unit costs by `r num(min(lev_cost_saving$unit_cost_saving_pct), 1)`–`r num(max(lev_cost_saving$unit_cost_saving_pct), 1)`%.
+
+**Whether that's enough depends on the cluster.**
+
+- It's enough against premiums up to about 9%. That means an elasticity of 0.02 with a cluster up to 100 times the entrant's scale, or 0.04 with a cluster about 10 times its scale.
+- It isn't against large ones, nor against the `r num(pc_015$q_gap_at_Tmin_pct)`% gap in Venables's own calibration.
+- So "too small to have leverage" is a claim about how strong agglomeration is, not a general property of regions.
+
+**In Model A the lever isn't local land at all.** A lone tradable firm in a type-N city faces the national non-tradable wage, so local costs can't fall below it.
+
+## 6. The claims, one by one
+
+```{r}
+#| label: tbl-claims
+#| tbl-cap: "Every claim against both benchmarks. Narrow = labour immobile between trading units; broad = adds mobile labour and land within a country. Categories: a = already Ricardo; b = standard extension; c = needs increasing returns with coordination failure."
+
+claims %>% transmute(Claim = paste(id, claim), Versions = versions, Narrow = narrow, Broad = broad,
+                     `Needs increasing returns` = needs_IRS, Category = category, Evidence = evidence) %>% kable()
+```
+
+## 7. Still open
+
+- **C12 (the 1970s and 1980s).** This needs the Census of Employment county tables (1971, 1981, 1991) and New Earnings Survey Table 110. It's not rebuilt.
+- **Lock-in in the many-place model.** It needs a solver that can handle sectors vanishing from places. The current one converges only for weak agglomeration, where there is no lock-in.
+- **Model B's B and N rents.** This discrepancy with the paper's Figure 6 is unexplained.
+- **Table 1.** It's only partly reproduced. Local rather than national rent rebates might close the gap, but that variant doesn't converge yet.
+- **Trade between GB places by sector.** Measures that capture it (for example from ONS subnational trade estimates) would test Rice and Venables's version of tradability directly, rather than through exports.
+- **Published versions.** Check them for the agglomeration typos and the other items in plan section 2.4.
+
+*All code is in `code/tradeable_jobs/`. `00_run_all.R` rebuilds everything from downloads to this page.*

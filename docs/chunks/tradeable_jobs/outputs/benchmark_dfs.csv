@@ -1,0 +1,7 @@
+case,omega,home_export_share,nontraded_share,foreign_export_share,home_real_wage,foreign_real_wage
+Baseline,1,0.35125,0.2975,0.35125,1.0969415582595414,1.0969415582595454
+Import competition: Foreign 40% more productive in Home's top 20% of exports,0.920552104746668,0.2725,0.4315,0.296,1.0679427486703355,1.1472621156183538
+"Shock reversed (static model, unique equilibrium: back to baseline)",1,0.35125,0.2975,0.35125,1.0969415582595414,1.0969415582595454
+Boom: Home 30% more productive in 10% of goods,1,0.35125,0.2975,0.35125,1.1367728334408536,1.1367728334408558
+Transfer abroad of 10% of Home income (fiscal contraction analogue),0.9823269811927025,0.363,0.29775,0.33925,1.0902084801924004,1.10395017169241
+No trade costs (no non-traded goods),1,0.5,0,0.5,1.2062302494209807,1.2062302494209807
