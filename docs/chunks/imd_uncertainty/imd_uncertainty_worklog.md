@@ -8,9 +8,11 @@ The plan and its status table are in [llm_output/imd_uncertainty_review_and_plan
 
 All of the work so far happened in one Claude Code session.
 
-- **Conversation:** CONVERSATION_LINK_PENDING (export not yet run).
+- **Conversation:** [llm_convos/2026-11-10_0213_Start_a_research_md_for_a.md](../../../llm_convos/2026-11-10_0213_Start_a_research_md_for_a.md), exported with `scripts/export_all_convos.py`. The scan rated it clean, but it stays unpublished until it is uncommented in `llm_convos/.gitignore`, so the link only works locally until then.
 - **Models:** Claude Opus 5.5 for the research note, the first report and the second round. Claude Fable 5.2 for the review in between.
-- **Commits:** the first report was committed as "IMD uncertainty draft 1" (e967d76). Everything from the review onwards is uncommitted at the time of writing.
+- **Commits:**
+  - "IMD uncertainty draft 1" (e967d76): the research note, the first report and scripts `01` to `07`.
+  - "IMD uncertainty draft 2" (db0de2b): the review, round 2 and this log, before its conversation link was added.
 
 ### What was asked, in order
 
