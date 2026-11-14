@@ -27,7 +27,7 @@
 mf_spec <- function(N, S, a, t_s, gL, gT, G, gC = rep(0, S), gM = rep(0, S), sigma = 10, eta = 1, alpha = 0.25,
                     beta0 = 0.1875, beta_s = NULL, vartheta = 50, mobility = c('frechet', 'immobile'),
                     rent = c('national', 'local'), L = N, L_i = NULL, kappa = 0, exports = TRUE, sectors = NULL,
-                    phi = rep(1, S), q_fixed = NULL, eps_c = 1, eps_i = 1, sigma_x = NULL, P_ref = NULL) {
+                    phi = rep(1, S), q_fixed = NULL, eps_c = 1, eps_i = 1, sigma_x = NULL, P_ref = NULL, sigma_s = NULL) {
   mobility <- match.arg(mobility); rent <- match.arg(rent)
   if (is.null(beta_s)) beta_s <- rep((1 - alpha - beta0) / S, S)
   G <- as.matrix(G)
@@ -35,7 +35,8 @@ mf_spec <- function(N, S, a, t_s, gL, gT, G, gC = rep(0, S), gM = rep(0, S), sig
             abs(alpha + beta0 + sum(beta_s) - 1) < 1e-9,
             max(abs(gL + gT + colSums(G) + gC + gM - 1)) < 1e-9, all(colSums(G) < 1))
   if (mobility == 'immobile' && is.null(L_i)) L_i <- rep(L / N, N)
-  list(N = N, S = S, a = a, t_s = t_s, tau = t_s^(1 - sigma), gL = gL, gT = gT, G = G, gC = gC, gM = gM,
+  if (is.null(sigma_s)) sigma_s <- rep(sigma, S)
+  list(N = N, S = S, a = a, t_s = t_s, tau = t_s^(1 - sigma_s), sigma_s = sigma_s, gL = gL, gT = gT, G = G, gC = gC, gM = gM,
        sigma = sigma, eta = eta, alpha = alpha, beta0 = beta0, beta_s = beta_s, vartheta = vartheta,
        mobility = mobility, rent = rent, L = L, L_i = L_i, kappa = kappa, exports = exports, sectors = sectors, phi = phi,
        q_fixed = q_fixed, eps_c = eps_c, eps_i = eps_i, sigma_x = if (is.null(sigma_x)) sigma else sigma_x,
@@ -46,7 +47,8 @@ mf_spec <- function(N, S, a, t_s, gL, gT, G, gC = rep(0, S), gM = rep(0, S), sig
 # price indices of its inputs); spending and revenues solve theirs (each sector's sales depend on other
 # sectors' purchases); then rents, incomes and labour supply move by damped passes, as in rv_evaluate().
 mf_evaluate <- function(w, state, sp, passes = 8) {
-  N <- sp$N; S <- sp$S; sig <- sp$sigma
+  N <- sp$N; S <- sp$S
+  sig <- matrix(sp$sigma_s, N, S, byrow = TRUE)           # elasticity of substitution between places, by sector
   tau_m <- matrix(sp$tau, N, S, byrow = TRUE); beta_m <- matrix(sp$beta_s, N, S, byrow = TRUE)
   gL_m <- matrix(sp$gL, N, S, byrow = TRUE); gT_m <- matrix(sp$gT, N, S, byrow = TRUE)
   phi_m <- matrix(sp$phi, N, S, byrow = TRUE)
@@ -125,7 +127,7 @@ mf_evaluate <- function(w, state, sp, passes = 8) {
 
 mf_solve <- function(sp, start = NULL, damp = 0.7, tol = 1e-8, max_iter = 4000, verbose = FALSE) {
   N <- sp$N; S <- sp$S
-  E_s <- rv_elasticity(sp$t_s, sp$sigma, N)$E
+  E_s <- rv_elasticity(sp$t_s, sp$sigma_s, N)$E
   el_m <- matrix(1 + sp$gL * (E_s - 1), N, S, byrow = TRUE)
   w <- if (is.null(start)) matrix(1, N, S) else start$w
   state <- if (is.null(start)) {
@@ -221,12 +223,20 @@ mf_calibrate <- function(groups, coefs, theta_land = 1, t_trade = 1.3, t_b2b = 1
 
 # A spec from a calibration, N places and productivities a (N x S). supply_chains = FALSE moves the domestic
 # input shares into fixed-price inputs: the same cost shares, but no links between sectors at home.
-mf_from_cal <- function(cal, a, supply_chains = TRUE, ...) {
+mf_from_cal <- function(cal, a, supply_chains = TRUE, sigma_local = NULL, sigma = 10, ...) {
   S <- length(cal$sectors)
   G <- if (supply_chains) cal$G else matrix(0, S, S)
   gM <- if (supply_chains) cal$gM else cal$gM + colSums(cal$G)
-  mf_spec(nrow(a), S, a, cal$t_s, gL = cal$gL, gT = cal$gT, G = G, gC = cal$gC, gM = gM, alpha = cal$alpha,
-          beta0 = cal$beta0, beta_s = cal$beta_s, sectors = cal$sectors, ...)
+  # sigma_local: a lower elasticity between places for the local services (households 50%+ of sales, exports
+  # under 20%), with their trade costs moved so that tau, and so the share bought from other places, is unchanged
+  sigma_s <- rep(sigma, S); t_s <- cal$t_s
+  if (!is.null(sigma_local)) {
+    loc <- cal$household_share >= 0.5 & cal$export_share < 0.2
+    sigma_s[loc] <- sigma_local
+    t_s[loc] <- cal$t_s[loc]^((1 - sigma) / (1 - sigma_local))
+  }
+  mf_spec(nrow(a), S, a, t_s, gL = cal$gL, gT = cal$gT, G = G, gC = cal$gC, gM = gM, alpha = cal$alpha,
+          beta0 = cal$beta0, beta_s = cal$beta_s, sectors = cal$sectors, sigma = sigma, sigma_s = sigma_s, ...)
 }
 
 # Rest-of-world demand scales phi_s, so that in a run with equal productivity everywhere each sector's share
@@ -248,14 +258,14 @@ mf_calibrate_exports <- function(cal, N, iters = 30, tol = 1e-6, ...) {
 # Export scales, reference prices and foreign demand for a demand setting. The CES weights are set at the
 # price indices of a run with equal productivity everywhere, which depend a little on the weights, so it
 # iterates. Returns phi, P_ref and q0 (the foreign-demand level held fixed in experiments).
-mf_calibrate_demand <- function(cal, N, eps_c = 1, eps_i = 1, sigma_x = NULL, rounds = 3) {
+mf_calibrate_demand <- function(cal, N, eps_c = 1, eps_i = 1, sigma_x = NULL, rounds = 3, sigma_local = NULL) {
   Pref <- NULL
   for (k in seq_len(if (eps_c == 1 && eps_i == 1) 1 else rounds)) {
-    ce <- mf_calibrate_exports(cal, N, eps_c = eps_c, eps_i = eps_i, sigma_x = sigma_x, P_ref = Pref)
+    ce <- mf_calibrate_exports(cal, N, eps_c = eps_c, eps_i = eps_i, sigma_x = sigma_x, P_ref = Pref, sigma_local = sigma_local)
     Pref <- exp(colMeans(log(ce$solution$P)))
   }
   list(phi = ce$phi, P_ref = Pref, q0 = ce$solution$q, eps_c = eps_c, eps_i = eps_i, sigma_x = sigma_x,
-       max_log_gap = ce$max_log_gap)
+       sigma_local = sigma_local, max_log_gap = ce$max_log_gap)
 }
 
 # One draw of place-by-sector productivity, one mobility setting, supply chains on or off: the baseline and
@@ -273,7 +283,8 @@ mf_run_draw <- function(cal, dem, seed, mob, chains = TRUE, N = 12, shock = 0.05
   local_g <- cal$sectors %in% c('retail', 'hospitality', 'arts_personal')
   frontier <- cal$limit == 'Tradable frontier'
   mk <- function(a, ...) mf_from_cal(cal, a, supply_chains = chains, phi = dem$phi, mobility = mob, q_fixed = dem$q0,
-                                     eps_c = dem$eps_c, eps_i = dem$eps_i, sigma_x = dem$sigma_x, P_ref = dem$P_ref, ...)
+                                     eps_c = dem$eps_c, eps_i = dem$eps_i, sigma_x = dem$sigma_x, P_ref = dem$P_ref,
+                                     sigma_local = dem$sigma_local, kappa = if (is.null(dem$kappa)) 0 else dem$kappa, ...)
   sp0 <- mk(a0); s0 <- mf_solve(sp0); o0 <- mf_outcomes(s0, sp0)
   wel <- function(o) if (mob == 'frechet') o$national$welfare else o$national$welfare_immobile
   lag <- which.min(o0$places$u)
@@ -333,7 +344,8 @@ mf_run_draw <- function(cal, dem, seed, mob, chains = TRUE, N = 12, shock = 0.05
     }
     cal7 <- cal; cal7$t_s[local_g] <- 1.7
     sp7 <- mf_from_cal(cal7, a0, phi = dem$phi, mobility = mob, q_fixed = dem$q0, eps_c = dem$eps_c, eps_i = dem$eps_i,
-                       sigma_x = dem$sigma_x, P_ref = dem$P_ref)
+                       sigma_x = dem$sigma_x, P_ref = dem$P_ref, sigma_local = dem$sigma_local,
+                       kappa = if (is.null(dem$kappa)) 0 else dem$kappa)
     rows[[length(rows) + 1]] <- res(sp7, mf_solve(sp7, start = s0), 'P7 lower trade costs for local services (t 2.0 to 1.7)')
     sp9 <- mk(a0, eta = 3); s9 <- mf_solve(sp9, start = s0)
     rows[[length(rows) + 1]] <- res(sp9, s9, 'P9 more elastic land (eta 1 to 3)')

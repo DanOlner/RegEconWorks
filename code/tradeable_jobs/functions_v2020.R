@@ -16,16 +16,19 @@
 #   (5) mobility              w_k - b P L_k = v for every type (perfect mobility only)
 # Utility u_k = (w_k - b P L_k - Tax / L) / P; real rent per city R_k = b L_k^2 / 2 (linear city).
 #
+# Round 2 (T7): a tradable type can buy input_N units of the non-tradable per unit of output, from the
+# national market at pN. Its wage is then (p_k - input_N pN) q_k(L), and the purchases add to (3)'s demand.
+#
 # Equilibrium needs, beyond (2)-(5), that no single small firm gains by starting another sector in a
 # city of another type: p_j q_j(0) <= w_k for every type k and sector j != k (Venables 2018 eq. 12 in
 # one-factor form). cm_entry_gaps() reports p_j q_j(0) - w_k; a positive gap is a profitable deviation.
 
-cm_type <- function(kind = c('T', 'N'), p = 1, slope = if (kind[1] == 'T') 0.15 else 0, q = NULL, theta_k = NA) {
+cm_type <- function(kind = c('T', 'N'), p = 1, slope = if (kind[1] == 'T') 0.15 else 0, q = NULL, theta_k = NA, input_N = 0) {
   kind <- match.arg(kind)
   linear <- is.null(q)
   if (linear) q <- local({ s <- slope; function(L) 1 + s * L })
   list(kind = kind, p = if (kind == 'N') NA_real_ else p, slope = if (linear) slope else NA_real_,
-       q = q, linear = linear, theta_k = theta_k)
+       q = q, linear = linear, theta_k = theta_k, input_N = if (kind == 'N') 0 else input_N)
 }
 
 cm_spec <- function(L = 100, M = 100, theta = 0.5, b = 0.3, G = 0,
@@ -50,7 +53,9 @@ cm_sizes <- function(pN, counts, spec) {
   P <- cm_price_index(pN, spec)
   active <- names(counts)[counts > 0]
   ty <- spec$types[active]
-  p  <- vapply(ty, function(t) if (t$kind == 'N') pN else t$p, numeric(1))
+  # a tradable buying input_N units of the non-tradable per unit of output earns p - input_N pN per unit (round 2, T7)
+  p  <- vapply(ty, function(t) if (t$kind == 'N') pN else t$p - t$input_N * pN, numeric(1))
+  if (any(p <= 0)) return(NULL)
   if (spec$mobility == 'immobile') {
     Lk <- setNames(rep(spec$L / spec$M, length(active)), active)
     return(list(P = P, L = Lk, p = p, v = NA_real_))
@@ -91,7 +96,10 @@ cm_excess_N <- function(pN, counts, spec) {
   Gn <- spec$G * s$P
   tax <- if (spec$financing == 'balanced') Gn else 0
   isN <- vapply(spec$types[active], function(t) t$kind == 'N', logical(1))
-  sum((m * s$L * w)[isN]) - (spec$theta * (Y - tax) + Gn)
+  # tradables' purchases of the non-tradable as an input (zero unless input_N > 0)
+  inter <- sum(vapply(active, function(k) { t <- spec$types[[k]]
+    if (t$kind == 'N' || t$input_N == 0) 0 else m[[k]] * s$L[[k]] * t$input_N * pN * t$q(s$L[[k]]) }, numeric(1)))
+  sum((m * s$L * w)[isN]) - (spec$theta * (Y - tax) + Gn + inter)
 }
 
 # Solve for given counts (named, matching names(spec$types), summing to M). Returns NULL if no solution
@@ -132,8 +140,8 @@ cm_solve <- function(counts, spec, pN_grid = exp(seq(log(0.05), log(20), length.
 # Gains to a lone firm starting sector j in a city of type k: p_j q_j(0) - w_k (positive = deviation pays)
 cm_entry_gaps <- function(sol, spec) {
   sectors <- names(spec$types)
-  price0 <- vapply(sectors, function(j) (if (spec$types[[j]]$kind == 'N') sol$pN else spec$types[[j]]$p) *
-                     spec$types[[j]]$q(0), numeric(1))
+  price0 <- vapply(sectors, function(j) (if (spec$types[[j]]$kind == 'N') sol$pN else
+                     spec$types[[j]]$p - spec$types[[j]]$input_N * sol$pN) * spec$types[[j]]$q(0), numeric(1))
   expand_grid(city = sol$cities$type, sector = sectors) %>%
     filter(city != sector) %>%
     mutate(gap = unname(price0[sector]) - sol$cities$w[match(city, sol$cities$type)])
@@ -200,7 +208,8 @@ cm_curves <- function(spec, MT = seq(10, 90, by = 0.5)) {
     s <- cm_solve(c(T = m, N = spec$M - m), spec)
     if (is.null(s)) return(NULL)
     cT <- s$cities[s$cities$type == 'T', ]; cN <- s$cities[s$cities$type == 'N', ]
-    tibble(MT = m, share_T = m / spec$M, wT = cT$w, wN = cN$w, wTN = spec$types$T$p * spec$types$T$q(0),
+    tibble(MT = m, share_T = m / spec$M, wT = cT$w, wN = cN$w,
+           wTN = (spec$types$T$p - spec$types$T$input_N * s$pN) * spec$types$T$q(0),
            LT = cT$L, LN = cN$L, RT = cT$R, RN = cN$R, u = cN$u, P = s$P,
            U = s$totals$U, rent_per_worker = s$totals$rent_real / spec$L, rent_share = s$totals$rent_share)
   }))

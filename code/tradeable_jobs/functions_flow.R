@@ -293,7 +293,18 @@ fm_check_identities <- function(t, econ, res, money, tol = 1e-6) {
 }
 
 # RUN (run.ts) ----
-fm_run <- function(base, scenario = NULL, periods = 40) {
+# Extensions (not in the TypeScript; off by default, when the run is the original model):
+#   export_elasticity  export quantities respond to their price against the base year:
+#                      q_j = q_j(params) (p_j / p_j,0)^-elasticity
+#   wage_curve         wages respond to last period's unemployment where the producer is, as a wage curve:
+#                      target factor f* = (max(u_place, u_floor) / u_place,0)^-wage_curve  (Blanchflower-Oswald ~0.1),
+#                      and wages move part of the way there each period, f_t = f_{t-1}^(1 - wage_speed) f*^wage_speed,
+#                      w_j = w_j(params) f_t. Without the partial adjustment, a tight economy cycles (a cobweb:
+#                      high wages cut price-elastic exports, which cuts jobs, which cuts wages, and so on).
+fm_ext_default <- list(export_elasticity = 0, wage_curve = 0, u_floor = 0.005, wage_speed = 0.3)
+
+fm_run <- function(base, scenario = NULL, periods = 40, ext = fm_ext_default) {
+  ext <- modifyList(fm_ext_default, ext)
   econ0 <- fm_compile(base); np <- length(econ0$places)
   r0 <- fm_period(econ0, fm_prices(econ0), 'base', rep(0, np), NULL)
   hhp <- base$households
@@ -302,20 +313,32 @@ fm_run <- function(base, scenario = NULL, periods = 40) {
   fm_check_identities(0, econ0, r0, money0)
   records <- list(list(t = 0, econ = econ0, result = r0, money = money0))
   base_comm <- r0$commuting; base_q <- r0$households$quantities
+  p_ref <- r0$prices; u_ref <- r0$households$unemployed / r0$households$labour_force
+  wf <- rep(1, np)                                         # the wage curve's factor by place
   params <- base; econ <- econ0; in_force <- 0
   for (t in seq_len(periods)) {
     cnt <- fm_changes_in_force(scenario, t)
     if (cnt != in_force) { params <- fm_params_at(base, scenario, t); econ <- fm_compile(params); in_force <- cnt }
     prev <- records[[t]]
     comm <- if (!is.null(params$commuting$override)) do.call(rbind, lapply(params$commuting$override, unlist)) else base_comm
-    res <- fm_period(econ, fm_prices(econ, prev$result$prices), 'normal', prev$money$households, comm,
+    econ_t <- econ
+    if (ext$wage_curve != 0) {
+      u_prev <- prev$result$households$unemployed / prev$result$households$labour_force
+      f_target <- (pmax(u_prev, ext$u_floor) / u_ref)^(-ext$wage_curve)
+      wf <- wf^(1 - ext$wage_speed) * f_target^ext$wage_speed
+      dom <- seq_len(econ$nd)
+      econ_t$wage_per_job[dom] <- econ$wage_per_job[dom] * wf[econ$place_of[dom]]
+    }
+    p_t <- fm_prices(econ_t, prev$result$prices)
+    if (ext$export_elasticity != 0) econ_t$export_q <- econ$export_q * (p_t / p_ref)^(-ext$export_elasticity)
+    res <- fm_period(econ_t, p_t, 'normal', prev$money$households, comm,
                      frozen = if (isTRUE(params$households$freezeConsumption)) base_q else NULL,
                      start = list(output = prev$result$producers$output, di = prev$result$households$disposable_income))
     money <- list(households = prev$money$households + res$households$saving, firms = prev$money$firms + res$firms$retained,
                   government = prev$money$government + res$government$balance,
                   rest_of_world = prev$money$rest_of_world + res$rest_of_world$balance)
     fm_check_identities(t, econ, res, money)
-    records[[t + 1]] <- list(t = t, econ = econ, result = res, money = money)
+    records[[t + 1]] <- list(t = t, econ = econ_t, result = res, money = money)
   }
   records
 }

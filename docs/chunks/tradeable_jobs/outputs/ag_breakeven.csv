@@ -1,0 +1,31 @@
+kappa,experiment,mobility,d_welfare,gain_per_point,breakeven
+0,P1 frontier push: +10% in the top 2 places of each frontier group,frechet,0.024044606707353127,1.7515877664895678,1
+0,P1 frontier push: +10% in the top 2 places of each frontier group,immobile,0.022920119062416273,1.80269235777427,1
+0,"P2 long tail: places below the median close half the gap, every group",frechet,0.02649968732928909,1.3642572038007479,0.7805770762235985
+0,"P2 long tail: places below the median close half the gap, every group",immobile,0.027560343608443283,1.3227640562084655,0.7368707449602203
+0,P3 upstream: +5% in the business-to-business groups,frechet,0.02564210547145307,1.594434179452982,0.911608277588613
+0,P3 upstream: +5% in the business-to-business groups,immobile,0.025659330317690226,1.6037597012953542,0.8922374701754654
+0,"P4 local services: +5% in retail, hospitality, personal",frechet,0.01075526565402396,1.1135239889042383,0.6365662401495975
+0,"P4 local services: +5% in retail, hospitality, personal",immobile,0.010734983828935007,1.107303037499243,0.6158873698338608
+0,"P4 with P9: local services +5%, land eta 3",frechet,0.011042610951830087,NA,NA
+0,"P4 with P9: local services +5%, land eta 3",immobile,0.010999509246342817,NA,NA
+0.02,P1 frontier push: +10% in the top 2 places of each frontier group,frechet,0.025462597500881534,1.7647528686279548,1
+0.02,P1 frontier push: +10% in the top 2 places of each frontier group,immobile,0.024159484649975454,1.8133061765302658,1
+0.02,"P2 long tail: places below the median close half the gap, every group",frechet,0.02480379046669075,1.3287905615491085,0.7546337075661169
+0.02,"P2 long tail: places below the median close half the gap, every group",immobile,0.025885199121082076,1.289647629567389,0.7141313936873627
+0.02,P3 upstream: +5% in the business-to-business groups,frechet,0.025511966470837644,1.5932276933547758,0.9042025766027593
+0.02,P3 upstream: +5% in the business-to-business groups,immobile,0.025531722987366612,1.6031803908655282,0.8866998593152392
+0.02,"P4 local services: +5% in retail, hospitality, personal",frechet,0.010813904044944497,1.1123735438064846,0.6312020435567762
+0.02,"P4 local services: +5% in retail, hospitality, personal",immobile,0.010790398177673577,1.1060206276187463,0.6115453819513474
+0.02,"P4 with P9: local services +5%, land eta 3",frechet,0.011105841767587851,NA,NA
+0.02,"P4 with P9: local services +5%, land eta 3",immobile,0.011055752711719288,NA,NA
+0.03,P1 frontier push: +10% in the top 2 places of each frontier group,frechet,0.026239119104133124,1.7704846008935395,1
+0.03,P1 frontier push: +10% in the top 2 places of each frontier group,immobile,0.02483601545720356,1.8180049651289119,1
+0.03,"P2 long tail: places below the median close half the gap, every group",frechet,0.0239932696646612,1.3105267056132224,0.7418577658476452
+0.03,"P2 long tail: places below the median close half the gap, every group",immobile,0.025080341908956954,1.2724933264705884,0.702763664167523
+0.03,P3 upstream: +5% in the business-to-business groups,frechet,0.025434301876032867,1.5924238168589087,0.9008703453689725
+0.03,P3 upstream: +5% in the business-to-business groups,immobile,0.025455239254616308,1.602682123780602,0.8841450357258489
+0.03,"P4 local services: +5% in retail, hospitality, personal",frechet,0.010847937361291896,1.1117042498508611,0.6288036655107659
+0.03,"P4 local services: +5% in retail, hospitality, personal",immobile,0.010822737247582684,1.105278424235259,0.6095452164582155
+0.03,"P4 with P9: local services +5%, land eta 3",frechet,0.011142479864071131,NA,NA
+0.03,"P4 with P9: local services +5%, land eta 3",immobile,0.011088574650038208,NA,NA

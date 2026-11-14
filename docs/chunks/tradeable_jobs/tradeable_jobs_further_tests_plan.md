@@ -393,7 +393,7 @@ Run T1's Model F against the round 1 claims, to see which change once sectors ar
 
 Then add supply chains to Model A (Venables's cities). Tradables buy a share of their inputs from the local or national non-tradable sector, and the test is whether that changes the lock-in edge E.
 
-**Done in Model F (14 November 2026)**, except Model A with supply chains.
+**Done in Model F (14 November 2026).** Model A with supply chains followed the same day (see the log).
 
 - **C9 holds with supply chains.** A local-services gain lowers the lagging place's nominal wage (retail −0.34%) while its real income rises.
 - **C8's lever fails.** Better local inputs raise the place's tradables' unit costs slightly (+0.02% to +0.44%), because wages and rents rise more than input prices fall.
@@ -666,8 +666,23 @@ All of these are physical productivity changes (W8). The policy cost of a percen
     - Productivity gains with demand unchanged cost jobs and GDP.
     - Everyday-services productivity still raises real income through prices (the town keeps 99%). Exporters' productivity loses income, because the model's exports are fixed quantities.
     - Slack and base barely differ: wages and prices don't respond to unemployment, so the flow model is the demand-constrained case and Model F the full-employment one.
+- **After the second commit (same day):**
+    - **The flow model got two optional extensions** (both off for the port's check, which still matches):
+        - export quantities that respond to price (elasticity 2);
+        - a wage curve on local unemployment (elasticity 0.1), with partial adjustment of 30% a period. Without it, a tight economy cycles (a cobweb).
+    - **With them, T9 has a tight economy** (exports +20%, unemployment about 0.9%):
+        - Town-only procurement then gives the town 130% of the national real gain. That is crowding-out of other places, C13 appearing only when labour is tight.
+        - The town's everyday-services productivity no longer pays the town: freed workers push local wages down.
+        - Business-service productivity pays (+0.55% to +0.70%) once exports respond to price.
+    - **Model F's local services got an elasticity of 3 between places** (`24_modelF_local_sigma.R`), with trade costs moved to keep their cross-place share.
+        - The section 16 quirk goes: retail jobs −1.6% when the lagging place alone improves, not +11.6%. With people immobile the place keeps 75–95% of the gain.
+        - National results and break-even ratios barely change (long tail 0.78, upstream 0.91, local services 0.64).
+    - **Model F with agglomeration** 0.02 and 0.03 (`26_modelF_agglomeration.R`; section 16). It solves, and tilts the break-even ratios slightly towards the frontier push (long tail 0.78 → 0.74, upstream 0.91 → 0.90, local services 0.64 → 0.63). Local shares are unchanged.
+    - **Model A with supply chains** (`25_modelA_supply_chains.R`; section 11 of the report). Tradables buy γ of the non-tradable per unit of output.
+        - E falls from 28.9% to 22.2% of cities, and X from 50% to 37.2%, as γ goes from 0 to 0.3.
+        - Raising non-tradable productivity 10% widens the range at both ends (E lower, X higher) and raises real income about 7%. It is not an escape from lock-in, matching Model F's verdict on C8.
+        - Round 1's Model A results are unchanged.
 - **Not done:**
-    - the flow model's lenses beyond the standard rows, its calibration routine, and price-elastic exports or responsive wages;
-    - Model A with supply chains;
-    - agglomeration in Model F, and a lower elasticity between places for local services;
+    - the flow model's lenses beyond the standard rows, and its calibration routine;
+    - agglomeration strong enough for multiple equilibria in Model F;
     - the household round of T5.

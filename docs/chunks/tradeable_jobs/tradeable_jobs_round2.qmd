@@ -138,7 +138,10 @@ ratio <- gm %>% mutate(r = domar / va_share) %>% arrange(desc(r))
     - local procurement keeps about three-quarters of its gain in the place that does it;
     - productivity gains with demand unchanged cost jobs and measured GDP;
     - productivity in local services still raises real income there, through lower prices, while the official lens shows a fall.
-- **What isn't done (section 18):** agglomeration in Model F, the flow model's lenses and a tight-economy version of it, and regional coefficients.
+- **With wages that respond to unemployment and price-elastic exports (section 17),** the flow model can be tight. A place's own procurement then crowds out other places (it gets 130% of the national gain), and its everyday-services productivity no longer pays it.
+- **In Venables's city model (section 11),** supply chains shift the equilibrium range towards fewer tradable cities. Cheaper non-tradable inputs raise real income but are no escape from lock-in.
+- **Weak agglomeration in Model F (section 16)** tilts the comparison slightly towards the frontier push and leaves local shares unchanged.
+- **What isn't done (section 18):** strong agglomeration, the flow model's lenses, and regional coefficients.
 
 ## 1. What was done
 
@@ -592,7 +595,26 @@ ggplot(d, aes(lag_gain_share, group_name)) +
 - **Land.** About half to two-thirds of the national income gain goes to the local fixed factor: `r pct(median(e1m$land_share[e1m$supply_chains]))` for the median group, and `r pct(quantile(e1m$land_share[e1m$supply_chains], 0.25))`–`r pct(quantile(e1m$land_share[e1m$supply_chains], 0.75))` for the middle half of groups.
     - That factor stands for all non-labour income here, not just land, so this is the non-labour share of the gain.
     - It doesn't differ much between tradable and non-tradable groups.
-- **Not done in Model F:** agglomeration (round 1's solver needed small values), and adding supply chains to Venables's city model (Model A).
+**Supply chains in Venables's city model (T7, Model A).**
+
+```{r}
+#| label: ma-setup
+source('code/tradeable_jobs/25_modelA_supply_chains.R')
+mag <- function(g, q, col) ma[[col]][abs(ma$gamma - g) < 1e-9 & abs(ma$qN - q) < 1e-9]
+```
+
+- **The change.** Tradable cities now buy γ units of the non-tradable per unit of output, from its national market. Their wage is what is left of the world price after paying for those inputs.
+- **Supply chains shift the equilibrium range towards fewer tradable cities, and narrow it.** As γ rises from 0 to 0.3:
+    - the lock-in edge E (the fewest tradable cities an equilibrium can have) falls from `r pct(mag(0, 1, 'E'), 1)` to `r pct(mag(0.3, 1, 'E'), 1)` of cities;
+    - X falls from `r pct(mag(0, 1, 'X'), 1)` to `r pct(mag(0.3, 1, 'X'), 1)`.
+
+    Tradables' own purchases need more non-tradable cities.
+- **Better non-tradable inputs are no escape from lock-in.**
+    - With γ = 0.2, raising non-tradable productivity 10% moves E from `r pct(mag(0.2, 1, 'E'), 1)` to `r pct(mag(0.2, 1.1, 'E'), 1)` and X from `r pct(mag(0.2, 1, 'X'), 1)` to `r pct(mag(0.2, 1.1, 'X'), 1)`.
+    - The range widens at both ends, so an economy can stay stuck with even fewer tradable cities than before.
+    - Real income per worker still rises everywhere, by `r pct(mag(0.2, 1.1, 'U_mid') / mag(0.2, 1, 'U_mid') - 1, 1)`.
+    - This is the same answer Model F gives to C8: cheaper non-tradable inputs raise living standards but don't pull lagging places into tradables.
+- **Round 1's Model A results are unchanged** with the new code (E = 28.9% and X = 50% without supply chains).
 
 <!-- MODEL F SECTIONS END -->
 
@@ -807,7 +829,36 @@ be %>% filter(mobility == 'frechet', !grepl('^P1', experiment)) %>%
 - **A caveat this exposes.**
     - When only the lagging place improves its local services, it gains jobs in them (retail `r pct(e2c_g('retail', 'immobile', 'lag_d_group_jobs'), 1)` with people immobile), and can keep more than the whole national gain.
     - It draws customers from the other places. Rice and Venables's elasticity between places (10) applies to local services too, so even a small cross-border share is very price-sensitive.
-    - That is probably too strong for hairdressers and cafés. A lower elasticity between places for local services is the next refinement.
+    - That is probably too strong for hairdressers and cafés.
+
+```{r}
+#| label: ls-setup
+source('code/tradeable_jobs/24_modelF_local_sigma.R')
+lsg <- function(grp, mob, col, v = 'services 3') ls_e2[[col]][ls_e2$group == grp & ls_e2$mobility == mob & grepl(v, ls_e2$variant)]
+lsb <- function(px, mob = 'frechet', v = 'services 3') ls_breakeven$breakeven[grepl(px, ls_breakeven$experiment) & ls_breakeven$mobility == mob & grepl(v, ls_breakeven$variant)]
+```
+
+- **The fix: an elasticity between places of `r ls_sigma_local` for local services,** with their trade costs moved so the share bought from other places is unchanged.
+    - When the lagging place alone improves its local services, their jobs there now fall slightly, as T6 says they should: retail `r pct(lsg('retail', 'immobile', 'lag_d_group_jobs'), 1)`, hospitality `r pct(lsg('hospitality', 'immobile', 'lag_d_group_jobs'), 1)`, against `r pct(lsg('retail', 'immobile', 'lag_d_group_jobs', 'between places 10'), 1)` and `r pct(lsg('hospitality', 'immobile', 'lag_d_group_jobs', 'between places 10'), 1)` before.
+    - With people immobile, the place keeps `r pct(min(lsg('hospitality', 'immobile', 'lag_gain_share'), lsg('retail', 'immobile', 'lag_gain_share'), lsg('arts_personal', 'immobile', 'lag_gain_share')))`–`r pct(max(lsg('hospitality', 'immobile', 'lag_gain_share'), lsg('retail', 'immobile', 'lag_gain_share'), lsg('arts_personal', 'immobile', 'lag_gain_share')))` of the national gain, and no longer more than all of it.
+- **Nationally, almost nothing changes.** Price sensitivity between places only matters when one place moves alone. The break-even ratios with people mobile become: long tail `r num(lsb('P2'), 2)`, upstream `r num(lsb('P3'), 2)`, local services `r num(lsb('^P4 local'), 2)`.
+
+```{r}
+#| label: ag-setup
+source('code/tradeable_jobs/26_modelF_agglomeration.R')
+agb <- function(px, k, mob = 'frechet') ag_breakeven$breakeven[grepl(px, ag_breakeven$experiment) & ag_breakeven$kappa == k & ag_breakeven$mobility == mob]
+agl <- function(k, mob, type) ag_e2_type$mean_gain_share[ag_e2_type$kappa == k & ag_e2_type$mobility == mob & ag_e2_type$type == type]
+```
+
+**Agglomeration.**
+
+- **The setting.** On the same calibrated setting, productivity in a place-sector now rises with its employment, at elasticities of 0.02 and 0.03. Model F solves at both, in all `r nrow(ag)` runs; round 1's engine couldn't go beyond 0.03.
+- **It tilts the comparison slightly towards the frontier push,** which concentrates where tradables already cluster. Going from no agglomeration to 0.03, the break-even ratios (people mobile) move:
+    - long tail `r num(agb('P2', 0), 2)` to `r num(agb('P2', 0.03), 2)`;
+    - upstream `r num(agb('P3', 0), 2)` to `r num(agb('P3', 0.03), 2)`;
+    - local services `r num(agb('^P4 local', 0), 2)` to `r num(agb('^P4 local', 0.03), 2)`.
+- **How much of a local gain stays local doesn't change.** With people immobile, the lagging place keeps on average `r pct(agl(0.03, 'immobile', 'local services'))` of the gain from its local services and `r pct(agl(0.03, 'immobile', 'other groups'))` from other groups, as without agglomeration.
+- **What it doesn't test.** Agglomeration strong enough to create the multiple equilibria and lock-in of round 1's Model A (0.15 there) is beyond Model F's solver. Model F's results hold for the weak agglomeration that empirical estimates usually find (a few per cent).
 
 ## 17. The flow model in R, and local against national when the economy is slack (F0, T9)
 
@@ -816,7 +867,8 @@ be %>% filter(mobility == 'frechet', !grepl('^P1', experiment)) %>%
 source('code/tradeable_jobs/22_flow_model.R')
 source('code/tradeable_jobs/23_t9_flow_slack.R')
 fc <- fm_check_summary %>% group_by(table) %>% summarise(rows = sum(rows), missing = sum(missing), max_rel = max(max_rel_diff), .groups = 'drop')
-fx <- function(pol, eco, pl, col) t9f[[col]][grepl(pol, t9f$policy, fixed = TRUE) & grepl(eco, t9f$economy) & t9f$place == pl]
+fx <- function(pol, eco, pl, col, ver = 'Original') t9f[[col]][grepl(pol, t9f$policy, fixed = TRUE) & grepl(eco, t9f$economy) &
+                                                                t9f$place == pl & grepl(ver, t9f$version)]
 ```
 
 **The port (F0).**
@@ -840,7 +892,7 @@ fx <- function(pol, eco, pl, col) t9f[[col]][grepl(pol, t9f$policy, fixed = TRUE
 ```{r}
 #| label: tbl-flow-t9
 #| tbl-cap: "Flow model, slack economy (exports down 20%): each policy's effect at period 40 against the same economy without it. National GDP (the official lens), unemployment (percentage points), real disposable income, and the town's share of the national change in real disposable income."
-t9f %>% filter(grepl('Slack', economy), place == 'all') %>%
+t9f %>% filter(grepl('Slack', economy), place == 'all', grepl('Original', version)) %>%
   transmute(Policy = policy, `GDP` = paste0(num(100 * d_gva_pct, 2), '%'), `Unemployment (points)` = num(100 * d_unemployment_rate, 2),
             `Real disposable income` = paste0(num(100 * d_real_di_pct, 2), '%'),
             `Town's share of the real gain` = ifelse(abs(d_real_di) < 1e3, '', pct(town_share_of_real_gain))) %>%
@@ -859,10 +911,39 @@ t9f %>% filter(grepl('Slack', economy), place == 'all') %>%
     - **Exporters.** Productivity in an exporter is a loss.
         - The model's exports are fixed quantities, so a lower price only cuts export revenue: the town's components `r pct(fx('S1', 'Slack', 'all', 'd_real_di_pct'), 2)` real income, the city's business services `r pct(fx('S4', 'Slack', 'all', 'd_real_di_pct'), 2)`.
         - That is the flow model's extreme version of the terms-of-trade effect in section 11. With price-elastic exports it would be smaller or reversed.
-- **Slack and tight barely differ in this model.**
+- **In the original model, slack and tight barely differ.**
     - Results in the base economy are within about a tenth of a point of the slack ones (inward investment raises GDP `r pct(fx('D1', 'Base', 'all', 'd_gva_pct'), 2)` there, against `r pct(fx('D1', 'Slack', 'all', 'd_gva_pct'), 2)`).
     - Wages and prices don't respond to unemployment, so tightness never bites.
-    - The flow model is the demand-constrained case and Model F the full-employment case. Together they bracket the question rather than one model answering it.
+
+**A tight economy too: the extended flow model.**
+
+- **Two extensions, both switched off for the port's check:**
+    - export quantities that respond to price, with elasticity 2 (Model F's calibration to T6);
+    - wages that follow a wage curve on local unemployment (elasticity 0.1), moving 30% of the way each period. Without the gradual adjustment a tight economy cycles: high wages cut exports, which cuts jobs, which cuts wages.
+- **The three economies at period 40:** slack (exports down 20%) at `r pct(fx('D1', 'Slack', 'all', 'cf_unemployment_rate', 'Extended'), 1)` unemployment, base at 5%, and tight (exports up 20%) at `r pct(fx('D1', 'Tight', 'all', 'cf_unemployment_rate', 'Extended'), 1)`.
+
+```{r}
+#| label: tbl-flow-tight
+#| tbl-cap: "Extended flow model (price-elastic exports, wage curve): each policy's effect at period 40 in the slack and the tight economy. Real disposable income nationally, the town's share of it, and the change in wages (average across producers)."
+t9f %>% filter(grepl('Extended', version), place == 'all', !grepl('Base', economy)) %>%
+  mutate(economy = ifelse(grepl('Slack', economy), 'Slack', 'Tight')) %>%
+  transmute(Policy = policy, economy, ri = paste0(num(100 * d_real_di_pct, 2), '%'),
+            town = ifelse(abs(d_real_di) < 1e3, '', pct(town_share_of_real_gain)), wage = paste0(num(100 * (wage_index - 1), 1), '%')) %>%
+  pivot_wider(names_from = economy, values_from = c(ri, town, wage)) %>%
+  select(Policy, `Real income, slack` = ri_Slack, `Real income, tight` = ri_Tight, `Town's share, slack` = town_Slack,
+         `Town's share, tight` = town_Tight, `Wages, slack` = wage_Slack, `Wages, tight` = wage_Tight) %>%
+  kable(align = 'lrrrrrr')
+```
+
+- **In a tight economy, local demand policy crowds out other places.**
+    - Town-only procurement raises the town's wages and prices. The town gets `r pct(fx('D2t', 'Tight', 'all', 'town_share_of_real_gain', 'Extended'))` of the national real gain, so the other places lose.
+    - In the slack economy the town keeps `r pct(fx('D2t', 'Slack', 'all', 'town_share_of_real_gain', 'Extended'))`, and nobody loses.
+    - This is Venables's crowding-out claim (C13), appearing where the labour market is tight and not where it's slack.
+- **In a tight economy, local services productivity no longer pays the town.**
+    - In the slack and base economies the town keeps most of the real gain from its everyday services: `r pct(fx('S2', 'Slack', 'all', 'town_share_of_real_gain', 'Extended'))` and `r pct(fx('S2', 'Base', 'all', 'town_share_of_real_gain', 'Extended'))`.
+    - In the tight one, the freed workers push local wages down through the wage curve. The town's own real income doesn't rise, and the small national gain (`r pct(fx('S2', 'Tight', 'all', 'd_real_di_pct', 'Extended'), 2)`) lands elsewhere.
+- **With price-elastic exports, business-service productivity pays.** In the city's business services, which sell to firms and abroad, it raises national real income `r pct(fx('S4', 'Slack', 'all', 'd_real_di_pct', 'Extended'), 2)` (slack) to `r pct(fx('S4', 'Tight', 'all', 'd_real_di_pct', 'Extended'), 2)` (tight). In the original model, with fixed export quantities, it was a loss. The upstream channel needs price-elastic buyers, as in Model F.
+- **The two models still bracket the question.** The flow model is the demand-constrained case and Model F the full-employment case, and the extended flow model shows how the answer moves as a place tightens.
 
 **Local against national, across the two models.**
 
@@ -878,13 +959,11 @@ t9f %>% filter(grepl('Slack', economy), place == 'all') %>%
 ## 18. What is not done yet
 
 - **The flow model's lenses** beyond the standard results rows (chains, booking, measurement), and its calibration routine. The model itself is ported and validated (section 17).
-- **Price-elastic exports and wages that respond to unemployment in the flow model,** so that it can represent a tight economy and not only a slack one.
+- **Calibrating the flow model's extensions.** The export elasticity and wage curve are set from Model F and the literature, not fitted to the flow model's own economy.
 - **Model F extensions.**
-    - A lower elasticity between places for local services (section 16).
-    - Agglomeration.
+    - Agglomeration strong enough for multiple equilibria (Model F solves only weak agglomeration, section 16).
     - A pass-through switch calibrated on T11a, so that firms keep part of a gain instead of passing it all to prices.
     - Equal-cost (rather than equal-percentage) proxies once T10's ratios have been argued over.
-- **Supply chains in Venables's city model (Model A, T7).**
 - **The regional version of T3, and T5's local multipliers.** Both need regional input–output coefficients that the payment flows can't supply.
 - **The household round of T5,** and the "pound walking" comparison.
 

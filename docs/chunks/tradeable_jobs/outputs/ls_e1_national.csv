@@ -1,0 +1,73 @@
+variant,group,mobility,d_welfare,hulten,d_group_jobs
+"Calibrated demand, elasticity between places 10",admin_support,frechet,0.004411416355224758,0.0063342307183983084,-0.010034292499002036
+"Calibrated demand, elasticity between places 10",admin_support,immobile,0.004411735070313709,0.006334865492685717,-0.009571417782714751
+"Calibrated demand, elasticity between places 10",agri_fish,frechet,8.044952737322753e-4,0.001158931129387721,-0.024681896695503507
+"Calibrated demand, elasticity between places 10",agri_fish,immobile,8.027865558952371e-4,0.0011568805467409469,-0.0247192636704483
+"Calibrated demand, elasticity between places 10",arts_personal,frechet,0.00255121319201268,0.0036070380336465637,-0.019852544965413627
+"Calibrated demand, elasticity between places 10",arts_personal,immobile,0.00255094196345218,0.00360716810692809,-0.019802080501692226
+"Calibrated demand, elasticity between places 10",chem_pharma,frechet,0.002156005469382105,0.0031482783495945894,0.0042122897314223655
+"Calibrated demand, elasticity between places 10",chem_pharma,immobile,0.00215298030195347,0.0031451837297896473,0.004282730291839491
+"Calibrated demand, elasticity between places 10",construction,frechet,0.007302412270571527,0.010389498213419269,-0.03866344720659202
+"Calibrated demand, elasticity between places 10",construction,immobile,0.007310445807557649,0.010399120649846565,-0.03790983284081173
+"Calibrated demand, elasticity between places 10",finance,frechet,0.006937016393854467,0.009818964274744331,-4.235052057590127e-4
+"Calibrated demand, elasticity between places 10",finance,immobile,0.006932454182200454,0.009811621895067043,-6.651025186289252e-5
+"Calibrated demand, elasticity between places 10",food_drink,frechet,0.0023842800815271716,0.003296515722910221,-0.015078410673045125
+"Calibrated demand, elasticity between places 10",food_drink,immobile,0.0023807294115698965,0.0032936390714073563,-0.014873198088617126
+"Calibrated demand, elasticity between places 10",hospitality,frechet,0.003924888393958066,0.005382666029866951,-0.012095645571586466
+"Calibrated demand, elasticity between places 10",hospitality,immobile,0.003910863060001768,0.0053705473155574385,-0.011979375444265769
+"Calibrated demand, elasticity between places 10",info_comms,frechet,0.005581521879699365,0.00781391749017697,-0.011571815016121673
+"Calibrated demand, elasticity between places 10",info_comms,immobile,0.00559263334722071,0.007823707949653935,-0.011235999112303363
+"Calibrated demand, elasticity between places 10",light_mfg,frechet,0.0014374600180756165,0.0019893365755361283,-0.006678876293727691
+"Calibrated demand, elasticity between places 10",light_mfg,immobile,0.0014371498696909013,0.0019888140563963366,-0.00662214843762506
+"Calibrated demand, elasticity between places 10",machinery_vehicles,frechet,0.00437078138115532,0.006720727679314331,0.013122802959553129
+"Calibrated demand, elasticity between places 10",machinery_vehicles,immobile,0.004375338534658361,0.006724367759281548,0.013452380050866871
+"Calibrated demand, elasticity between places 10",metals_minerals,frechet,0.002149896647660595,0.0029697581139619005,-0.00987900546594848
+"Calibrated demand, elasticity between places 10",metals_minerals,immobile,0.0021400197155361234,0.0029590612403512864,-0.00981667025437368
+"Calibrated demand, elasticity between places 10",mining,frechet,0.0010616361810592185,0.0014055623088175553,0.02828846997817817
+"Calibrated demand, elasticity between places 10",mining,immobile,0.001060292557379124,0.0014035924188190525,0.02807829702730169
+"Calibrated demand, elasticity between places 10",professional,frechet,0.007192697881188925,0.010247826683767386,-0.005998164722202141
+"Calibrated demand, elasticity between places 10",professional,immobile,0.0072007997463970535,0.010254693563384043,-0.005636545787508644
+"Calibrated demand, elasticity between places 10",retail,frechet,0.004178302001258756,0.005949186227878431,-0.02210821573558182
+"Calibrated demand, elasticity between places 10",retail,immobile,0.004170508804756741,0.00594420798925241,-0.022021455754608604
+"Calibrated demand, elasticity between places 10",transport,frechet,0.0044296032609988005,0.006181154797269227,-0.015871627870410493
+"Calibrated demand, elasticity between places 10",transport,immobile,0.004430403908420755,0.006182251289726962,-0.015408071510251383
+"Calibrated demand, elasticity between places 10",utilities,frechet,0.0035706701365261218,0.005213111070572811,-0.048646235316831765
+"Calibrated demand, elasticity between places 10",utilities,immobile,0.00356311449802064,0.005204384716247542,-0.04873281520313988
+"Calibrated demand, elasticity between places 10",wholesale_motor,frechet,0.005883603855999804,0.00836102690998388,-0.0052086678898417465
+"Calibrated demand, elasticity between places 10",wholesale_motor,immobile,0.005899361428489236,0.008379134215818321,-0.004831728251308916
+"Calibrated demand, local services 3",admin_support,frechet,0.004400932585705138,0.006318029706014776,-0.009985012805779856
+"Calibrated demand, local services 3",admin_support,immobile,0.004402194760893134,0.006320052346208511,-0.009500534578600233
+"Calibrated demand, local services 3",agri_fish,frechet,8.024509118990478e-4,0.001155787400147826,-0.02469031970876771
+"Calibrated demand, local services 3",agri_fish,immobile,8.005292746943912e-4,0.0011534124211595865,-0.02474401364359184
+"Calibrated demand, local services 3",arts_personal,frechet,0.0025671009540159475,0.0036305987997130055,-0.019911006167095884
+"Calibrated demand, local services 3",arts_personal,immobile,0.0025694533707054656,0.00363394104065967,-0.019994517062989308
+"Calibrated demand, local services 3",chem_pharma,frechet,0.0021525405896975305,0.003143613918359001,0.004278982726526603
+"Calibrated demand, local services 3",chem_pharma,immobile,0.0021493542899232443,0.0031401318692493643,0.00436553467999216
+"Calibrated demand, local services 3",construction,frechet,0.007285799456806001,0.01036475962944144,-0.038619464212597356
+"Calibrated demand, local services 3",construction,immobile,0.007294072482189125,0.010373171704672892,-0.037862768108246236
+"Calibrated demand, local services 3",finance,frechet,0.006930862907707318,0.009808708523776632,-3.4852352450567283e-4
+"Calibrated demand, local services 3",finance,immobile,0.006925588714580451,0.009799552017122775,1.860308863758246e-6
+"Calibrated demand, local services 3",food_drink,frechet,0.002381094308625468,0.003291771374226562,-0.015134687881564654
+"Calibrated demand, local services 3",food_drink,immobile,0.0023764960721843384,0.0032879418450596698,-0.014924370552274949
+"Calibrated demand, local services 3",hospitality,frechet,0.003954775508979195,0.0054236471162434135,-0.01205244041997378
+"Calibrated demand, local services 3",hospitality,immobile,0.003941599618604556,0.00541282825292911,-0.012017133254717302
+"Calibrated demand, local services 3",info_comms,frechet,0.005573717336083399,0.007801942968266001,-0.011540570019379923
+"Calibrated demand, local services 3",info_comms,immobile,0.005585122058500258,0.007811421642257008,-0.011208347948584102
+"Calibrated demand, local services 3",light_mfg,frechet,0.0014345576662872321,0.001985229987652697,-0.006649823919032756
+"Calibrated demand, local services 3",light_mfg,immobile,0.0014343917342351336,0.0019847724812357146,-0.006584478929599384
+"Calibrated demand, local services 3",machinery_vehicles,frechet,0.0043660042114848086,0.006712948207207676,0.013120351138982541
+"Calibrated demand, local services 3",machinery_vehicles,immobile,0.0043689059901264775,0.006714644933708097,0.013431884381439682
+"Calibrated demand, local services 3",metals_minerals,frechet,0.0021458282845923846,0.002964024388750111,-0.00983770560592708
+"Calibrated demand, local services 3",metals_minerals,immobile,0.0021351925090752344,0.002952322314423741,-0.009753891246037242
+"Calibrated demand, local services 3",mining,frechet,0.0010610511105115794,0.0014043244121116536,0.028305068033357045
+"Calibrated demand, local services 3",mining,immobile,0.0010597130792552683,0.0014022156186811005,0.028118766857059125
+"Calibrated demand, local services 3",professional,frechet,0.0071849685973387105,0.010235000586425727,-0.005969255771243261
+"Calibrated demand, local services 3",professional,immobile,0.00719443269067499,0.01024268100252508,-0.005596642215291732
+"Calibrated demand, local services 3",retail,frechet,0.004209640437825494,0.005993935100336756,-0.022012585889059497
+"Calibrated demand, local services 3",retail,immobile,0.004200166040281543,0.005989124878743098,-0.02209483019635699
+"Calibrated demand, local services 3",transport,frechet,0.004423952612262916,0.006172610436556874,-0.015816222398740337
+"Calibrated demand, local services 3",transport,immobile,0.004424434128103265,0.006172944745899144,-0.015345145465278848
+"Calibrated demand, local services 3",utilities,frechet,0.003563370198529,0.0052018868171736475,-0.04858826745992125
+"Calibrated demand, local services 3",utilities,immobile,0.0035555805319862355,0.005192659648860666,-0.048648444207473863
+"Calibrated demand, local services 3",wholesale_motor,frechet,0.005869119416959778,0.008339631393993912,-0.005174251203364927
+"Calibrated demand, local services 3",wholesale_motor,immobile,0.005884033045352455,0.008357015611223916,-0.004776137170111809

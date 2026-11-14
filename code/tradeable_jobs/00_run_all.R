@@ -40,7 +40,10 @@ scripts <- c(
   '20_t11b_moments.R',           # T11b: Model F's revenue productivity against the firm data's
   '21_modelF_demand.R',          # Model F with demand calibrated to T6 (CES households and inputs, export elasticity)
   '22_flow_model.R',             # F0: the flow model in R, checked row by row against its TypeScript build
-  '23_t9_flow_slack.R'           # T9 (slack half): demand and productivity policies in the flow model, local and national
+  '23_t9_flow_slack.R',          # T9: demand and productivity policies in the flow model; base, slack and tight economies
+  '24_modelF_local_sigma.R',     # Model F with an elasticity of 3 between places for local services
+  '25_modelA_supply_chains.R',   # T7: supply chains in Venables's city model (Model A)
+  '26_modelF_agglomeration.R'    # Model F with agglomeration (0.02, 0.03)
 )
 for (s in scripts) {
   message('== ', s)

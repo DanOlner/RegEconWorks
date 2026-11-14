@@ -1,0 +1,21 @@
+variant,experiment,mobility,breakeven,d_welfare
+"Calibrated demand, elasticity between places 10",P1 frontier push: +10% in the top 2 places of each frontier group,frechet,1,0.024354358304218504
+"Calibrated demand, elasticity between places 10",P1 frontier push: +10% in the top 2 places of each frontier group,immobile,1,0.02322600588173222
+"Calibrated demand, elasticity between places 10","P2 long tail: places below the median close half the gap, every group",frechet,0.843207547380506,0.023889187635834325
+"Calibrated demand, elasticity between places 10","P2 long tail: places below the median close half the gap, every group",immobile,0.7996565262927213,0.02484709736767347
+"Calibrated demand, elasticity between places 10",P3 upstream: +5% in the business-to-business groups,frechet,0.9182825254489124,0.02569723475489516
+"Calibrated demand, elasticity between places 10",P3 upstream: +5% in the business-to-business groups,immobile,0.8976695702626613,0.02571463519842317
+"Calibrated demand, elasticity between places 10","P4 local services: +5% in retail, hospitality, personal",frechet,0.6364037724676183,0.010677786729668792
+"Calibrated demand, elasticity between places 10","P4 local services: +5% in retail, hospitality, personal",immobile,0.6148657493664736,0.01065570940660158
+"Calibrated demand, elasticity between places 10","P4 with P9: local services +5%, land eta 3",frechet,NA,0.010963397604391393
+"Calibrated demand, elasticity between places 10","P4 with P9: local services +5%, land eta 3",immobile,NA,0.010918389584138674
+"Calibrated demand, local services 3",P1 frontier push: +10% in the top 2 places of each frontier group,frechet,1,0.024044606707353127
+"Calibrated demand, local services 3",P1 frontier push: +10% in the top 2 places of each frontier group,immobile,1,0.022920119062416273
+"Calibrated demand, local services 3","P2 long tail: places below the median close half the gap, every group",frechet,0.7805770762235985,0.02649968732928909
+"Calibrated demand, local services 3","P2 long tail: places below the median close half the gap, every group",immobile,0.7368707449602203,0.027560343608443283
+"Calibrated demand, local services 3",P3 upstream: +5% in the business-to-business groups,frechet,0.911608277588613,0.02564210547145307
+"Calibrated demand, local services 3",P3 upstream: +5% in the business-to-business groups,immobile,0.8922374701754654,0.025659330317690226
+"Calibrated demand, local services 3","P4 local services: +5% in retail, hospitality, personal",frechet,0.6365662401495975,0.01075526565402396
+"Calibrated demand, local services 3","P4 local services: +5% in retail, hospitality, personal",immobile,0.6158873698338608,0.010734983828935007
+"Calibrated demand, local services 3","P4 with P9: local services +5%, land eta 3",frechet,NA,0.011042610951830087
+"Calibrated demand, local services 3","P4 with P9: local services +5%, land eta 3",immobile,NA,0.010999509246342817

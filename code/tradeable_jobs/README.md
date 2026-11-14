@@ -36,7 +36,7 @@ python3 -I code/tradeable_jobs/get_papers.py           # optional: the papers th
 | File | Does |
 |---|---|
 | `functions_common.R` | Caching, downloads, skewness, writing outputs |
-| `functions_v2020.R` | Model A: any number of city types (tradable or non-tradable), mobile or immobile labour, general agglomeration function, two ways of financing government spending. Solver, entry gains, adjustment along the boundary, edges of the equilibrium set. |
+| `functions_v2020.R` | Model A (with, from round 2, tradables' purchases of the non-tradable as inputs): any number of city types (tradable or non-tradable), mobile or immobile labour, general agglomeration function, two ways of financing government spending. Solver, entry gains, adjustment along the boundary, edges of the equilibrium set. |
 | `functions_v2018s3.R` | Model B: V2018 section 3 (two tradables, two skills). Newton solver, entry gains, adjustment, the point without coordination failure. |
 | `functions_rv2023.R` | Model C/D: Rice and Venables (2023), with switches for mobility, land, rent rebate, trade costs and agglomeration. Sparsity measures, eq. (11) and (13). |
 | `functions_dfs.R` | Dornbusch–Fischer–Samuelson (1977) with trade costs and transfers |
@@ -67,9 +67,12 @@ python3 -I code/tradeable_jobs/get_papers.py           # optional: the papers th
 | `19_t10_breakeven.R` | T10: break-even cost ratios per point of productivity against a frontier push, national and for the lagging place |
 | `20_t11b_moments.R` | T11b: Model F's spread of revenue productivity by sector, place and place by sector, against the firm data |
 | `21_modelF_demand.R` | Model F with demand calibrated to T6: a grid over households' and firms' substitution elasticities and foreign demand's, the best fit to T6's own-jobs responses, and the experiments and break-even ratios with it |
-| `functions_flow.R` | F0: the "where GVA is booked" flow model (model spec v1), ported from its TypeScript build: compiling parameters, prices, the period solver, commuting, the run loop with scenarios, identity checks, results rows |
+| `functions_flow.R` | F0: the "where GVA is booked" flow model (model spec v1), ported from its TypeScript build: compiling parameters, prices, the period solver, commuting, the run loop with scenarios, identity checks, results rows; plus optional price-elastic exports and a wage curve (off by default) |
 | `flow_model/` | The flow model's inputs: the calibrated spec-v1 parameters and the experiments' scenarios as JSON, exported from the TypeScript by `export-inputs.ts`; and the TypeScript's own results rows (`reference_ts_rows.csv.gz`) for the check |
 | `22_flow_model.R` | Runs the flow model's baseline and ten experiments and checks every standard results row against the TypeScript's |
-| `23_t9_flow_slack.R` | T9 (slack half): inward investment, local procurement and productivity in the flow model, in the base and a slack economy, nationally and by place |
-| `00_run_all.R` | Clears the cache, runs 01–23, renders both reports |
+| `23_t9_flow_slack.R` | T9: inward investment, local procurement and productivity in the flow model, in base, slack and tight economies, with the original model and an extended one (price-elastic exports, a wage curve), nationally and by place |
+| `24_modelF_local_sigma.R` | Model F with an elasticity of 3 between places for local services (trade costs moved to keep their cross-place share) |
+| `25_modelA_supply_chains.R` | T7: Venables's city model with tradables buying non-tradable inputs; the equilibrium range as the input share and non-tradable productivity rise |
+| `26_modelF_agglomeration.R` | Model F with agglomeration elasticities 0.02 and 0.03, on the best-calibrated setting |
+| `00_run_all.R` | Clears the cache, runs 01–26, renders both reports |
 | `get_papers.py` | Downloads and converts the three papers to readable markdown |

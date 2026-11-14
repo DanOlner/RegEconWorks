@@ -2,9 +2,12 @@
 # wages and prices don't respond to unemployment, and people out of work stay out of work. It is the
 # demand-driven, slack counterpart to Model F, which has full employment.
 #
-# Two starting economies: the base (5% unemployment in every place), and a slack one where all exports fall
-# 20% from period 1 (E6's slump brought forward: unemployment 11-17%). In each, every policy below starts at
-# period 5, and the economy at period 40 is compared with the same economy without the policy.
+# Three starting economies: the base (5% unemployment in every place), a slack one where all exports fall
+# 20% from period 1 (E6's slump brought forward: unemployment 11-17%), and a tight one where they rise 20%.
+# Two versions of the model: the original (export quantities and wages fixed), and an extended one where
+# export quantities respond to price (elasticity 2, as Model F's calibration to T6) and wages follow a wage
+# curve on local unemployment (elasticity 0.1, moving 30% of the way each period). In each, every policy below starts at period 5, and the
+# economy at period 40 is compared with the same economy without the policy.
 #   D1  inward investment in the town: component exports +20%
 #   D2  local procurement in every place (E7) and D2t in the town only: public services buy 0.04 less
 #       imported goods per unit, 0.02 more each from local everyday services and local utilities
@@ -35,7 +38,10 @@ t9f <- tj_cached('t9_flow_slack', {
     `S4 Productivity +5%: the city's business services (sold to firms everywhere)` = prod('C.BIZ'),
     `S5 Productivity +5%: everyday services in every place` = prod('C.RET', 'M.RET', 'R.RET'))
   economies <- list(`Base: 5% unemployment` = list(),
-                    `Slack: exports down 20% from period 1` = list(ch(1, c('exports', 'total'), 'scale', 0.8)))
+                    `Slack: exports down 20% from period 1` = list(ch(1, c('exports', 'total'), 'scale', 0.8)),
+                    `Tight: exports up 20% from period 1` = list(ch(1, c('exports', 'total'), 'scale', 1.2)))
+  versions <- list(`Original (fixed exports and wages)` = fm_ext_default,
+                   `Extended (export elasticity 2, wage curve 0.1)` = list(export_elasticity = 2, wage_curve = 0.1))
   q0 <- NULL; p0 <- NULL
   measures <- function(rec) {
     r <- rec$result; econ <- rec$econ; hh <- r$households; dom <- seq_len(econ$nd)
@@ -49,14 +55,16 @@ t9f <- tj_cached('t9_flow_slack', {
            residents = c(hh$population, sum(hh$population)), gni = r$macro$gni, cpi = c(cpi, NA))
   }
   out <- list()
-  for (en in names(economies)) {
-    cf_runs <- fm_run(base, list(changes = economies[[en]]), 40)
+  for (vn in names(versions)) for (en in names(economies)) {
+    cf_runs <- fm_run(base, list(changes = economies[[en]]), 40, ext = versions[[vn]])
     if (is.null(q0)) { q0 <- cf_runs[[1]]$result$households$quantities; p0 <- cf_runs[[1]]$result$prices }
     cf <- measures(cf_runs[[41]])
     for (pn in names(policies)) {
-      pr <- fm_run(base, list(changes = c(economies[[en]], policies[[pn]])), 40)
+      pr <- fm_run(base, list(changes = c(economies[[en]], policies[[pn]])), 40, ext = versions[[vn]])
       m <- measures(pr[[41]])
-      out[[length(out) + 1]] <- m %>% left_join(cf, by = 'place', suffix = c('', '_cf')) %>% mutate(economy = en, policy = pn)
+      out[[length(out) + 1]] <- m %>% left_join(cf, by = 'place', suffix = c('', '_cf')) %>%
+        mutate(version = vn, economy = en, policy = pn,
+               wage_index = mean(pr[[41]]$econ$wage_per_job[seq_len(pr[[41]]$econ$nd)] / cf_runs[[41]]$econ$wage_per_job[seq_len(pr[[41]]$econ$nd)]))
     }
   }
   bind_rows(out) %>%
@@ -65,11 +73,11 @@ t9f <- tj_cached('t9_flow_slack', {
            d_real_di = real_disposable_income - real_disposable_income_cf,
            d_real_di_pct = real_disposable_income / real_disposable_income_cf - 1,
            d_cpi_pct = cpi / cpi_cf - 1, d_gni_pct = gni / gni_cf - 1, cf_unemployment_rate = unemployed_cf / labour_force_cf) %>%
-    group_by(economy, policy) %>%
+    group_by(version, economy, policy) %>%
     mutate(town_share_of_real_gain = d_real_di[place == 'M'] / d_real_di[place == 'all']) %>% ungroup()
 }, depends = c('code/tradeable_jobs/functions_flow.R', 'code/tradeable_jobs/23_t9_flow_slack.R',
                file.path(fm_dir, 'flow_params_spec_v1.json'), file.path(fm_dir, 'flow_scenarios.json')))
 
-tj_write(t9f %>% select(economy, policy, place, cf_unemployment_rate, d_gva, d_gva_pct, d_gva_per_job_pct, d_jobs,
+tj_write(t9f %>% select(version, economy, policy, place, cf_unemployment_rate, d_gva, d_gva_pct, d_gva_per_job_pct, d_jobs,
                         d_unemployment_rate, d_real_di, d_real_di_pct, d_cpi_pct, d_gni_pct, town_share_of_real_gain),
          't9_flow_slack.csv')

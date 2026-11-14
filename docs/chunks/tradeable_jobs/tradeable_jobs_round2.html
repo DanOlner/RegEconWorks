@@ -2434,7 +2434,10 @@ window.Quarto = {
 <li>productivity gains with demand unchanged cost jobs and measured GDP;</li>
 <li>productivity in local services still raises real income there, through lower prices, while the official lens shows a fall.</li>
 </ul></li>
-<li><strong>What isn’t done (section 18):</strong> agglomeration in Model F, the flow model’s lenses and a tight-economy version of it, and regional coefficients.</li>
+<li><strong>With wages that respond to unemployment and price-elastic exports (section 17),</strong> the flow model can be tight. A place’s own procurement then crowds out other places (it gets 130% of the national gain), and its everyday-services productivity no longer pays it.</li>
+<li><strong>In Venables’s city model (section 11),</strong> supply chains shift the equilibrium range towards fewer tradable cities. Cheaper non-tradable inputs raise real income but are no escape from lock-in.</li>
+<li><strong>Weak agglomeration in Model F (section 16)</strong> tilts the comparison slightly towards the frontier push and leaves local shares unchanged.</li>
+<li><strong>What isn’t done (section 18):</strong> strong agglomeration, the flow model’s lenses, and regional coefficients.</li>
 </ul>
 </section>
 <section id="what-was-done" class="level2">
@@ -3980,9 +3983,25 @@ Figure 8: Model F: the share of the national real gain that stays in the laggin
 <li><strong>Land.</strong> About half to two-thirds of the national income gain goes to the local fixed factor: 55% for the median group, and 51%–67% for the middle half of groups.
 <ul>
 <li>That factor stands for all non-labour income here, not just land, so this is the non-labour share of the gain.</li>
-<li>It doesn’t differ much between tradable and non-tradable groups.</li>
+<li>It doesn’t differ much between tradable and non-tradable groups. <strong>Supply chains in Venables’s city model (T7, Model A).</strong></li>
 </ul></li>
-<li><strong>Not done in Model F:</strong> agglomeration (round 1’s solver needed small values), and adding supply chains to Venables’s city model (Model A).</li>
+</ul>
+<ul>
+<li><strong>The change.</strong> Tradable cities now buy γ units of the non-tradable per unit of output, from its national market. Their wage is what is left of the world price after paying for those inputs.</li>
+<li><strong>Supply chains shift the equilibrium range towards fewer tradable cities, and narrow it.</strong> As γ rises from 0 to 0.3:
+<ul>
+<li>the lock-in edge E (the fewest tradable cities an equilibrium can have) falls from 28.9% to 22.2% of cities;</li>
+<li>X falls from 50.0% to 37.2%.</li>
+</ul>
+Tradables’ own purchases need more non-tradable cities.</li>
+<li><strong>Better non-tradable inputs are no escape from lock-in.</strong>
+<ul>
+<li>With γ = 0.2, raising non-tradable productivity 10% moves E from 24.0% to 23.5% and X from 40.7% to 41.4%.</li>
+<li>The range widens at both ends, so an economy can stay stuck with even fewer tradable cities than before.</li>
+<li>Real income per worker still rises everywhere, by 6.9%.</li>
+<li>This is the same answer Model F gives to C8: cheaper non-tradable inputs raise living standards but don’t pull lagging places into tradables.</li>
+</ul></li>
+<li><strong>Round 1’s Model A results are unchanged</strong> with the new code (E = 28.9% and X = 50% without supply chains).</li>
 </ul>
 <!-- MODEL F SECTIONS END -->
 </section>
@@ -4341,8 +4360,28 @@ Table 11: Break-even cost ratios against the frontier push (P1), national real 
 <ul>
 <li>When only the lagging place improves its local services, it gains jobs in them (retail 11.6% with people immobile), and can keep more than the whole national gain.</li>
 <li>It draws customers from the other places. Rice and Venables’s elasticity between places (10) applies to local services too, so even a small cross-border share is very price-sensitive.</li>
-<li>That is probably too strong for hairdressers and cafés. A lower elasticity between places for local services is the next refinement.</li>
+<li>That is probably too strong for hairdressers and cafés.</li>
 </ul></li>
+</ul>
+<ul>
+<li><strong>The fix: an elasticity between places of 3 for local services,</strong> with their trade costs moved so the share bought from other places is unchanged.
+<ul>
+<li>When the lagging place alone improves its local services, their jobs there now fall slightly, as T6 says they should: retail -1.6%, hospitality -0.2%, against 11.6% and 9.0% before.</li>
+<li>With people immobile, the place keeps 75%–95% of the national gain, and no longer more than all of it.</li>
+</ul></li>
+<li><strong>Nationally, almost nothing changes.</strong> Price sensitivity between places only matters when one place moves alone. The break-even ratios with people mobile become: long tail 0.78, upstream 0.91, local services 0.64.</li>
+</ul>
+<p><strong>Agglomeration.</strong></p>
+<ul>
+<li><strong>The setting.</strong> On the same calibrated setting, productivity in a place-sector now rises with its employment, at elasticities of 0.02 and 0.03. Model F solves at both, in all 516 runs; round 1’s engine couldn’t go beyond 0.03.</li>
+<li><strong>It tilts the comparison slightly towards the frontier push,</strong> which concentrates where tradables already cluster. Going from no agglomeration to 0.03, the break-even ratios (people mobile) move:
+<ul>
+<li>long tail 0.78 to 0.74;</li>
+<li>upstream 0.91 to 0.90;</li>
+<li>local services 0.64 to 0.63.</li>
+</ul></li>
+<li><strong>How much of a local gain stays local doesn’t change.</strong> With people immobile, the lagging place keeps on average 87% of the gain from its local services and 37% from other groups, as without agglomeration.</li>
+<li><strong>What it doesn’t test.</strong> Agglomeration strong enough to create the multiple equilibria and lock-in of round 1’s Model A (0.15 there) is beyond Model F’s solver. Model F’s results hold for the weak agglomeration that empirical estimates usually find (a few per cent).</li>
 </ul>
 </section>
 <section id="the-flow-model-in-r-and-local-against-national-when-the-economy-is-slack-f0-t9" class="level2">
@@ -4479,12 +4518,144 @@ Table 12: Flow model, slack economy (exports down 20%): each policy’s effect 
 <li>That is the flow model’s extreme version of the terms-of-trade effect in section 11. With price-elastic exports it would be smaller or reversed.</li>
 </ul></li>
 </ul></li>
-<li><strong>Slack and tight barely differ in this model.</strong>
+<li><strong>In the original model, slack and tight barely differ.</strong>
 <ul>
 <li>Results in the base economy are within about a tenth of a point of the slack ones (inward investment raises GDP 1.12% there, against 0.99%).</li>
 <li>Wages and prices don’t respond to unemployment, so tightness never bites.</li>
-<li>The flow model is the demand-constrained case and Model F the full-employment case. Together they bracket the question rather than one model answering it.</li>
 </ul></li>
+</ul>
+<p><strong>A tight economy too: the extended flow model.</strong></p>
+<ul>
+<li><strong>Two extensions, both switched off for the port’s check:</strong>
+<ul>
+<li>export quantities that respond to price, with elasticity 2 (Model F’s calibration to T6);</li>
+<li>wages that follow a wage curve on local unemployment (elasticity 0.1), moving 30% of the way each period. Without the gradual adjustment a tight economy cycles: high wages cut exports, which cuts jobs, which cuts wages.</li>
+</ul></li>
+<li><strong>The three economies at period 40:</strong> slack (exports down 20%) at 11.5% unemployment, base at 5%, and tight (exports up 20%) at 0.9%.</li>
+</ul>
+<div class="cell">
+<div id="tbl-flow-tight" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-flow-tight-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 13: Extended flow model (price-elastic exports, wage curve): each policy’s effect at period 40 in the slack and the tight economy. Real disposable income nationally, the town’s share of it, and the change in wages (average across producers).
+</figcaption>
+<div aria-describedby="tbl-flow-tight-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 42%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 7%">
+<col style="width: 7%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Policy</th>
+<th style="text-align: right;">Real income, slack</th>
+<th style="text-align: right;">Real income, tight</th>
+<th style="text-align: right;">Town’s share, slack</th>
+<th style="text-align: right;">Town’s share, tight</th>
+<th style="text-align: right;">Wages, slack</th>
+<th style="text-align: right;">Wages, tight</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">D1 Inward investment in the town: component exports +20%</td>
+<td style="text-align: right;">0.82%</td>
+<td style="text-align: right;">1.44%</td>
+<td style="text-align: right;">87%</td>
+<td style="text-align: right;">106%</td>
+<td style="text-align: right;">0.7%</td>
+<td style="text-align: right;">1.7%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">D2 Local procurement, every place (E7)</td>
+<td style="text-align: right;">0.63%</td>
+<td style="text-align: right;">1.07%</td>
+<td style="text-align: right;">51%</td>
+<td style="text-align: right;">84%</td>
+<td style="text-align: right;">0.8%</td>
+<td style="text-align: right;">3.1%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">D2t Local procurement, the town only</td>
+<td style="text-align: right;">0.33%</td>
+<td style="text-align: right;">0.77%</td>
+<td style="text-align: right;">83%</td>
+<td style="text-align: right;">130%</td>
+<td style="text-align: right;">0.3%</td>
+<td style="text-align: right;">1.0%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">S1 Productivity +5%: the town’s components (tradable)</td>
+<td style="text-align: right;">-0.17%</td>
+<td style="text-align: right;">-0.44%</td>
+<td style="text-align: right;">114%</td>
+<td style="text-align: right;">131%</td>
+<td style="text-align: right;">-0.2%</td>
+<td style="text-align: right;">-1.4%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">S2 Productivity +5%: the town’s everyday services</td>
+<td style="text-align: right;">0.44%</td>
+<td style="text-align: right;">0.15%</td>
+<td style="text-align: right;">96%</td>
+<td style="text-align: right;">-10%</td>
+<td style="text-align: right;">-0.2%</td>
+<td style="text-align: right;">-1.8%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">S3 Productivity +5%: the town’s utilities and transport</td>
+<td style="text-align: right;">0.12%</td>
+<td style="text-align: right;">0.11%</td>
+<td style="text-align: right;">88%</td>
+<td style="text-align: right;">66%</td>
+<td style="text-align: right;">0.0%</td>
+<td style="text-align: right;">-0.1%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">S4 Productivity +5%: the city’s business services (sold to firms everywhere)</td>
+<td style="text-align: right;">0.55%</td>
+<td style="text-align: right;">0.70%</td>
+<td style="text-align: right;">34%</td>
+<td style="text-align: right;">55%</td>
+<td style="text-align: right;">0.4%</td>
+<td style="text-align: right;">1.5%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">S5 Productivity +5%: everyday services in every place</td>
+<td style="text-align: right;">1.15%</td>
+<td style="text-align: right;">1.30%</td>
+<td style="text-align: right;">41%</td>
+<td style="text-align: right;">54%</td>
+<td style="text-align: right;">-0.6%</td>
+<td style="text-align: right;">-4.2%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<ul>
+<li><strong>In a tight economy, local demand policy crowds out other places.</strong>
+<ul>
+<li>Town-only procurement raises the town’s wages and prices. The town gets 130% of the national real gain, so the other places lose.</li>
+<li>In the slack economy the town keeps 83%, and nobody loses.</li>
+<li>This is Venables’s crowding-out claim (C13), appearing where the labour market is tight and not where it’s slack.</li>
+</ul></li>
+<li><strong>In a tight economy, local services productivity no longer pays the town.</strong>
+<ul>
+<li>In the slack and base economies the town keeps most of the real gain from its everyday services: 96% and 88%.</li>
+<li>In the tight one, the freed workers push local wages down through the wage curve. The town’s own real income doesn’t rise, and the small national gain (0.15%) lands elsewhere.</li>
+</ul></li>
+<li><strong>With price-elastic exports, business-service productivity pays.</strong> In the city’s business services, which sell to firms and abroad, it raises national real income 0.55% (slack) to 0.70% (tight). In the original model, with fixed export quantities, it was a loss. The upstream channel needs price-elastic buyers, as in Model F.</li>
+<li><strong>The two models still bracket the question.</strong> The flow model is the demand-constrained case and Model F the full-employment case, and the extended flow model shows how the answer moves as a place tightens.</li>
 </ul>
 <p><strong>Local against national, across the two models.</strong></p>
 <ul>
@@ -4506,15 +4677,13 @@ Table 12: Flow model, slack economy (exports down 20%): each policy’s effect 
 <h2 class="anchored" data-anchor-id="what-is-not-done-yet">18. What is not done yet</h2>
 <ul>
 <li><strong>The flow model’s lenses</strong> beyond the standard results rows (chains, booking, measurement), and its calibration routine. The model itself is ported and validated (section 17).</li>
-<li><strong>Price-elastic exports and wages that respond to unemployment in the flow model,</strong> so that it can represent a tight economy and not only a slack one.</li>
+<li><strong>Calibrating the flow model’s extensions.</strong> The export elasticity and wage curve are set from Model F and the literature, not fitted to the flow model’s own economy.</li>
 <li><strong>Model F extensions.</strong>
 <ul>
-<li>A lower elasticity between places for local services (section 16).</li>
-<li>Agglomeration.</li>
+<li>Agglomeration strong enough for multiple equilibria (Model F solves only weak agglomeration, section 16).</li>
 <li>A pass-through switch calibrated on T11a, so that firms keep part of a gain instead of passing it all to prices.</li>
 <li>Equal-cost (rather than equal-percentage) proxies once T10’s ratios have been argued over.</li>
 </ul></li>
-<li><strong>Supply chains in Venables’s city model (Model A, T7).</strong></li>
 <li><strong>The regional version of T3, and T5’s local multipliers.</strong> Both need regional input–output coefficients that the payment flows can’t supply.</li>
 <li><strong>The household round of T5,</strong> and the “pound walking” comparison.</li>
 </ul>
