@@ -2329,7 +2329,9 @@ window.Quarto = {
   <li><a href="#do-foundational-sectors-buy-locally-t5-limited" id="toc-do-foundational-sectors-buy-locally-t5-limited" class="nav-link" data-scroll-target="#do-foundational-sectors-buy-locally-t5-limited">13. Do foundational sectors buy locally? (T5, limited)</a></li>
   <li><a href="#break-even-how-cheap-must-broad-catch-up-be-t10" id="toc-break-even-how-cheap-must-broad-catch-up-be-t10" class="nav-link" data-scroll-target="#break-even-how-cheap-must-broad-catch-up-be-t10">14. Break-even: how cheap must broad catch-up be? (T10)</a></li>
   <li><a href="#does-model-f-look-like-uk-firms-t11b" id="toc-does-model-f-look-like-uk-firms-t11b" class="nav-link" data-scroll-target="#does-model-f-look-like-uk-firms-t11b">15. Does Model F look like UK firms? (T11b)</a></li>
-  <li><a href="#what-is-not-done-yet" id="toc-what-is-not-done-yet" class="nav-link" data-scroll-target="#what-is-not-done-yet">16. What is not done yet</a></li>
+  <li><a href="#model-f-with-demand-calibrated-to-t6" id="toc-model-f-with-demand-calibrated-to-t6" class="nav-link" data-scroll-target="#model-f-with-demand-calibrated-to-t6">16. Model F with demand calibrated to T6</a></li>
+  <li><a href="#the-flow-model-in-r-and-local-against-national-when-the-economy-is-slack-f0-t9" id="toc-the-flow-model-in-r-and-local-against-national-when-the-economy-is-slack-f0-t9" class="nav-link" data-scroll-target="#the-flow-model-in-r-and-local-against-national-when-the-economy-is-slack-f0-t9">17. The flow model in R, and local against national when the economy is slack (F0, T9)</a></li>
+  <li><a href="#what-is-not-done-yet" id="toc-what-is-not-done-yet" class="nav-link" data-scroll-target="#what-is-not-done-yet">18. What is not done yet</a></li>
   <li><a href="#sources" id="toc-sources" class="nav-link" data-scroll-target="#sources">Sources</a></li>
   </ul>
 </nav>
@@ -2425,7 +2427,14 @@ window.Quarto = {
 <li><strong>Productivity costs jobs outside tradables (T6).</strong> In UK industries, 1997–2019, hours fall with productivity growth in business-to-business and local services, much less in tradables. Model F’s Cobb–Douglas demand misses this.</li>
 <li><strong>Everyday services don’t buy more locally than tradables (T5).</strong> The material sectors and local production do.</li>
 <li><strong>Model F’s revenue productivity looks like UK firms’ (T11b),</strong> across places, sectors and place by sector.</li>
-<li><strong>What isn’t done (section 16):</strong> the flow model in R (F0), and with it the slack-economy half of T9; less elastic demand and agglomeration in Model F; regional coefficients.</li>
+<li><strong>With demand calibrated to T6 (section 16),</strong> productivity costs jobs outside tradables in the model too. National gains fall to about 0.7 of Hulten everywhere, and the frontier push’s lead per point mostly goes: upstream business-to-business productivity is about level with it under either closure.</li>
+<li><strong>The flow model is now in R (F0, section 17),</strong> reproducing the TypeScript build row for row. In its demand-constrained economy:
+<ul>
+<li>local procurement keeps about three-quarters of its gain in the place that does it;</li>
+<li>productivity gains with demand unchanged cost jobs and measured GDP;</li>
+<li>productivity in local services still raises real income there, through lower prices, while the official lens shows a fall.</li>
+</ul></li>
+<li><strong>What isn’t done (section 18):</strong> agglomeration in Model F, the flow model’s lenses and a tight-economy version of it, and regional coefficients.</li>
 </ul>
 </section>
 <section id="what-was-done" class="level2">
@@ -4147,7 +4156,7 @@ Table 9: Break-even cost ratios against the frontier push (P1), national real i
 <ul>
 <li>First-order gains on an equal-percentage basis, with three draws and 12 abstract places.</li>
 <li>Land and buildings as one fixed factor.</li>
-<li>Cobb–Douglas consumer demand, which understates the jobs that productivity displaces in local services (T6).</li>
+<li>Cobb–Douglas consumer demand, which understates the jobs that productivity displaces in local services (T6). Section 16 recalibrates demand to T6, and the ratios narrow.</li>
 <li>Equal cost per point “per worker” is the comparison, not equal cost per firm.</li>
 </ul></li>
 </ul>
@@ -4172,13 +4181,335 @@ Table 9: Break-even cost ratios against the frontier push (P1), national real i
 <li><strong>Not checked.</strong> The within/between/entry/exit decomposition needs firms, which Model F doesn’t have.</li>
 </ul>
 </section>
-<section id="what-is-not-done-yet" class="level2">
-<h2 class="anchored" data-anchor-id="what-is-not-done-yet">16. What is not done yet</h2>
+<section id="model-f-with-demand-calibrated-to-t6" class="level2">
+<h2 class="anchored" data-anchor-id="model-f-with-demand-calibrated-to-t6">16. Model F with demand calibrated to T6</h2>
 <ul>
-<li><strong>F0, the flow model in R,</strong> and with it the slack-economy half of T9. The TypeScript build is about 240 KB across 58 files. Converting and validating it against its recorded results is a job of its own.</li>
+<li><strong>Why.</strong> T6 showed Model F’s default demand is too generous.
+<ul>
+<li>It uses Cobb–Douglas spending across sectors, Cobb–Douglas inputs, and foreign demand as elastic as demand between places (10).</li>
+<li>With it, no group loses jobs from its own productivity, while UK industries do.</li>
+</ul></li>
+<li><strong>What changed.</strong>
+<ul>
+<li>Households’ substitution between sectors and firms’ substitution between inputs became CES.</li>
+<li>Foreign demand for UK exports got its own price elasticity.</li>
+<li>A grid search chose the setting whose own-jobs responses best match T6, weighting by its standard errors.</li>
+</ul></li>
+<li><strong>The best fit:</strong>
+<ul>
+<li>households’ elasticity 0.5;</li>
+<li>firms’ elasticity between inputs 0.2;</li>
+<li>foreign demand elasticity 2.</li>
+</ul></li>
+</ul>
+<div class="cell">
+<div id="tbl-md-fit" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-md-fit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 10: Own-jobs response to own productivity (log points of jobs per log point of productivity), by market reach: T6’s estimates from UK industries (stacked five-year differences, standard errors in brackets) against Model F with the calibrated demand and with the default.
+</figcaption>
+<div aria-describedby="tbl-md-fit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 23%">
+<col style="width: 20%">
+<col style="width: 29%">
+<col style="width: 26%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Market reach</th>
+<th style="text-align: right;">UK industries (T6)</th>
+<th style="text-align: right;">Model F, calibrated demand</th>
+<th style="text-align: right;">Model F, default demand</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">business to business</td>
+<td style="text-align: right;">-0.54 (0.12)</td>
+<td style="text-align: right;">-0.58</td>
+<td style="text-align: right;">2.50</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">local services</td>
+<td style="text-align: right;">-0.34 (0.16)</td>
+<td style="text-align: right;">-0.37</td>
+<td style="text-align: right;">0.59</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">tradable</td>
+<td style="text-align: right;">-0.14 (0.07)</td>
+<td style="text-align: right;">-0.01</td>
+<td style="text-align: right;">3.13</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<ul>
+<li><strong>The fit is close, and at the inelastic end of the grid.</strong>
+<ul>
+<li>Two of the three chosen values are the grid’s lowest.</li>
+<li>T6’s estimates are biased towards −1 by division bias, so the true elasticities are probably a little higher. This setting is the pessimistic end for jobs.</li>
+</ul></li>
+</ul>
+<p><strong>What changes.</strong></p>
+<ul>
+<li><strong>National gains fall below Hulten everywhere, by about the same factor.</strong>
+<ul>
+<li>A 5% gain now gives 0.65–0.76 times the Domar prediction in every group, against 0.8–1.4 with the default.</li>
+<li>With foreign demand inelastic, exporters’ gains no longer come with better terms of trade.</li>
+<li>With inputs complementary, a cheaper input does less.</li>
+<li>So the national ranking simply follows the Domar weights (T2): construction, finance and professional services first (0.73%, 0.69%, 0.72%).</li>
+</ul></li>
+<li><strong>Productivity now costs the improving group jobs, nationally,</strong> outside the tradable groups: construction -3.9%, utilities -4.9%, retail -2.2%, transport -1.6%. Electronics, machinery and vehicles gain 1.3%.</li>
+<li><strong>The break-even ratios narrow (T10).</strong></li>
+</ul>
+<div class="cell">
+<div id="tbl-md-breakeven" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-md-breakeven-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 11: Break-even cost ratios against the frontier push (P1), national real income per point, people mobile: the default demand and the demand calibrated to T6, under both trade closures. Model F’s closure: mean of three draws; Rice and Venables’s: one draw.
+</figcaption>
+<div aria-describedby="tbl-md-breakeven-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 24%">
+<col style="width: 17%">
+<col style="width: 17%">
+<col style="width: 19%">
+<col style="width: 19%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Proxy</th>
+<th style="text-align: right;">Default, Model F closure</th>
+<th style="text-align: right;">Default, R and V closure</th>
+<th style="text-align: right;">Calibrated, Model F closure</th>
+<th style="text-align: right;">Calibrated, R and V closure</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">P2 long tail</td>
+<td style="text-align: right;">0.66</td>
+<td style="text-align: right;">1.07</td>
+<td style="text-align: right;">0.84</td>
+<td style="text-align: right;">0.53</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">P3 upstream (business-to-business)</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">1.19</td>
+<td style="text-align: right;">0.92</td>
+<td style="text-align: right;">1.04</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">P4 local services</td>
+<td style="text-align: right;">0.40</td>
+<td style="text-align: right;">1.04</td>
+<td style="text-align: right;">0.64</td>
+<td style="text-align: right;">0.96</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<ul>
+<li><strong>With realistic demand, upstream business-to-business productivity is roughly level with a frontier push per point, under either closure:</strong> 0.92 with Model F’s closure, 1.04 with Rice and Venables’s.
+<ul>
+<li>Local services need points 36% cheaper with Model F’s closure, and are about level with Rice and Venables’s (0.96).</li>
+<li>The long tail needs points 16% cheaper with Model F’s closure and 47% cheaper with Rice and Venables’s.</li>
+</ul></li>
+<li><strong>The closure matters less once demand is realistic,</strong> because inelastic foreign demand takes away most of what it decided. What was a reversal becomes a band.</li>
+<li><strong>Locally, little changes.</strong>
+<ul>
+<li>With people immobile, the lagging place still keeps most of the gain from local services: retail 111%, hospitality 76%.</li>
+<li>It keeps less from finance (23%) and electronics, machinery and vehicles (19%).</li>
+<li>With people mobile, it keeps little of anything.</li>
+</ul></li>
+<li><strong>A caveat this exposes.</strong>
+<ul>
+<li>When only the lagging place improves its local services, it gains jobs in them (retail 11.6% with people immobile), and can keep more than the whole national gain.</li>
+<li>It draws customers from the other places. Rice and Venables’s elasticity between places (10) applies to local services too, so even a small cross-border share is very price-sensitive.</li>
+<li>That is probably too strong for hairdressers and cafés. A lower elasticity between places for local services is the next refinement.</li>
+</ul></li>
+</ul>
+</section>
+<section id="the-flow-model-in-r-and-local-against-national-when-the-economy-is-slack-f0-t9" class="level2">
+<h2 class="anchored" data-anchor-id="the-flow-model-in-r-and-local-against-national-when-the-economy-is-slack-f0-t9">17. The flow model in R, and local against national when the economy is slack (F0, T9)</h2>
+<p><strong>The port (F0).</strong></p>
+<ul>
+<li><strong>What the model is.</strong> The “where GVA is booked” flow model is a four-place model: a core city, a manufacturing town, a rural area and the rest of the world.
+<ul>
+<li>Output follows demand, with fixed input coefficients and markup pricing.</li>
+<li>Profits are booked by firm and paid to owners by place, and households spend out of income and money.</li>
+<li>Wages and prices don’t respond to unemployment.</li>
+</ul></li>
+<li><strong>The port.</strong> It is now in R (<code>functions_flow.R</code>), translated function by function from its TypeScript build. Its inputs, the calibrated parameters and the ten experiments, are exported from the TypeScript as JSON.</li>
+<li><strong>It reproduces the original.</strong> Across the baseline and all ten experiments, every standard results row at eight periods matches the TypeScript’s own output: 27,016 rows, none missing.
+<ul>
+<li>The largest relative difference is 7.3e-11 for economy and place rows, and 1.8e-14 for producers.</li>
+<li>Money stocks match to 2.6e-09 of the rounding floor.</li>
+<li>All eleven runs take a few seconds.</li>
+</ul></li>
+<li><strong>Not ported:</strong> the lenses beyond the standard results rows, and the calibration routine (the stored calibration is used).</li>
+</ul>
+<p><strong>The slack-economy experiments (T9).</strong></p>
+<ul>
+<li><strong>What was run.</strong> Each policy starts at period 5 and is compared at period 40 with the same economy without it. It is run in the base economy (5% unemployment everywhere) and in a slack one (all exports down 20% from period 1, unemployment 13%).</li>
+<li><strong>Real income.</strong> Disposable income is deflated by each place’s own cost of living (its base-year household basket).</li>
+</ul>
+<div class="cell">
+<div id="tbl-flow-t9" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-flow-t9-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 12: Flow model, slack economy (exports down 20%): each policy’s effect at period 40 against the same economy without it. National GDP (the official lens), unemployment (percentage points), real disposable income, and the town’s share of the national change in real disposable income.
+</figcaption>
+<div aria-describedby="tbl-flow-t9-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 48%">
+<col style="width: 4%">
+<col style="width: 13%">
+<col style="width: 14%">
+<col style="width: 18%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Policy</th>
+<th style="text-align: right;">GDP</th>
+<th style="text-align: right;">Unemployment (points)</th>
+<th style="text-align: right;">Real disposable income</th>
+<th style="text-align: right;">Town’s share of the real gain</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">D1 Inward investment in the town: component exports +20%</td>
+<td style="text-align: right;">0.99%</td>
+<td style="text-align: right;">-0.94</td>
+<td style="text-align: right;">0.68%</td>
+<td style="text-align: right;">79%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">D2 Local procurement, every place (E7)</td>
+<td style="text-align: right;">0.98%</td>
+<td style="text-align: right;">-0.98</td>
+<td style="text-align: right;">0.61%</td>
+<td style="text-align: right;">45%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">D2t Local procurement, the town only</td>
+<td style="text-align: right;">0.47%</td>
+<td style="text-align: right;">-0.46</td>
+<td style="text-align: right;">0.29%</td>
+<td style="text-align: right;">74%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">S1 Productivity +5%: the town’s components (tradable)</td>
+<td style="text-align: right;">-0.27%</td>
+<td style="text-align: right;">0.41</td>
+<td style="text-align: right;">-0.26%</td>
+<td style="text-align: right;">96%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">S2 Productivity +5%: the town’s everyday services</td>
+<td style="text-align: right;">-0.15%</td>
+<td style="text-align: right;">0.35</td>
+<td style="text-align: right;">0.52%</td>
+<td style="text-align: right;">99%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">S3 Productivity +5%: the town’s utilities and transport</td>
+<td style="text-align: right;">-0.07%</td>
+<td style="text-align: right;">0.04</td>
+<td style="text-align: right;">0.11%</td>
+<td style="text-align: right;">92%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">S4 Productivity +5%: the city’s business services (sold to firms everywhere)</td>
+<td style="text-align: right;">-0.88%</td>
+<td style="text-align: right;">0.68</td>
+<td style="text-align: right;">-0.52%</td>
+<td style="text-align: right;">-4%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">S5 Productivity +5%: everyday services in every place</td>
+<td style="text-align: right;">-0.35%</td>
+<td style="text-align: right;">0.82</td>
+<td style="text-align: right;">1.23%</td>
+<td style="text-align: right;">43%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<ul>
+<li><strong>When demand is the constraint, demand policy raises local incomes, and keeps much of the gain local.</strong>
+<ul>
+<li>Inward investment in the town (component exports +20%) raises national GDP 0.99% and cuts unemployment by 0.94 points. The town keeps 79% of the real gain.</li>
+<li>Local procurement in the town alone keeps 74% there. Procurement everywhere spreads the gain roughly by population (the town keeps 45%).</li>
+</ul></li>
+<li><strong>Productivity gains with demand unchanged cost jobs and measured GDP.</strong> The output still has to be bought, so fewer workers make it, and they stay unemployed.</li>
+<li><strong>The real gain depends on who buys the output.</strong>
+<ul>
+<li><strong>Everyday services, local buyers.</strong> Productivity in the town’s everyday services lowers its cost of living 1.6%.
+<ul>
+<li>Real income rises 0.52% nationally, almost all of it in the town (99%).</li>
+<li>Meanwhile GDP falls 0.15% and unemployment rises 0.35 points.</li>
+<li>The official lens and the real one point in opposite directions, as in Model F (T8).</li>
+</ul></li>
+<li><strong>Exporters.</strong> Productivity in an exporter is a loss.
+<ul>
+<li>The model’s exports are fixed quantities, so a lower price only cuts export revenue: the town’s components -0.26% real income, the city’s business services -0.52%.</li>
+<li>That is the flow model’s extreme version of the terms-of-trade effect in section 11. With price-elastic exports it would be smaller or reversed.</li>
+</ul></li>
+</ul></li>
+<li><strong>Slack and tight barely differ in this model.</strong>
+<ul>
+<li>Results in the base economy are within about a tenth of a point of the slack ones (inward investment raises GDP 1.12% there, against 0.99%).</li>
+<li>Wages and prices don’t respond to unemployment, so tightness never bites.</li>
+<li>The flow model is the demand-constrained case and Model F the full-employment case. Together they bracket the question rather than one model answering it.</li>
+</ul></li>
+</ul>
+<p><strong>Local against national, across the two models.</strong></p>
+<ul>
+<li><strong>When output is limited by demand (flow model):</strong>
+<ul>
+<li>demand-side policies raise both local and national income, and a place’s own procurement keeps most of the gain local;</li>
+<li>productivity gains in local services raise local real income through lower prices but cost local jobs;</li>
+<li>productivity gains in exporters can lose income when export demand doesn’t respond to price.</li>
+</ul></li>
+<li><strong>When people are fully employed (Model F):</strong>
+<ul>
+<li>productivity gains raise national real income;</li>
+<li>whether they stay local depends on mobility: little stays when people move, most stays from local services when they don’t.</li>
+</ul></li>
+<li><strong>The hypothesis holds in both models in one form.</strong> Productivity in local everyday services raises real incomes where it happens, and the official lens hides it. But how much that is worth to a place depends on whether the jobs it frees are taken up (Model F) or lost (flow model).</li>
+</ul>
+</section>
+<section id="what-is-not-done-yet" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-not-done-yet">18. What is not done yet</h2>
+<ul>
+<li><strong>The flow model’s lenses</strong> beyond the standard results rows (chains, booking, measurement), and its calibration routine. The model itself is ported and validated (section 17).</li>
+<li><strong>Price-elastic exports and wages that respond to unemployment in the flow model,</strong> so that it can represent a tight economy and not only a slack one.</li>
 <li><strong>Model F extensions.</strong>
 <ul>
-<li>Consumer demand less elastic than Cobb–Douglas for local services (T6 says it should be).</li>
+<li>A lower elasticity between places for local services (section 16).</li>
 <li>Agglomeration.</li>
 <li>A pass-through switch calibrated on T11a, so that firms keep part of a gain instead of passing it all to prices.</li>
 <li>Equal-cost (rather than equal-percentage) proxies once T10’s ratios have been argued over.</li>
@@ -4198,9 +4529,9 @@ Table 9: Break-even cost ratios against the frontier push (P1), national real i
 <li><strong>Trade between regions:</strong> ONS, <a href="https://www.ons.gov.uk/businessindustryandtrade/internationaltrade/datasets/interregionaltradeingoodsandservicesuk">Interregional trade in goods and services, UK, 2019</a> (official statistics in development).</li>
 <li><strong>Productivity by industry:</strong> ONS, <a href="https://www.ons.gov.uk/economy/economicoutputandproductivity/productivitymeasures/datasets/labourproductivitybyindustrydivision">Labour productivity by industry division</a>, Q4 2020 edition (experimental).</li>
 <li><strong>Firm data (section 8):</strong> Companies House accounts (open data), as processed in the companieshouseopen project’s report outputs; read in place, with the aggregate tables kept in the gitignored <code>local/</code> folder because they are rebuilt from that project.</li>
-<li><strong>The model:</strong> Rice and Venables (2023), as rebuilt in round 1 (<a href="tradeable_jobs_firstlook.qmd">tradeable_jobs_firstlook.qmd</a>).</li>
+<li><strong>The models:</strong> Rice and Venables (2023), as rebuilt in round 1 (<a href="tradeable_jobs_firstlook.qmd">tradeable_jobs_firstlook.qmd</a>); the “where GVA is booked” flow model (modelling_demand, model spec v1), ported from its TypeScript build (modelling repo, commit 70c3804).</li>
 </ul>
-<p><em>Code: <code>code/tradeable_jobs/functions_io.R</code>, <code>functions_ch.R</code>, <code>functions_payments.R</code> and <code>functions_modelF.R</code>, and scripts <code>12</code> to <code>20</code>. Outputs: <code>docs/chunks/tradeable_jobs/outputs/</code> (<code>t2_*</code> to <code>t11b_*</code> and <code>mf_*</code>); T11a’s tables stay in the gitignored <code>local/tradeable_jobs/companieshouse/</code>. Plan and log: <a href="tradeable_jobs_further_tests_plan.md">tradeable_jobs_further_tests_plan.md</a>.</em></p>
+<p><em>Code: <code>code/tradeable_jobs/functions_io.R</code>, <code>functions_ch.R</code>, <code>functions_payments.R</code>, <code>functions_modelF.R</code> and <code>functions_flow.R</code> (with its inputs in <code>flow_model/</code>), and scripts <code>12</code> to <code>23</code>. Outputs: <code>docs/chunks/tradeable_jobs/outputs/</code> (<code>t2_*</code> to <code>t11b_*</code> and <code>mf_*</code>); T11a’s tables stay in the gitignored <code>local/tradeable_jobs/companieshouse/</code>. Plan and log: <a href="tradeable_jobs_further_tests_plan.md">tradeable_jobs_further_tests_plan.md</a>.</em></p>
 </section>
 
 </main>

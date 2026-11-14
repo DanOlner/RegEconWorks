@@ -37,7 +37,10 @@ scripts <- c(
   '17_t6_own_jobs.R',            # T6: productivity growth against own hours, UK industries 1997-2019
   '18_t5_local_sourcing.R',      # T5 (limited): how locally each industry buys, from the payment flows
   '19_t10_breakeven.R',          # T10: break-even cost ratios per point of productivity, national and local
-  '20_t11b_moments.R'            # T11b: Model F's revenue productivity against the firm data's
+  '20_t11b_moments.R',           # T11b: Model F's revenue productivity against the firm data's
+  '21_modelF_demand.R',          # Model F with demand calibrated to T6 (CES households and inputs, export elasticity)
+  '22_flow_model.R',             # F0: the flow model in R, checked row by row against its TypeScript build
+  '23_t9_flow_slack.R'           # T9 (slack half): demand and productivity policies in the flow model, local and national
 )
 for (s in scripts) {
   message('== ', s)

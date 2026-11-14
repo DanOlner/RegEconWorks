@@ -18,12 +18,16 @@
 #               by Walras's law (mf_solve reports the gap). Model F's experiments use q_fixed.
 #   income      y_is = w_is + land rent (shared nationally, or to local residents); utility as in (3)
 #   mobility    Frechet across place-sectors (vartheta), or immobile between places (workers choose a sector)
+#   demand      by default Cobb-Douglas across sectors for households and across inputs for firms, and foreign
+#               demand with the same elasticity sigma as between places. eps_c and eps_i make them CES (weights
+#               set at reference price indices P_ref, so spending shares match the calibration there), and
+#               sigma_x gives foreign demand its own elasticity (round 2, after T6)
 # With G = 0, gC = gM = 0 and gT = 1 - gL this is Model C/D.
 
 mf_spec <- function(N, S, a, t_s, gL, gT, G, gC = rep(0, S), gM = rep(0, S), sigma = 10, eta = 1, alpha = 0.25,
                     beta0 = 0.1875, beta_s = NULL, vartheta = 50, mobility = c('frechet', 'immobile'),
                     rent = c('national', 'local'), L = N, L_i = NULL, kappa = 0, exports = TRUE, sectors = NULL,
-                    phi = rep(1, S), q_fixed = NULL) {
+                    phi = rep(1, S), q_fixed = NULL, eps_c = 1, eps_i = 1, sigma_x = NULL, P_ref = NULL) {
   mobility <- match.arg(mobility); rent <- match.arg(rent)
   if (is.null(beta_s)) beta_s <- rep((1 - alpha - beta0) / S, S)
   G <- as.matrix(G)
@@ -34,7 +38,8 @@ mf_spec <- function(N, S, a, t_s, gL, gT, G, gC = rep(0, S), gM = rep(0, S), sig
   list(N = N, S = S, a = a, t_s = t_s, tau = t_s^(1 - sigma), gL = gL, gT = gT, G = G, gC = gC, gM = gM,
        sigma = sigma, eta = eta, alpha = alpha, beta0 = beta0, beta_s = beta_s, vartheta = vartheta,
        mobility = mobility, rent = rent, L = L, L_i = L_i, kappa = kappa, exports = exports, sectors = sectors, phi = phi,
-       q_fixed = q_fixed)
+       q_fixed = q_fixed, eps_c = eps_c, eps_i = eps_i, sigma_x = if (is.null(sigma_x)) sigma else sigma_x,
+       P_ref = if (is.null(P_ref)) rep(1, S) else P_ref)
 }
 
 # Evaluate at given wages. Prices solve their own fixed point (each sector's cost depends on the local
@@ -46,6 +51,15 @@ mf_evaluate <- function(w, state, sp, passes = 8) {
   gL_m <- matrix(sp$gL, N, S, byrow = TRUE); gT_m <- matrix(sp$gT, N, S, byrow = TRUE)
   phi_m <- matrix(sp$phi, N, S, byrow = TRUE)
   fixed_share <- sp$gC + sp$gM
+  sigx <- sp$sigma_x
+  # CES demand (eps_c for households across sectors, eps_i for firms across inputs), with weights set at
+  # reference price indices P_ref; with eps = 1 the original Cobb-Douglas code runs unchanged
+  ces_c <- abs(sp$eps_c - 1) > 1e-9; ces_i <- abs(sp$eps_i - 1) > 1e-9
+  Gsum <- colSums(sp$G); Gsum_m <- matrix(Gsum, N, S, byrow = TRUE)
+  theta <- sweep(sp$G, 2, pmax(Gsum, 1e-12), '/')
+  lPref <- log(sp$P_ref); lPref_m <- matrix(lPref, N, S, byrow = TRUE)
+  B <- sum(sp$beta_s); bshare <- sp$beta_s / B; bshare_m <- matrix(bshare, N, S, byrow = TRUE)
+  lQref <- matrix(as.vector(lPref %*% theta), N, S, byrow = TRUE)
   r <- state$r; M <- state$M; rebate <- state$rebate; Ls <- state$Ls; lp <- state$log_p; rev <- state$rev
   mu <- 1 / (1 + sp$vartheta * sp$alpha / (1 + sp$eta))
   for (k in seq_len(passes)) {
@@ -55,7 +69,10 @@ mf_evaluate <- function(w, state, sp, passes = 8) {
       pp <- exp((1 - sig) * lp)
       P1 <- (1 - tau_m) * pp + tau_m * matrix(colSums(pp), N, S, byrow = TRUE)
       logP <- log(P1) / (1 - sig)
-      lp_new <- base + logP %*% sp$G
+      lp_new <- if (!ces_i) base + logP %*% sp$G else {
+        X <- exp((1 - sp$eps_i) * (logP - lPref_m))
+        base + Gsum_m * (lQref + log(X %*% theta) / (1 - sp$eps_i))
+      }
       d <- max(abs(lp_new - lp)); lp <- lp_new
       if (d < 1e-12) break
     }
@@ -63,16 +80,20 @@ mf_evaluate <- function(w, state, sp, passes = 8) {
     P1 <- (1 - tau_m) * pp + tau_m * matrix(colSums(pp), N, S, byrow = TRUE)
     logP <- log(P1) / (1 - sig)
     q <- NA_real_
+    if (ces_c) { Yc <- bshare_m * exp((1 - sp$eps_c) * (logP - lPref_m)); hh_w <- Yc / rowSums(Yc) }
+    if (ces_i) { Xi <- exp((1 - sp$eps_i) * (logP - lPref_m)); XT <- Xi %*% theta }
     for (j in 1:200) {                                      # spending and revenues
-      E <- beta_m * M + rev %*% t(sp$G)
+      hh <- if (ces_c) B * M * hh_w else beta_m * M
+      inter <- if (ces_i) Xi * ((Gsum_m * rev / XT) %*% t(theta)) else rev %*% t(sp$G)
+      E <- hh + inter
       EP <- E / P1
       dom <- p^(-sig) * ((1 - tau_m) * EP + tau_m * matrix(colSums(EP), N, S, byrow = TRUE))
       if (sp$exports) {
         if (is.null(sp$q_fixed)) {
           imports <- sp$beta0 * sum(M) + sum(rev %*% fixed_share)
-          q <- (sum(phi_m * tau_m * pp) / imports)^(1 / sig)
+          q <- (sum(phi_m * tau_m * p^(1 - sigx)) / imports)^(1 / sigx)
         } else q <- sp$q_fixed
-        ex <- (q * p)^(-sig) * tau_m * phi_m
+        ex <- (q * p)^(-sigx) * tau_m * phi_m
       } else ex <- 0
       rev_new <- p * (dom + ex)
       d <- max(abs(log(rev_new) - log(rev))); rev <- rev_new
@@ -81,7 +102,9 @@ mf_evaluate <- function(w, state, sp, passes = 8) {
     r_target <- (sp$alpha * M + rowSums(gT_m * rev))^(1 / (1 + sp$eta))
     r <- r^(1 - mu) * r_target^mu
     rent_val <- r^(1 + sp$eta)
-    log_e <- sp$alpha * log(r) + as.vector(logP %*% sp$beta_s)
+    log_e <- if (!ces_c) sp$alpha * log(r) + as.vector(logP %*% sp$beta_s) else
+      sp$alpha * log(r) + B * (sum(bshare * lPref) +
+        log(rowSums(bshare_m * exp((1 - sp$eps_c) * (logP - lPref_m)))) / (1 - sp$eps_c))
     if (sp$rent == 'national') { rebate <- sum(rent_val) / sp$L; y <- w + rebate
     } else y <- w + rent_val / pmax(rowSums(Ls), 1e-12)
     log_u <- log(y) - log_e
@@ -220,4 +243,108 @@ mf_calibrate_exports <- function(cal, N, iters = 30, tol = 1e-6, ...) {
     phi <- phi * (target / sh)
   }
   list(phi = phi, solution = so, spec = sp, iterations = k, max_log_gap = max(abs(log(sh / target))))
+}
+
+# Export scales, reference prices and foreign demand for a demand setting. The CES weights are set at the
+# price indices of a run with equal productivity everywhere, which depend a little on the weights, so it
+# iterates. Returns phi, P_ref and q0 (the foreign-demand level held fixed in experiments).
+mf_calibrate_demand <- function(cal, N, eps_c = 1, eps_i = 1, sigma_x = NULL, rounds = 3) {
+  Pref <- NULL
+  for (k in seq_len(if (eps_c == 1 && eps_i == 1) 1 else rounds)) {
+    ce <- mf_calibrate_exports(cal, N, eps_c = eps_c, eps_i = eps_i, sigma_x = sigma_x, P_ref = Pref)
+    Pref <- exp(colMeans(log(ce$solution$P)))
+  }
+  list(phi = ce$phi, P_ref = Pref, q0 = ce$solution$q, eps_c = eps_c, eps_i = eps_i, sigma_x = sigma_x,
+       max_log_gap = ce$max_log_gap)
+}
+
+# One draw of place-by-sector productivity, one mobility setting, supply chains on or off: the baseline and
+#   E1 national  +shock in one group in every place, group by group
+#   E2 local     +shock in one group in the lagging place only (lowest real income at the start)
+#   E3 proxies   (supply chains on only) P1 frontier push, P2 long tail, P3 upstream, P4 local services,
+#                P7 lower trade costs for local services, P9 more elastic land, P4 with P9
+# dem: from mf_calibrate_demand(). Returns one row per experiment.
+mf_run_draw <- function(cal, dem, seed, mob, chains = TRUE, N = 12, shock = 0.05, proxies = TRUE, groups = TRUE,
+                        local = TRUE) {
+  S <- length(cal$sectors)
+  set.seed(seed); a0 <- rv_draw_a(N, S, 0.2)
+  tradable <- cal$t_s == min(cal$t_s)
+  upstream <- cal$sectors %in% c('wholesale_motor', 'transport', 'admin_support', 'utilities', 'construction')
+  local_g <- cal$sectors %in% c('retail', 'hospitality', 'arts_personal')
+  frontier <- cal$limit == 'Tradable frontier'
+  mk <- function(a, ...) mf_from_cal(cal, a, supply_chains = chains, phi = dem$phi, mobility = mob, q_fixed = dem$q0,
+                                     eps_c = dem$eps_c, eps_i = dem$eps_i, sigma_x = dem$sigma_x, P_ref = dem$P_ref, ...)
+  sp0 <- mk(a0); s0 <- mf_solve(sp0); o0 <- mf_outcomes(s0, sp0)
+  wel <- function(o) if (mob == 'frechet') o$national$welfare else o$national$welfare_immobile
+  lag <- which.min(o0$places$u)
+  dom0 <- colSums(s0$rev) / o0$national$gdp
+  inc0 <- o0$national$wage_bill + o0$national$rent_total
+  res <- function(sp1, s1, label, group = NA, where = 'all places', hulten_pred = NA) {
+    o1 <- mf_outcomes(s1, sp1)
+    gi <- if (is.na(group)) NA else match(group, cal$sectors)
+    money0 <- o0$places$L * o0$places$y; dlu <- log(o1$places$u) - log(o0$places$u)
+    gain_i <- money0 * dlu
+    inc1 <- o1$national$wage_bill + o1$national$rent_total
+    tibble(experiment = label, group = group, where = where, mobility = mob, supply_chains = chains, seed = seed,
+           converged = s1$converged, trade_gap = s1$trade_gap,
+           d_welfare = log(wel(o1)) - log(wel(o0)),
+           d_u_mean = log(o1$national$u_mean) - log(o0$national$u_mean),
+           d_gva_pw = log(o1$national$gva_per_worker) - log(o0$national$gva_per_worker),
+           hulten = hulten_pred,
+           d_group_jobs = if (is.na(gi)) NA else log(sum(s1$Ls[, gi])) - log(sum(s0$Ls[, gi])),
+           land_share = (o1$national$rent_total - o0$national$rent_total) / (inc1 - inc0),
+           d_cv_u = o1$national$cv_u - o0$national$cv_u,
+           d_cv_gva = o1$national$cv_gva_per_worker - o0$national$cv_gva_per_worker,
+           lag_d_u = dlu[lag],
+           lag_d_gva_pw = log(o1$places$gva_per_worker[lag]) - log(o0$places$gva_per_worker[lag]),
+           lag_d_wage = log(o1$places$w[lag]) - log(o0$places$w[lag]),
+           lag_d_pop = log(o1$places$L[lag]) - log(o0$places$L[lag]),
+           lag_d_rent = log(o1$places$rent[lag]) - log(o0$places$rent[lag]),
+           lag_d_tradable_cost = mean(s1$log_p[lag, tradable] - s0$log_p[lag, tradable]),
+           lag_gain_share = gain_i[lag] / sum(gain_i),
+           others_d_u = sum((money0 * dlu)[-lag]) / sum(money0[-lag]),
+           lag_d_group_jobs = if (is.na(gi)) NA else log(s1$Ls[lag, gi]) - log(s0$Ls[lag, gi]),
+           lag_emp_share = if (is.na(gi)) NA else s0$Ls[lag, gi] / sum(s0$Ls[lag, ]))
+  }
+  rows <- list()
+  if (groups) for (g in seq_len(S)) {
+    a1 <- a0; a1[, g] <- a1[, g] * (1 + shock)
+    sp1 <- mk(a1); rows[[length(rows) + 1]] <- res(sp1, mf_solve(sp1, start = s0), 'E1 national', cal$sectors[g],
+                                                    hulten_pred = dom0[g] * log(1 + shock))
+    if (local) {
+      a2 <- a0; a2[lag, g] <- a2[lag, g] * (1 + shock)
+      sp2 <- mk(a2); rows[[length(rows) + 1]] <- res(sp2, mf_solve(sp2, start = s0), 'E2 local', cal$sectors[g], 'lagging place',
+                                                      hulten_pred = s0$rev[lag, g] / o0$national$gdp * log(1 + shock))
+    }
+  }
+  if (chains && proxies) {
+    prox <- list()
+    a1 <- a0; for (g in which(frontier)) { top <- order(a0[, g], decreasing = TRUE)[1:2]; a1[top, g] <- a1[top, g] * 1.10 }
+    prox[['P1 frontier push: +10% in the top 2 places of each frontier group']] <- a1
+    a1 <- a0; for (g in seq_len(S)) { m <- median(a0[, g]); lo <- a0[, g] < m; a1[lo, g] <- a0[lo, g] + 0.5 * (m - a0[lo, g]) }
+    prox[['P2 long tail: places below the median close half the gap, every group']] <- a1
+    a1 <- a0; a1[, upstream] <- a1[, upstream] * (1 + shock); prox[['P3 upstream: +5% in the business-to-business groups']] <- a1
+    a1 <- a0; a1[, local_g] <- a1[, local_g] * (1 + shock); prox[['P4 local services: +5% in retail, hospitality, personal']] <- a1
+    for (nm in names(prox)) {
+      a1 <- prox[[nm]]; sp1 <- mk(a1)
+      hp <- sum(s0$rev * log(a1 / a0)) / o0$national$gdp
+      rows[[length(rows) + 1]] <- res(sp1, mf_solve(sp1, start = s0), nm, hulten_pred = hp) %>%
+        mutate(points = sum(s0$Ls * log(a1 / a0)) / sum(s0$Ls))
+    }
+    cal7 <- cal; cal7$t_s[local_g] <- 1.7
+    sp7 <- mf_from_cal(cal7, a0, phi = dem$phi, mobility = mob, q_fixed = dem$q0, eps_c = dem$eps_c, eps_i = dem$eps_i,
+                       sigma_x = dem$sigma_x, P_ref = dem$P_ref)
+    rows[[length(rows) + 1]] <- res(sp7, mf_solve(sp7, start = s0), 'P7 lower trade costs for local services (t 2.0 to 1.7)')
+    sp9 <- mk(a0, eta = 3); s9 <- mf_solve(sp9, start = s0)
+    rows[[length(rows) + 1]] <- res(sp9, s9, 'P9 more elastic land (eta 1 to 3)')
+    a1 <- a0; a1[, local_g] <- a1[, local_g] * (1 + shock)
+    sp49 <- mk(a1, eta = 3); s49 <- mf_solve(sp49, start = s9)
+    o9 <- mf_outcomes(s9, sp9); o49 <- mf_outcomes(s49, sp49)
+    rows[[length(rows) + 1]] <- tibble(experiment = 'P4 with P9: local services +5%, land eta 3', mobility = mob, supply_chains = TRUE,
+                                       seed = seed, converged = s49$converged,
+                                       d_welfare = log(wel(o49)) - log(wel(o9)),
+                                       land_share = (o49$national$rent_total - o9$national$rent_total) /
+                                         ((o49$national$wage_bill + o49$national$rent_total) - (o9$national$wage_bill + o9$national$rent_total)))
+  }
+  bind_rows(rows) %>% mutate(lag_place = lag)
 }

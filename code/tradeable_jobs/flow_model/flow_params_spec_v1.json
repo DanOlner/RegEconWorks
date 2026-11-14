@@ -1,0 +1,687 @@
+{
+ "name": "model spec v1",
+ "places": [
+  "C",
+  "M",
+  "R"
+ ],
+ "restOfWorld": "W",
+ "population": {
+  "total": 1800000,
+  "mainPlace": "C",
+  "mainShare": 0.2860675758296032,
+  "otherWeights": {
+   "M": 2,
+   "R": 1
+  }
+ },
+ "demography": {
+  "C": {
+   "workingAgeShare": 0.66,
+   "participation": 0.8,
+   "personsPerDwelling": 2.3
+  },
+  "M": {
+   "workingAgeShare": 0.62,
+   "participation": 0.76,
+   "personsPerDwelling": 2.3
+  },
+  "R": {
+   "workingAgeShare": 0.58,
+   "participation": 0.74,
+   "personsPerDwelling": 2.3
+  }
+ },
+ "producers": {
+  "C.HQ": {
+   "place": "C",
+   "sector": "HQ",
+   "description": "Gadget brand: IP, design and head office (\"Cupertino\")",
+   "firm": "GadgetCo",
+   "pricing": "fixed",
+   "markup": 0,
+   "fixedPrice": 1,
+   "inputs": {
+    "M.CMP": 0.2,
+    "W.ASM": 0.08,
+    "W.GEN": 0.04,
+    "C.UTL": 0.02,
+    "C.BIZ": 0.06
+   },
+   "jobsPerUnit": 0.000002,
+   "wagePerJob": 100000,
+   "depreciation": 0.05,
+   "payout": 1,
+   "displayPrice": 700,
+   "displayUnit": "gadget"
+  },
+  "C.BIZ": {
+   "place": "C",
+   "sector": "BIZ",
+   "description": "Business and financial services",
+   "firm": "BizCo",
+   "pricing": "markup",
+   "markup": 0.639344262295082,
+   "fixedPrice": 1,
+   "inputs": {
+    "W.GEN": 0.08,
+    "C.UTL": 0.03
+   },
+   "jobsPerUnit": 0.000009090909090909091,
+   "wagePerJob": 55000,
+   "depreciation": 0.05,
+   "payout": 1,
+   "displayPrice": 120,
+   "displayUnit": "consultant hour"
+  },
+  "C.RET": {
+   "place": "C",
+   "sector": "RET",
+   "description": "Everyday goods and services: retail, hospitality, personal services",
+   "firm": "RetailCo",
+   "pricing": "markup",
+   "markup": 0.25,
+   "fixedPrice": 1,
+   "inputs": {
+    "M.FOD": 0.16,
+    "W.GEN": 0.16,
+    "C.UTL": 0.04,
+    "C.BIZ": 0.04
+   },
+   "jobsPerUnit": 0.000014814814814814815,
+   "wagePerJob": 27000,
+   "depreciation": 0.07,
+   "payout": 1,
+   "displayPrice": 10,
+   "displayUnit": "basket"
+  },
+  "C.UTL": {
+   "place": "C",
+   "sector": "UTL",
+   "description": "Utilities and transport (material foundational economy)",
+   "firm": "UtilityCo",
+   "pricing": "markup",
+   "markup": 0.7241379310344827,
+   "fixedPrice": 1,
+   "inputs": {
+    "W.GEN": 0.25,
+    "C.BIZ": 0.03
+   },
+   "jobsPerUnit": 0.000007894736842105263,
+   "wagePerJob": 38000,
+   "depreciation": 0.2,
+   "payout": 1,
+   "displayPrice": 1,
+   "displayUnit": "service unit"
+  },
+  "C.PRV": {
+   "place": "C",
+   "sector": "PRV",
+   "description": "Health, education and care (providential foundational economy), publicly funded",
+   "firm": "Government",
+   "pricing": "cost",
+   "markup": 0,
+   "fixedPrice": 1,
+   "inputs": {
+    "C.UTL": 0.06,
+    "W.GEN": 0.06,
+    "C.RET": 0.04,
+    "C.BIZ": 0.02
+   },
+   "jobsPerUnit": 0.0000234375,
+   "wagePerJob": 32000,
+   "depreciation": 0.07,
+   "payout": 1,
+   "displayPrice": 30,
+   "displayUnit": "service hour"
+  },
+  "C.HSG": {
+   "place": "C",
+   "sector": "HSG",
+   "description": "Housing services (rent)",
+   "firm": "LandlordsC",
+   "pricing": "fixed",
+   "markup": 0,
+   "fixedPrice": 1,
+   "inputs": {
+    "C.UTL": 0.05,
+    "W.GEN": 0.02,
+    "C.RET": 0.02,
+    "C.BIZ": 0.01
+   },
+   "jobsPerUnit": 7.142857142857143e-7,
+   "wagePerJob": 28000,
+   "depreciation": 0.25,
+   "payout": 1,
+   "displayPrice": 13800,
+   "displayUnit": "dwelling-year"
+  },
+  "M.CMP": {
+   "place": "M",
+   "sector": "CMP",
+   "description": "Components and capital goods",
+   "firm": "CompCo",
+   "pricing": "markup",
+   "markup": 0.2987012987012987,
+   "fixedPrice": 1,
+   "inputs": {
+    "W.GEN": 0.38,
+    "M.UTL": 0.05,
+    "C.BIZ": 0.04
+   },
+   "jobsPerUnit": 0.000008333333333333334,
+   "wagePerJob": 36000,
+   "depreciation": 0.08,
+   "payout": 1,
+   "displayPrice": 140,
+   "displayUnit": "component set"
+  },
+  "M.FOD": {
+   "place": "M",
+   "sector": "FOD",
+   "description": "Food processing",
+   "firm": "FoodCo",
+   "pricing": "markup",
+   "markup": 0.2195121951219512,
+   "fixedPrice": 1,
+   "inputs": {
+    "R.AGR": 0.4,
+    "W.GEN": 0.13,
+    "M.UTL": 0.04,
+    "C.BIZ": 0.03
+   },
+   "jobsPerUnit": 0.000007333333333333333,
+   "wagePerJob": 30000,
+   "depreciation": 0.07,
+   "payout": 1,
+   "displayPrice": 0.5,
+   "displayUnit": "pot"
+  },
+  "M.RET": {
+   "place": "M",
+   "sector": "RET",
+   "description": "Everyday goods and services: retail, hospitality, personal services",
+   "firm": "RetailCo",
+   "pricing": "markup",
+   "markup": 0.25,
+   "fixedPrice": 1,
+   "inputs": {
+    "M.FOD": 0.16,
+    "W.GEN": 0.16,
+    "M.UTL": 0.04,
+    "C.BIZ": 0.04
+   },
+   "jobsPerUnit": 0.000014814814814814815,
+   "wagePerJob": 27000,
+   "depreciation": 0.07,
+   "payout": 1,
+   "displayPrice": 10,
+   "displayUnit": "basket"
+  },
+  "M.UTL": {
+   "place": "M",
+   "sector": "UTL",
+   "description": "Utilities and transport (material foundational economy)",
+   "firm": "UtilityCo",
+   "pricing": "markup",
+   "markup": 0.7241379310344827,
+   "fixedPrice": 1,
+   "inputs": {
+    "W.GEN": 0.25,
+    "C.BIZ": 0.03
+   },
+   "jobsPerUnit": 0.000007894736842105263,
+   "wagePerJob": 38000,
+   "depreciation": 0.2,
+   "payout": 1,
+   "displayPrice": 1,
+   "displayUnit": "service unit"
+  },
+  "M.PRV": {
+   "place": "M",
+   "sector": "PRV",
+   "description": "Health, education and care (providential foundational economy), publicly funded",
+   "firm": "Government",
+   "pricing": "cost",
+   "markup": 0,
+   "fixedPrice": 1,
+   "inputs": {
+    "M.UTL": 0.06,
+    "W.GEN": 0.06,
+    "M.RET": 0.04,
+    "C.BIZ": 0.02
+   },
+   "jobsPerUnit": 0.0000234375,
+   "wagePerJob": 32000,
+   "depreciation": 0.07,
+   "payout": 1,
+   "displayPrice": 30,
+   "displayUnit": "service hour"
+  },
+  "M.HSG": {
+   "place": "M",
+   "sector": "HSG",
+   "description": "Housing services (rent)",
+   "firm": "LandlordsM",
+   "pricing": "fixed",
+   "markup": 0,
+   "fixedPrice": 1,
+   "inputs": {
+    "M.UTL": 0.05,
+    "W.GEN": 0.02,
+    "M.RET": 0.02,
+    "C.BIZ": 0.01
+   },
+   "jobsPerUnit": 7.142857142857143e-7,
+   "wagePerJob": 28000,
+   "depreciation": 0.25,
+   "payout": 1,
+   "displayPrice": 6900,
+   "displayUnit": "dwelling-year"
+  },
+  "R.AGR": {
+   "place": "R",
+   "sector": "AGR",
+   "description": "Agriculture (milk and other produce)",
+   "firm": "Farms",
+   "pricing": "markup",
+   "markup": 0.5384615384615383,
+   "fixedPrice": 1,
+   "inputs": {
+    "W.GEN": 0.28,
+    "R.UTL": 0.05,
+    "C.BIZ": 0.02
+   },
+   "jobsPerUnit": 0.000012,
+   "wagePerJob": 25000,
+   "depreciation": 0.15,
+   "payout": 1,
+   "displayPrice": 0.35,
+   "displayUnit": "litre"
+  },
+  "R.RET": {
+   "place": "R",
+   "sector": "RET",
+   "description": "Everyday goods and services: retail, hospitality, personal services",
+   "firm": "RetailCo",
+   "pricing": "markup",
+   "markup": 0.25,
+   "fixedPrice": 1,
+   "inputs": {
+    "M.FOD": 0.16,
+    "W.GEN": 0.16,
+    "R.UTL": 0.04,
+    "C.BIZ": 0.04
+   },
+   "jobsPerUnit": 0.000014814814814814815,
+   "wagePerJob": 27000,
+   "depreciation": 0.07,
+   "payout": 1,
+   "displayPrice": 10,
+   "displayUnit": "basket"
+  },
+  "R.UTL": {
+   "place": "R",
+   "sector": "UTL",
+   "description": "Utilities and transport (material foundational economy)",
+   "firm": "UtilityCo",
+   "pricing": "markup",
+   "markup": 0.7241379310344827,
+   "fixedPrice": 1,
+   "inputs": {
+    "W.GEN": 0.25,
+    "C.BIZ": 0.03
+   },
+   "jobsPerUnit": 0.000007894736842105263,
+   "wagePerJob": 38000,
+   "depreciation": 0.2,
+   "payout": 1,
+   "displayPrice": 1,
+   "displayUnit": "service unit"
+  },
+  "R.PRV": {
+   "place": "R",
+   "sector": "PRV",
+   "description": "Health, education and care (providential foundational economy), publicly funded",
+   "firm": "Government",
+   "pricing": "cost",
+   "markup": 0,
+   "fixedPrice": 1,
+   "inputs": {
+    "R.UTL": 0.06,
+    "W.GEN": 0.06,
+    "R.RET": 0.04,
+    "C.BIZ": 0.02
+   },
+   "jobsPerUnit": 0.0000234375,
+   "wagePerJob": 32000,
+   "depreciation": 0.07,
+   "payout": 1,
+   "displayPrice": 30,
+   "displayUnit": "service hour"
+  },
+  "R.HSG": {
+   "place": "R",
+   "sector": "HSG",
+   "description": "Housing services (rent)",
+   "firm": "LandlordsR",
+   "pricing": "fixed",
+   "markup": 0,
+   "fixedPrice": 1,
+   "inputs": {
+    "R.UTL": 0.05,
+    "W.GEN": 0.02,
+    "R.RET": 0.02,
+    "C.BIZ": 0.01
+   },
+   "jobsPerUnit": 7.142857142857143e-7,
+   "wagePerJob": 28000,
+   "depreciation": 0.25,
+   "payout": 1,
+   "displayPrice": 8050,
+   "displayUnit": "dwelling-year"
+  },
+  "W.GEN": {
+   "place": "W",
+   "sector": "GEN",
+   "description": "Imported goods and energy",
+   "firm": null,
+   "pricing": "fixed",
+   "markup": 0,
+   "fixedPrice": 1,
+   "inputs": {},
+   "jobsPerUnit": 0.00001,
+   "wagePerJob": 0,
+   "depreciation": 0,
+   "payout": 0,
+   "displayPrice": 1,
+   "displayUnit": "£1 of goods"
+  },
+  "W.ASM": {
+   "place": "W",
+   "sector": "ASM",
+   "description": "Contract assembly of gadgets",
+   "firm": null,
+   "pricing": "fixed",
+   "markup": 0,
+   "fixedPrice": 1,
+   "inputs": {},
+   "jobsPerUnit": 0.0000215,
+   "wagePerJob": 0,
+   "depreciation": 0,
+   "payout": 0,
+   "displayPrice": 56,
+   "displayUnit": "assembly"
+  }
+ },
+ "firms": {
+  "GadgetCo": {
+   "description": "Gadget brand, including the offshore IP holder W.IP",
+   "headOffice": "C",
+   "owners": {
+    "C": 0.3,
+    "M": 0.03,
+    "R": 0.02,
+    "W": 0.65
+   },
+   "government": false
+  },
+  "BizCo": {
+   "description": "Business and financial services",
+   "headOffice": "C",
+   "owners": {
+    "C": 0.4,
+    "M": 0.05,
+    "R": 0.05,
+    "W": 0.5
+   },
+   "government": false
+  },
+  "RetailCo": {
+   "description": "Retail chain",
+   "headOffice": "C",
+   "owners": {
+    "C": 0.4,
+    "M": 0.1,
+    "R": 0.05,
+    "W": 0.45
+   },
+   "government": false
+  },
+  "UtilityCo": {
+   "description": "Utilities and transport",
+   "headOffice": "C",
+   "owners": {
+    "C": 0.15,
+    "M": 0.05,
+    "R": 0.05,
+    "W": 0.75
+   },
+   "government": false
+  },
+  "CompCo": {
+   "description": "Components maker",
+   "headOffice": "M",
+   "owners": {
+    "C": 0.2,
+    "M": 0.4,
+    "R": 0,
+    "W": 0.4
+   },
+   "government": false
+  },
+  "FoodCo": {
+   "description": "Food processor",
+   "headOffice": "M",
+   "owners": {
+    "C": 0.1,
+    "M": 0.6,
+    "R": 0.1,
+    "W": 0.2
+   },
+   "government": false
+  },
+  "Farms": {
+   "description": "Farms",
+   "headOffice": "R",
+   "owners": {
+    "R": 1
+   },
+   "government": false
+  },
+  "LandlordsC": {
+   "description": "Landlords of city housing",
+   "headOffice": "C",
+   "owners": {
+    "C": 0.7,
+    "W": 0.3
+   },
+   "government": false
+  },
+  "LandlordsM": {
+   "description": "Landlords of town housing",
+   "headOffice": "M",
+   "owners": {
+    "C": 0.2,
+    "M": 0.8
+   },
+   "government": false
+  },
+  "LandlordsR": {
+   "description": "Landlords of rural housing",
+   "headOffice": "R",
+   "owners": {
+    "C": 0.2,
+    "R": 0.8
+   },
+   "government": false
+  },
+  "Government": {
+   "description": "Public services",
+   "headOffice": null,
+   "owners": {},
+   "government": true
+  }
+ },
+ "households": {
+  "alpha1": 0.9,
+  "alpha2": 0.1,
+  "essentialsPerResident": {
+   "HSG": {
+    "C": 6000,
+    "M": 3000,
+    "R": 3500
+   },
+   "UTL": {
+    "C": 1500,
+    "M": 1500,
+    "R": 1500
+   },
+   "RET": {
+    "C": 2500,
+    "M": 2500,
+    "R": 2500
+   }
+  },
+  "gadgetShare": 0.03,
+  "gadgetProducer": "C.HQ",
+  "localSector": "RET",
+  "freezeConsumption": false
+ },
+ "government": {
+  "incomeTaxRate": 0.2628711442671471,
+  "profitTaxRate": 0.25,
+  "benefitNonWorking": 5000,
+  "benefitUnemployed": 6000,
+  "provisionSector": "PRV",
+  "provisionPerResident": 5500,
+  "provisionMultiplier": {
+   "C": 1,
+   "M": 1,
+   "R": 1
+  },
+  "quality": {
+   "C": 1,
+   "M": 1,
+   "R": 1
+  }
+ },
+ "investment": {
+  "shares": {
+   "M.CMP": 0.5,
+   "W.GEN": 0.5
+  }
+ },
+ "exports": {
+  "total": 20434377643.073345,
+  "mix": {
+   "C.HQ": 0.4,
+   "C.BIZ": 0.35,
+   "M.CMP": 0.15,
+   "M.FOD": 0.1
+  }
+ },
+ "royalty": {
+  "payer": "C.HQ",
+  "rate": 0,
+  "payout": 1,
+  "ownerFirm": "GadgetCo"
+ },
+ "commuting": {
+  "override": null
+ },
+ "wealth": {
+  "housingSector": "HSG",
+  "housingYield": 0.04,
+  "equityYield": 0.06,
+  "excludeFromEquity": [
+   "LandlordsC",
+   "LandlordsM",
+   "LandlordsR"
+  ]
+ },
+ "calibration": {
+  "targets": {
+   "currentAccount": 0,
+   "unemploymentRate": 0.05,
+   "mainPlaceInCommuting": 0.15
+  },
+  "mainShareRange": [
+   0.05,
+   0.8
+  ],
+  "incomeTaxRateRange": [
+   0,
+   0.8
+  ]
+ },
+ "plausibility": [
+  {
+   "label": "Income tax rate θ",
+   "metric": "incomeTaxRate",
+   "min": 0.15,
+   "max": 0.35
+  },
+  {
+   "label": "City population share s_C",
+   "metric": "mainShare",
+   "min": 0.2,
+   "max": 0.5
+  },
+  {
+   "label": "GDP per resident (£)",
+   "metric": "gdpPerResident",
+   "min": 28000,
+   "max": 40000
+  },
+  {
+   "label": "Disposable income ÷ GDP",
+   "metric": "disposableIncomeToGdp",
+   "min": 0.55,
+   "max": 0.75
+  },
+  {
+   "label": "Labour share of GVA",
+   "metric": "labourShareOfGva",
+   "min": 0.45,
+   "max": 0.6
+  },
+  {
+   "label": "Exports ÷ GDP",
+   "metric": "exportsToGdp",
+   "min": 0.25,
+   "max": 0.5
+  },
+  {
+   "label": "Dividends to overseas owners ÷ GDP",
+   "metric": "overseasDividendsToGdp",
+   "min": 0.05,
+   "max": 0.15
+  },
+  {
+   "label": "Providential (PRV) share of GVA",
+   "metric": "sectorShareOfGva",
+   "sector": "PRV",
+   "min": 0.12,
+   "max": 0.22
+  },
+  {
+   "label": "Housing share of GVA",
+   "metric": "sectorShareOfGva",
+   "sector": "HSG",
+   "min": 0.08,
+   "max": 0.16
+  },
+  {
+   "label": "C.HQ share of GDP",
+   "metric": "producerShareOfGdp",
+   "producer": "C.HQ",
+   "min": 0.05,
+   "max": 0.25
+  },
+  {
+   "label": "GVA per job, by place: C > M and C > R",
+   "metric": "mainPlaceHasHighestGvaPerJob"
+  }
+ ]
+}

@@ -377,6 +377,11 @@ Plot Domar weight against tradability, sized by employment and coloured by found
     - Business-to-business industries −0.54, local services −0.34, tradables −0.14.
     - Division bias is a caveat.
 - **Literature elasticity ranges were not used.** Model F stands in for them.
+- **Follow-up, Model F with demand calibrated to T6** (same day, `21_modelF_demand.R`; section 16 of the report). A grid over households' substitution between sectors, firms' substitution between inputs and the export demand elasticity.
+    - Best fit: 0.5, 0.2 and 2. Model own-jobs responses are −0.58, −0.37 and −0.01, against T6's −0.54, −0.34 and −0.14.
+    - National gains fall to 0.65–0.76 of Hulten in every group.
+    - Break-even per point narrows. Upstream is 0.92 with Model F's closure and 1.04 with Rice and Venables's; local services 0.64 and 0.96; long tail 0.84 and 0.53.
+    - A caveat exposed: the between-place elasticity of 10 lets a single place's local services draw customers from the others.
 
 ### T7. Re-run round 1's claims with supply chains
 
@@ -418,7 +423,7 @@ For every experiment, show where the official lens (workplace GVA per worker) an
 
 **Output.** A map of the conditions under which each proxy is aligned, local more than national, or local less than national, checked against the predictions in section 3.
 
-**Model F half done (14 November 2026). The flow-model half needs F0.** See the T1 note and section 11 of the report.
+**Done (14 November 2026).** The Model F half is in section 11 of the report (see the T1 note). The flow-model half, after F0, is in section 17: see the log.
 
 - **Mobility is the switch.** With people mobile, local gains leak whatever the group. With people immobile, local and national align for local services and diverge for nationally traded business services.
 
@@ -649,8 +654,20 @@ All of these are physical productivity changes (W8). The policy cost of a percen
     - a repeated `summarise()` ordering bug (totals computed before the weighted means that need them; fixed in T2, T11a and T5);
     - the Scottish column match missing a header with a line break;
     - a local break-even ratio averaged over groups with tiny denominators (now pooled).
+- **Later the same day:**
+    - committed the overnight work (decision 9: Companies House is open data);
+    - refactored Model F's experiments into `mf_run_draw()`, run in parallel (identical results, 1 minute instead of 20);
+    - calibrated Model F's demand to T6 (see the T6 note).
+- **F0 done.**
+    - The flow model's engine is ported to R (`functions_flow.R`), with inputs exported from the TypeScript as JSON (`code/tradeable_jobs/flow_model/`).
+    - It matches the TypeScript's own output on all 27,016 standard rows across the baseline and ten experiments (`22_flow_model.R`): relative differences of 1e-10 or less. The original was run with Node 26's type stripping, with one class patched in a scratch copy.
+- **T9's slack half done** (`23_t9_flow_slack.R`; section 17 of the report).
+    - Demand policies raise local and national incomes. Town-only procurement keeps 74% of the real gain in the town, inward investment 79%.
+    - Productivity gains with demand unchanged cost jobs and GDP.
+    - Everyday-services productivity still raises real income through prices (the town keeps 99%). Exporters' productivity loses income, because the model's exports are fixed quantities.
+    - Slack and base barely differ: wages and prices don't respond to unemployment, so the flow model is the demand-constrained case and Model F the full-employment one.
 - **Not done:**
-    - F0, the flow model in R (about 240 KB of TypeScript in 58 files), and with it the slack half of T9;
+    - the flow model's lenses beyond the standard rows, its calibration routine, and price-elastic exports or responsive wages;
     - Model A with supply chains;
-    - agglomeration and less elastic demand in Model F;
+    - agglomeration in Model F, and a lower elasticity between places for local services;
     - the household round of T5.

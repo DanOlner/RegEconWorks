@@ -34,22 +34,9 @@ t10 <- tj_cached('t10_breakeven', {
   # Local: the lagging place's own gain per point delivered there, by group, against the tradable frontier groups
   sec <- mf$sectors
   loc <- mf_runs %>% filter(experiment == 'E2 local', supply_chains) %>% left_join(sec %>% select(group, limit, t_s), by = 'group')
-  # the lagging place's employment share in each group, from the run's baseline: recover it from the E1/E2
-  # design (shock of mf_shock in one group of one place): points = share x log(1 + mf_shock)
-  shares <- tj_cached('t10_lag_shares', {
-    gr <- read_csv(file.path(tj_output_dir, 't2_groups.csv'), show_col_types = FALSE)
-    cf <- read_csv(file.path(tj_output_dir, 't2_group_coefficients.csv'), show_col_types = FALSE)
-    cal <- mf_calibrate(gr, cf); S <- length(cal$sectors)
-    bind_rows(lapply(unique(loc$seed), function(seed) bind_rows(lapply(c('frechet', 'immobile'), function(mob) {
-      set.seed(seed); a0 <- rv_draw_a(mf_N, S, 0.2)
-      sp <- mf_from_cal(cal, a0, phi = mf$phi, q_fixed = mf$q0, mobility = mob); s0 <- mf_solve(sp)
-      lag <- unique(loc$lag_place[loc$seed == seed & loc$mobility == mob])
-      tibble(seed = seed, mobility = mob, group = cal$sectors, lag_emp_share = s0$Ls[lag, ] / sum(s0$Ls[lag, ]))
-    }))))
-  }, depends = c('code/tradeable_jobs/functions_modelF.R', 'code/tradeable_jobs/16_modelF.R', 'code/tradeable_jobs/19_t10_breakeven.R'))
-  local <- loc %>% left_join(shares, by = c('seed', 'mobility', 'group')) %>%
-    mutate(points = lag_emp_share * log(1 + mf_shock), local_gain_per_point = lag_d_u / points,
-           national_gain_per_point = d_welfare / points)
+  # points delivered in the lagging place: its employment share in the group (from the run's baseline) x the shock
+  local <- loc %>% mutate(points = lag_emp_share * log(1 + mf_shock), local_gain_per_point = lag_d_u / points,
+                          national_gain_per_point = d_welfare / points)
   # Pooled within each type: summed gain over summed points (a ratio of means, not a mean of ratios: a
   # group that is a sliver of the place's jobs has a tiny denominator and a wild ratio of its own)
   pooled <- local %>% group_by(limit, mobility, seed) %>%

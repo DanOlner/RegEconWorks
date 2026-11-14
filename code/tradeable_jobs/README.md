@@ -15,7 +15,7 @@ Rscript code/tradeable_jobs/00_run_all.R                # everything, from scrat
 python3 -I code/tradeable_jobs/get_papers.py           # optional: the papers themselves, as readable markdown
 ```
 
-**Time.** A full rebuild takes about 40 minutes: round 1 about 15, Model F's experiments about 20. Rendering on its own reuses the cache.
+**Time.** A full rebuild takes about 30 minutes: round 1 about 15, Model F's experiments a few minutes (run in parallel across cores), the demand calibration grid about 6. Rendering on its own reuses the cache.
 
 **Requirements.**
 
@@ -66,5 +66,10 @@ python3 -I code/tradeable_jobs/get_papers.py           # optional: the papers th
 | `18_t5_local_sourcing.R` | T5 (limited): the share of each industry's business spending paid to its own region, from the payment flows |
 | `19_t10_breakeven.R` | T10: break-even cost ratios per point of productivity against a frontier push, national and for the lagging place |
 | `20_t11b_moments.R` | T11b: Model F's spread of revenue productivity by sector, place and place by sector, against the firm data |
-| `00_run_all.R` | Clears the cache, runs 01–20, renders both reports |
+| `21_modelF_demand.R` | Model F with demand calibrated to T6: a grid over households' and firms' substitution elasticities and foreign demand's, the best fit to T6's own-jobs responses, and the experiments and break-even ratios with it |
+| `functions_flow.R` | F0: the "where GVA is booked" flow model (model spec v1), ported from its TypeScript build: compiling parameters, prices, the period solver, commuting, the run loop with scenarios, identity checks, results rows |
+| `flow_model/` | The flow model's inputs: the calibrated spec-v1 parameters and the experiments' scenarios as JSON, exported from the TypeScript by `export-inputs.ts`; and the TypeScript's own results rows (`reference_ts_rows.csv.gz`) for the check |
+| `22_flow_model.R` | Runs the flow model's baseline and ten experiments and checks every standard results row against the TypeScript's |
+| `23_t9_flow_slack.R` | T9 (slack half): inward investment, local procurement and productivity in the flow model, in the base and a slack economy, nationally and by place |
+| `00_run_all.R` | Clears the cache, runs 01–23, renders both reports |
 | `get_papers.py` | Downloads and converts the three papers to readable markdown |

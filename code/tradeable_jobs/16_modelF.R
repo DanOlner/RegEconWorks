@@ -57,96 +57,12 @@ mf <- tj_cached('modelF', {
     value = c(max(abs(log(r0$w) - log(f0$w))), max(abs(hulten$model - hulten$domar)), ce$max_log_gap,
               cor(colSums(ce$solution$rev) / sum(ce$solution$rev), cal$output / sum(cal$output))))
 
-  # EXPERIMENTS ----
-  tradable <- cal$t_s == min(cal$t_s)
-  upstream <- cal$sectors %in% c('wholesale_motor', 'transport', 'admin_support', 'utilities', 'construction')
-  local_g <- cal$sectors %in% c('retail', 'hospitality', 'arts_personal')
-  frontier <- cal$limit == 'Tradable frontier'
-
-  one_draw <- function(seed) {
-    set.seed(seed); a0 <- rv_draw_a(mf_N, S, 0.2)
-    out <- list()
-    for (mob in c('frechet', 'immobile')) {
-      for (chains in c(TRUE, FALSE)) {
-        mk <- function(a, ...) mf_from_cal(cal, a, supply_chains = chains, phi = phi, mobility = mob, q_fixed = q0, ...)
-        sp0 <- mk(a0); s0 <- mf_solve(sp0); o0 <- mf_outcomes(s0, sp0)
-        wel <- function(o) if (mob == 'frechet') o$national$welfare else o$national$welfare_immobile
-        lag <- which.min(o0$places$u)
-        dom0 <- colSums(s0$rev) / o0$national$gdp
-        inc0 <- o0$national$wage_bill + o0$national$rent_total
-        res <- function(sp1, s1, label, group = NA, where = 'all places', hulten_pred = NA) {
-          o1 <- mf_outcomes(s1, sp1)
-          gi <- if (is.na(group)) NA else match(group, cal$sectors)
-          money0 <- o0$places$L * o0$places$y; dlu <- log(o1$places$u) - log(o0$places$u)
-          gain_i <- money0 * dlu
-          inc1 <- o1$national$wage_bill + o1$national$rent_total
-          tibble(experiment = label, group = group, where = where, mobility = mob, supply_chains = chains, seed = seed,
-                 converged = s1$converged, trade_gap = s1$trade_gap,
-                 d_welfare = log(wel(o1)) - log(wel(o0)),
-                 d_u_mean = log(o1$national$u_mean) - log(o0$national$u_mean),
-                 d_gva_pw = log(o1$national$gva_per_worker) - log(o0$national$gva_per_worker),
-                 hulten = hulten_pred,
-                 d_group_jobs = if (is.na(gi)) NA else log(sum(s1$Ls[, gi])) - log(sum(s0$Ls[, gi])),
-                 land_share = (o1$national$rent_total - o0$national$rent_total) / (inc1 - inc0),
-                 d_cv_u = o1$national$cv_u - o0$national$cv_u,
-                 d_cv_gva = o1$national$cv_gva_per_worker - o0$national$cv_gva_per_worker,
-                 lag_d_u = dlu[lag],
-                 lag_d_gva_pw = log(o1$places$gva_per_worker[lag]) - log(o0$places$gva_per_worker[lag]),
-                 lag_d_wage = log(o1$places$w[lag]) - log(o0$places$w[lag]),
-                 lag_d_pop = log(o1$places$L[lag]) - log(o0$places$L[lag]),
-                 lag_d_rent = log(o1$places$rent[lag]) - log(o0$places$rent[lag]),
-                 lag_d_tradable_cost = mean(s1$log_p[lag, tradable] - s0$log_p[lag, tradable]),
-                 lag_gain_share = gain_i[lag] / sum(gain_i),
-                 others_d_u = sum((money0 * dlu)[-lag]) / sum(money0[-lag]))
-        }
-        rows <- list()
-        # E1 national and E2 local, group by group
-        for (g in seq_len(S)) {
-          a1 <- a0; a1[, g] <- a1[, g] * (1 + mf_shock)
-          sp1 <- mk(a1); rows[[length(rows) + 1]] <- res(sp1, mf_solve(sp1, start = s0), 'E1 national', cal$sectors[g],
-                                                          hulten_pred = dom0[g] * log(1 + mf_shock))
-          a2 <- a0; a2[lag, g] <- a2[lag, g] * (1 + mf_shock)
-          sp2 <- mk(a2); rows[[length(rows) + 1]] <- res(sp2, mf_solve(sp2, start = s0), 'E2 local', cal$sectors[g], 'lagging place',
-                                                          hulten_pred = s0$rev[lag, g] / o0$national$gdp * log(1 + mf_shock))
-        }
-        if (chains) {
-          # E3 policy proxies
-          prox <- list()
-          a1 <- a0; for (g in which(frontier)) { top <- order(a0[, g], decreasing = TRUE)[1:2]; a1[top, g] <- a1[top, g] * 1.10 }
-          prox[['P1 frontier push: +10% in the top 2 places of each frontier group']] <- a1
-          a1 <- a0; for (g in seq_len(S)) { m <- median(a0[, g]); lo <- a0[, g] < m; a1[lo, g] <- a0[lo, g] + 0.5 * (m - a0[lo, g]) }
-          prox[['P2 long tail: places below the median close half the gap, every group']] <- a1
-          a1 <- a0; a1[, upstream] <- a1[, upstream] * (1 + mf_shock); prox[['P3 upstream: +5% in the business-to-business groups']] <- a1
-          a1 <- a0; a1[, local_g] <- a1[, local_g] * (1 + mf_shock); prox[['P4 local services: +5% in retail, hospitality, personal']] <- a1
-          for (nm in names(prox)) {
-            a1 <- prox[[nm]]; sp1 <- mk(a1)
-            hp <- sum(s0$rev * log(a1 / a0)) / o0$national$gdp
-            rows[[length(rows) + 1]] <- res(sp1, mf_solve(sp1, start = s0), nm, hulten_pred = hp) %>%
-              mutate(points = sum(s0$Ls * log(a1 / a0)) / sum(s0$Ls))
-          }
-          ts7 <- cal$t_s; ts7[local_g] <- 1.7
-          sp7 <- mf_spec(mf_N, S, a0, ts7, gL = cal$gL, gT = cal$gT, G = cal$G, gC = cal$gC, gM = cal$gM, alpha = cal$alpha,
-                         beta0 = cal$beta0, beta_s = cal$beta_s, phi = phi, mobility = mob, q_fixed = q0)
-          rows[[length(rows) + 1]] <- res(sp7, mf_solve(sp7, start = s0), 'P7 lower trade costs for local services (t 2.0 to 1.7)')
-          sp9 <- mk(a0, eta = 3)
-          s9 <- mf_solve(sp9, start = s0)
-          rows[[length(rows) + 1]] <- res(sp9, s9, 'P9 more elastic land (eta 1 to 3)')
-          a1 <- a0; a1[, local_g] <- a1[, local_g] * (1 + mf_shock)
-          # P4 under elastic land, measured against the elastic-land baseline
-          sp49 <- mk(a1, eta = 3); s49 <- mf_solve(sp49, start = s9)
-          o9 <- mf_outcomes(s9, sp9); o49 <- mf_outcomes(s49, sp49)
-          rows[[length(rows) + 1]] <- tibble(experiment = 'P4 with P9: local services +5%, land eta 3', mobility = mob, supply_chains = TRUE,
-                                             seed = seed, converged = s49$converged,
-                                             d_welfare = log(wel(o49)) - log(wel(o9)),
-                                             land_share = (o49$national$rent_total - o9$national$rent_total) /
-                                               ((o49$national$wage_bill + o49$national$rent_total) - (o9$national$wage_bill + o9$national$rent_total)))
-        }
-        out[[paste(mob, chains)]] <- bind_rows(rows) %>% mutate(lag_place = lag)
-      }
-    }
-    bind_rows(out)
-  }
-  runs <- bind_rows(lapply(seq_len(mf_R), function(r) one_draw(100 + r)))
+  # EXPERIMENTS ---- (mf_run_draw() in functions_modelF.R; draws, mobility settings and supply chains in parallel)
+  dem <- list(phi = phi, q0 = q0, P_ref = NULL, eps_c = 1, eps_i = 1, sigma_x = NULL)
+  tasks <- expand_grid(seed = 100 + seq_len(mf_R), mob = c('frechet', 'immobile'), chains = c(TRUE, FALSE))
+  runs <- bind_rows(parallel::mclapply(seq_len(nrow(tasks)), function(k)
+    mf_run_draw(cal, dem, tasks$seed[k], tasks$mob[k], tasks$chains[k], N = mf_N, shock = mf_shock),
+    mc.cores = min(nrow(tasks), max(1, parallel::detectCores() - 2))))
   checks <- bind_rows(checks, tibble(check = 'Largest trade imbalance in any run (share of income; zero by Walras with fixed foreign demand)',
                                      value = max(abs(runs$trade_gap), na.rm = TRUE)))
   list(cal = cal, phi = phi, q0 = q0, checks = checks, hulten = hulten, runs = runs,

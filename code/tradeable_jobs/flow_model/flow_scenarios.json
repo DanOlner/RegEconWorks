@@ -1,0 +1,418 @@
+{
+ "shockPeriod": 5,
+ "lastPeriod": 40,
+ "experiments": [
+  {
+   "id": "E1",
+   "title": "Cupertino: offshore the IP",
+   "scenario": {
+    "name": "E1 Cupertino: offshore the IP",
+    "description": "C.HQ pays a royalty of 25% of its revenue to the offshore IP holder, which pays it all out as dividends.",
+    "changes": [
+     {
+      "period": 5,
+      "path": [
+       "royalty",
+       "rate"
+      ],
+      "set": 0.25
+     }
+    ]
+   }
+  },
+  {
+   "id": "E1b",
+   "title": "Cupertino, with the cash held offshore",
+   "scenario": {
+    "name": "E1b Cupertino, with the cash held offshore",
+    "description": "As E1, but the IP holder keeps the royalties offshore instead of paying dividends (ρ_IP = 0).",
+    "changes": [
+     {
+      "period": 5,
+      "path": [
+       "royalty",
+       "rate"
+      ],
+      "set": 0.25
+     },
+     {
+      "period": 5,
+      "path": [
+       "royalty",
+       "payout"
+      ],
+      "set": 0
+     }
+    ]
+   }
+  },
+  {
+   "id": "E2",
+   "title": "Supermarket squeeze",
+   "scenario": {
+    "name": "E2 Supermarket squeeze",
+    "description": "Markups fall for farms (0.538 → 0.40) and food processing (0.220 → 0.10), and rise for retail (0.25 → 0.28).",
+    "changes": [
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "R.AGR",
+       "markup"
+      ],
+      "set": 0.4
+     },
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "M.FOD",
+       "markup"
+      ],
+      "set": 0.1
+     },
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "C.RET",
+       "markup"
+      ],
+      "set": 0.28
+     },
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "M.RET",
+       "markup"
+      ],
+      "set": 0.28
+     },
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "R.RET",
+       "markup"
+      ],
+      "set": 0.28
+     }
+    ]
+   }
+  },
+  {
+   "id": "E3",
+   "title": "Austerity in providential services",
+   "scenario": {
+    "name": "E3 Austerity in providential services",
+    "description": "Public-service provision per resident falls 10% in every place.",
+    "changes": [
+     {
+      "period": 5,
+      "path": [
+       "government",
+       "provisionMultiplier",
+       "C"
+      ],
+      "scale": 0.9
+     },
+     {
+      "period": 5,
+      "path": [
+       "government",
+       "provisionMultiplier",
+       "M"
+      ],
+      "scale": 0.9
+     },
+     {
+      "period": 5,
+      "path": [
+       "government",
+       "provisionMultiplier",
+       "R"
+      ],
+      "scale": 0.9
+     }
+    ]
+   }
+  },
+  {
+   "id": "E4",
+   "title": "Overseas takeover",
+   "scenario": {
+    "name": "E4 Overseas takeover",
+    "description": "CompCo and FoodCo pass to overseas owners: ownership becomes C 0.05, M 0.05, R 0, W 0.90.",
+    "changes": [
+     {
+      "period": 5,
+      "path": [
+       "firms",
+       "CompCo",
+       "owners"
+      ],
+      "set": {
+       "C": 0.05,
+       "M": 0.05,
+       "R": 0,
+       "W": 0.9
+      }
+     },
+     {
+      "period": 5,
+      "path": [
+       "firms",
+       "FoodCo",
+       "owners"
+      ],
+      "set": {
+       "C": 0.05,
+       "M": 0.05,
+       "R": 0,
+       "W": 0.9
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "E5",
+   "title": "City rents up 30%",
+   "scenario": {
+    "name": "E5 City rents up 30%",
+    "description": "The fixed price of city housing rises 30%.",
+    "changes": [
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "C.HSG",
+       "fixedPrice"
+      ],
+      "scale": 1.3
+     }
+    ]
+   }
+  },
+  {
+   "id": "E6",
+   "title": "Export slump",
+   "scenario": {
+    "name": "E6 Export slump",
+    "description": "All export quantities fall 20%.",
+    "changes": [
+     {
+      "period": 5,
+      "path": [
+       "exports",
+       "total"
+      ],
+      "scale": 0.8
+     }
+    ]
+   }
+  },
+  {
+   "id": "E7",
+   "title": "Local procurement (Preston-style)",
+   "scenario": {
+    "name": "E7 Local procurement (Preston-style)",
+    "description": "Each place's public services buy 0.04 less imported goods per unit, and 0.02 more each from local retail and local utilities.",
+    "changes": [
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "C.PRV",
+       "inputs",
+       "W.GEN"
+      ],
+      "add": -0.04
+     },
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "C.PRV",
+       "inputs",
+       "C.RET"
+      ],
+      "add": 0.02
+     },
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "C.PRV",
+       "inputs",
+       "C.UTL"
+      ],
+      "add": 0.02
+     },
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "M.PRV",
+       "inputs",
+       "W.GEN"
+      ],
+      "add": -0.04
+     },
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "M.PRV",
+       "inputs",
+       "M.RET"
+      ],
+      "add": 0.02
+     },
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "M.PRV",
+       "inputs",
+       "M.UTL"
+      ],
+      "add": 0.02
+     },
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "R.PRV",
+       "inputs",
+       "W.GEN"
+      ],
+      "add": -0.04
+     },
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "R.PRV",
+       "inputs",
+       "R.RET"
+      ],
+      "add": 0.02
+     },
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "R.PRV",
+       "inputs",
+       "R.UTL"
+      ],
+      "add": 0.02
+     }
+    ]
+   }
+  },
+  {
+   "id": "E8",
+   "title": "Providential \"efficiency\"",
+   "scenario": {
+    "name": "E8 Providential \"efficiency\"",
+    "description": "Public-service jobs per unit fall 10%, with service quantities and quality unchanged.",
+    "changes": [
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "C.PRV",
+       "jobsPerUnit"
+      ],
+      "scale": 0.9
+     },
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "M.PRV",
+       "jobsPerUnit"
+      ],
+      "scale": 0.9
+     },
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "R.PRV",
+       "jobsPerUnit"
+      ],
+      "scale": 0.9
+     }
+    ]
+   }
+  },
+  {
+   "id": "E8b",
+   "title": "Providential \"efficiency\", with quality down 10%",
+   "scenario": {
+    "name": "E8b Providential \"efficiency\", with quality down 10%",
+    "description": "As E8, and the quality of public services also falls 10%.",
+    "changes": [
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "C.PRV",
+       "jobsPerUnit"
+      ],
+      "scale": 0.9
+     },
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "M.PRV",
+       "jobsPerUnit"
+      ],
+      "scale": 0.9
+     },
+     {
+      "period": 5,
+      "path": [
+       "producers",
+       "R.PRV",
+       "jobsPerUnit"
+      ],
+      "scale": 0.9
+     },
+     {
+      "period": 5,
+      "path": [
+       "government",
+       "quality",
+       "C"
+      ],
+      "scale": 0.9
+     },
+     {
+      "period": 5,
+      "path": [
+       "government",
+       "quality",
+       "M"
+      ],
+      "scale": 0.9
+     },
+     {
+      "period": 5,
+      "path": [
+       "government",
+       "quality",
+       "R"
+      ],
+      "scale": 0.9
+     }
+    ]
+   }
+  }
+ ]
+}
